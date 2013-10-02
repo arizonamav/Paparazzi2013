@@ -1,0 +1,35 @@
+<settings>
+  <rc_settings/>
+  <dl_settings>
+    <dl_settings name="Telemetry">
+      <dl_setting min="0" step="1" max="2" var="telemetry_mode_Ap" shortname="Ap" values="default|minimal|extremal"/>
+      <dl_setting min="0" step="1" max="1" var="telemetry_mode_Fbw" shortname="Fbw" values="default|debug"/>
+    </dl_settings>
+    <dl_settings name="flight params">
+      <dl_setting step="10" shortname="altitude" min="0" var="flight_altitude" max="1000"/>
+      <dl_setting step="1" min="0" var="nav_course" max="360"/>
+      <dl_setting step="5" handler="IncreaseShift" shortname="inc. shift" module="subsystems/nav" min="-10" var="nav_shift" max="10"/>
+      <dl_setting step="1" handler="ResetFlightTimeAndLaunch" shortname="flight time" module="autopilot" min="0" var="estimator_flight_time" max="0"/>
+      <dl_setting step="10" handler="SetNavRadius" module="subsystems/nav" min="-200" var="nav_radius" max="200">
+        <strip_button name="Circle right" value="1" icon="circle-right.png"/>
+        <strip_button name="Circle left" value="-1" icon="circle-left.png"/>
+        <key_press key="greater" value="1"/>
+        <key_press key="less" value="-1"/>
+      </dl_setting>
+    </dl_settings>
+    <dl_settings name="mode">
+      <dl_setting step="1" module="autopilot" min="0" var="pprz_mode" values="MANUAL|AUTO1|AUTO2|HOME|NOGPS|FAILSAFE" max="2"/>
+      <dl_setting step="1" min="0" var="launch" max="1"/>
+      <dl_setting step="1" min="0" var="kill_throttle" max="1"/>
+      <dl_setting step="1" handler="Reset" shortname="GPS reset" module="subsystems/gps" min="0" var="gps.reset" max="2"/>
+    </dl_settings>
+    <dl_settings name="Infrared">
+      <dl_setting step="0.5" param="IR_ROLL_NEUTRAL_DEFAULT" alt_unit="deg" shortname="roll neutral" module="subsystems/sensors/infrared" unit="rad" min="-15" var="infrared.roll_neutral" max="15"/>
+      <dl_setting step="0.5" param="IR_PITCH_NEUTRAL_DEFAULT" alt_unit="deg" shortname="pitch neutral" module="subsystems/sensors/infrared" unit="rad" min="-15" var="infrared.pitch_neutral" max="15"/>
+    </dl_settings>
+    <dl_settings name="Modules">
+      <dl_setting min="2" max="3" step="1" var="openlog_periodic_2Hz_openlog_status" shortname="periodic_2Hz_openlog" values="START|STOP"/>
+      <dl_setting min="2" max="3" step="1" var="digital_cam_servo_servo_cam_ctrl_periodic_status" shortname="servo_cam_ctrl_periodic" values="START|STOP"/>
+    </dl_settings>
+  </dl_settings>
+</settings>

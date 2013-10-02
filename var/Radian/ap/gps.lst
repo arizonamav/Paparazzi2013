@@ -1,0 +1,117 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 18, 4
+  12              		.thumb
+  13              		.file	"gps.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.gps_init,"ax",%progbits
+  18              		.align	1
+  19              		.global	gps_init
+  20              		.thumb
+  21              		.thumb_func
+  23              	gps_init:
+  24              	.LFB25:
+  25              		.file 1 "subsystems/gps.c"
+   1:subsystems/gps.c **** /*
+   2:subsystems/gps.c ****  * Copyright (C) 2008-2011 The Paparazzi Team
+   3:subsystems/gps.c ****  *
+   4:subsystems/gps.c ****  * This file is part of paparazzi.
+   5:subsystems/gps.c ****  *
+   6:subsystems/gps.c ****  * paparazzi is free software; you can redistribute it and/or modify
+   7:subsystems/gps.c ****  * it under the terms of the GNU General Public License as published by
+   8:subsystems/gps.c ****  * the Free Software Foundation; either version 2, or (at your option)
+   9:subsystems/gps.c ****  * any later version.
+  10:subsystems/gps.c ****  *
+  11:subsystems/gps.c ****  * paparazzi is distributed in the hope that it will be useful,
+  12:subsystems/gps.c ****  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  13:subsystems/gps.c ****  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  14:subsystems/gps.c ****  * GNU General Public License for more details.
+  15:subsystems/gps.c ****  *
+  16:subsystems/gps.c ****  * You should have received a copy of the GNU General Public License
+  17:subsystems/gps.c ****  * along with paparazzi; see the file COPYING.  If not, write to
+  18:subsystems/gps.c ****  * the Free Software Foundation, 59 Temple Place - Suite 330,
+  19:subsystems/gps.c ****  * Boston, MA 02111-1307, USA.
+  20:subsystems/gps.c ****  */
+  21:subsystems/gps.c **** 
+  22:subsystems/gps.c **** /** @file gps.c
+  23:subsystems/gps.c ****  *  @brief Device independent GPS code
+  24:subsystems/gps.c ****  *
+  25:subsystems/gps.c ****  */
+  26:subsystems/gps.c **** 
+  27:subsystems/gps.c **** #include "subsystems/gps.h"
+  28:subsystems/gps.c **** 
+  29:subsystems/gps.c **** #include "led.h"
+  30:subsystems/gps.c **** 
+  31:subsystems/gps.c **** struct GpsState gps;
+  32:subsystems/gps.c **** 
+  33:subsystems/gps.c **** #ifdef GPS_TIMESTAMP
+  34:subsystems/gps.c **** struct GpsTimeSync gps_time;
+  35:subsystems/gps.c **** #endif
+  36:subsystems/gps.c **** 
+  37:subsystems/gps.c **** void gps_init(void) {
+  26              		.loc 1 37 0
+  27              		.cfi_startproc
+  28              		@ args = 0, pretend = 0, frame = 0
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  30              		@ link register save eliminated.
+  38:subsystems/gps.c ****   gps.fix = GPS_FIX_NONE;
+  31              		.loc 1 38 0
+  32 0000 034B     		ldr	r3, .L2
+  33 0002 0022     		movs	r2, #0
+  34 0004 83F85B20 		strb	r2, [r3, #91]
+  39:subsystems/gps.c ****   gps.cacc = 0;
+  35              		.loc 1 39 0
+  36 0008 5A65     		str	r2, [r3, #84]
+  40:subsystems/gps.c **** #ifdef GPS_LED
+  41:subsystems/gps.c ****   LED_OFF(GPS_LED);
+  42:subsystems/gps.c **** #endif
+  43:subsystems/gps.c **** #ifdef GPS_TYPE_H
+  44:subsystems/gps.c ****   gps_impl_init();
+  45:subsystems/gps.c **** #endif
+  46:subsystems/gps.c **** }
+  37              		.loc 1 46 0
+  44:subsystems/gps.c ****   gps_impl_init();
+  38              		.loc 1 44 0
+  39 000a FFF7FEBF 		b	gps_impl_init
+  40              	.L3:
+  41 000e 00BF     		.align	2
+  42              	.L2:
+  43 0010 00000000 		.word	.LANCHOR0
+  44              		.cfi_endproc
+  45              	.LFE25:
+  47              		.global	gps
+  48              		.section	.bss.gps,"aw",%nobits
+  49              		.align	2
+  50              		.set	.LANCHOR0,. + 0
+  53              	gps:
+  54 0000 00000000 		.space	244
+  54      00000000 
+  54      00000000 
+  54      00000000 
+  54      00000000 
+  55              		.text
+  56              	.Letext0:
+  57              		.file 2 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+  58              		.file 3 "./math/pprz_geodetic_int.h"
+  59              		.file 4 "./subsystems/gps.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 gps.c
+     /tmp/cc0FPeSw.s:18     .text.gps_init:00000000 $t
+     /tmp/cc0FPeSw.s:23     .text.gps_init:00000000 gps_init
+     /tmp/cc0FPeSw.s:43     .text.gps_init:00000010 $d
+     /tmp/cc0FPeSw.s:53     .bss.gps:00000000 gps
+     /tmp/cc0FPeSw.s:49     .bss.gps:00000000 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+gps_impl_init

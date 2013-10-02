@@ -1,0 +1,117 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 18, 4
+  12              		.thumb
+  13              		.file	"main.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.startup.main,"ax",%progbits
+  18              		.align	1
+  19              		.global	main
+  20              		.thumb
+  21              		.thumb_func
+  23              	main:
+  24              	.LFB0:
+  25              		.file 1 "firmwares/fixedwing/main.c"
+   1:firmwares/fixedwing/main.c **** /*
+   2:firmwares/fixedwing/main.c ****  * Paparazzi $Id$
+   3:firmwares/fixedwing/main.c ****  *
+   4:firmwares/fixedwing/main.c ****  * Copyright (C) 2005 Pascal Brisset, Antoine Drouin
+   5:firmwares/fixedwing/main.c ****  *
+   6:firmwares/fixedwing/main.c ****  * This file is part of paparazzi.
+   7:firmwares/fixedwing/main.c ****  *
+   8:firmwares/fixedwing/main.c ****  * paparazzi is free software; you can redistribute it and/or modify
+   9:firmwares/fixedwing/main.c ****  * it under the terms of the GNU General Public License as published by
+  10:firmwares/fixedwing/main.c ****  * the Free Software Foundation; either version 2, or (at your option)
+  11:firmwares/fixedwing/main.c ****  * any later version.
+  12:firmwares/fixedwing/main.c ****  *
+  13:firmwares/fixedwing/main.c ****  * paparazzi is distributed in the hope that it will be useful,
+  14:firmwares/fixedwing/main.c ****  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  15:firmwares/fixedwing/main.c ****  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  16:firmwares/fixedwing/main.c ****  * GNU General Public License for more details.
+  17:firmwares/fixedwing/main.c ****  *
+  18:firmwares/fixedwing/main.c ****  * You should have received a copy of the GNU General Public License
+  19:firmwares/fixedwing/main.c ****  * along with paparazzi; see the file COPYING.  If not, write to
+  20:firmwares/fixedwing/main.c ****  * the Free Software Foundation, 59 Temple Place - Suite 330,
+  21:firmwares/fixedwing/main.c ****  * Boston, MA 02111-1307, USA.
+  22:firmwares/fixedwing/main.c ****  *
+  23:firmwares/fixedwing/main.c ****  */
+  24:firmwares/fixedwing/main.c **** 
+  25:firmwares/fixedwing/main.c **** /**
+  26:firmwares/fixedwing/main.c ****  * @file main.c
+  27:firmwares/fixedwing/main.c ****  * Main loop used both on single and dual MCU configuration.
+  28:firmwares/fixedwing/main.c ****  */
+  29:firmwares/fixedwing/main.c **** 
+  30:firmwares/fixedwing/main.c **** 
+  31:firmwares/fixedwing/main.c **** #ifdef FBW
+  32:firmwares/fixedwing/main.c **** #include "firmwares/fixedwing/main_fbw.h"
+  33:firmwares/fixedwing/main.c **** #define Fbw(f) f ## _fbw()
+  34:firmwares/fixedwing/main.c **** #else
+  35:firmwares/fixedwing/main.c **** #define Fbw(f)
+  36:firmwares/fixedwing/main.c **** #endif
+  37:firmwares/fixedwing/main.c **** 
+  38:firmwares/fixedwing/main.c **** #ifdef AP
+  39:firmwares/fixedwing/main.c **** #include "firmwares/fixedwing/main_ap.h"
+  40:firmwares/fixedwing/main.c **** #define Ap(f) f ## _ap()
+  41:firmwares/fixedwing/main.c **** #else
+  42:firmwares/fixedwing/main.c **** #define Ap(f)
+  43:firmwares/fixedwing/main.c **** #endif
+  44:firmwares/fixedwing/main.c **** 
+  45:firmwares/fixedwing/main.c **** int main( void ) {
+  26              		.loc 1 45 0
+  27              		.cfi_startproc
+  28              		@ Volatile: function does not return.
+  29              		@ args = 0, pretend = 0, frame = 0
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31 0000 08B5     		push	{r3, lr}
+  32              	.LCFI0:
+  33              		.cfi_def_cfa_offset 8
+  34              		.cfi_offset 14, -4
+  35              		.cfi_offset 3, -8
+  46:firmwares/fixedwing/main.c ****   Fbw(init);
+  36              		.loc 1 46 0
+  37 0002 FFF7FEFF 		bl	init_fbw
+  47:firmwares/fixedwing/main.c ****   Ap(init);
+  38              		.loc 1 47 0
+  39 0006 FFF7FEFF 		bl	init_ap
+  40              	.L2:
+  48:firmwares/fixedwing/main.c ****   while (1) {
+  49:firmwares/fixedwing/main.c ****     Fbw(handle_periodic_tasks);
+  41              		.loc 1 49 0 discriminator 1
+  42 000a FFF7FEFF 		bl	handle_periodic_tasks_fbw
+  50:firmwares/fixedwing/main.c ****     Ap(handle_periodic_tasks);
+  43              		.loc 1 50 0 discriminator 1
+  44 000e FFF7FEFF 		bl	handle_periodic_tasks_ap
+  51:firmwares/fixedwing/main.c ****     Fbw(event_task);
+  45              		.loc 1 51 0 discriminator 1
+  46 0012 FFF7FEFF 		bl	event_task_fbw
+  52:firmwares/fixedwing/main.c ****     Ap(event_task);
+  47              		.loc 1 52 0 discriminator 1
+  48 0016 FFF7FEFF 		bl	event_task_ap
+  49 001a F6E7     		b	.L2
+  50              		.cfi_endproc
+  51              	.LFE0:
+  53              		.text
+  54              	.Letext0:
+DEFINED SYMBOLS
+                            *ABS*:00000000 main.c
+     /tmp/cc69DoBh.s:18     .text.startup.main:00000000 $t
+     /tmp/cc69DoBh.s:23     .text.startup.main:00000000 main
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+init_fbw
+init_ap
+handle_periodic_tasks_fbw
+handle_periodic_tasks_ap
+event_task_fbw
+event_task_ap

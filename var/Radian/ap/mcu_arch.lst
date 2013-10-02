@@ -1,0 +1,148 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 18, 4
+  12              		.thumb
+  13              		.file	"mcu_arch.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.mcu_arch_init,"ax",%progbits
+  18              		.align	1
+  19              		.global	mcu_arch_init
+  20              		.thumb
+  21              		.thumb_func
+  23              	mcu_arch_init:
+  24              	.LFB24:
+  25              		.file 1 "arch/stm32/mcu_arch.c"
+   1:arch/stm32/mcu_arch.c **** /*
+   2:arch/stm32/mcu_arch.c ****  * Paparazzi stm32 arch dependant microcontroller initialisation function
+   3:arch/stm32/mcu_arch.c ****  *
+   4:arch/stm32/mcu_arch.c ****  * Copyright (C) 2010 The Paparazzi team
+   5:arch/stm32/mcu_arch.c ****  *
+   6:arch/stm32/mcu_arch.c ****  * This file is part of Paparazzi.
+   7:arch/stm32/mcu_arch.c ****  *
+   8:arch/stm32/mcu_arch.c ****  * Paparazzi is free software; you can redistribute it and/or modify
+   9:arch/stm32/mcu_arch.c ****  * it under the terms of the GNU General Public License as published by
+  10:arch/stm32/mcu_arch.c ****  * the Free Software Foundation; either version 2, or (at your option)
+  11:arch/stm32/mcu_arch.c ****  * any later version.
+  12:arch/stm32/mcu_arch.c ****  *
+  13:arch/stm32/mcu_arch.c ****  * Paparazzi is distributed in the hope that it will be useful,
+  14:arch/stm32/mcu_arch.c ****  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  15:arch/stm32/mcu_arch.c ****  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  16:arch/stm32/mcu_arch.c ****  * GNU General Public License for more details.
+  17:arch/stm32/mcu_arch.c ****  *
+  18:arch/stm32/mcu_arch.c ****  * You should have received a copy of the GNU General Public License
+  19:arch/stm32/mcu_arch.c ****  * along with Paparazzi; see the file COPYING.  If not, write to
+  20:arch/stm32/mcu_arch.c ****  * the Free Software Foundation, 59 Temple Place - Suite 330,
+  21:arch/stm32/mcu_arch.c ****  * Boston, MA 02111-1307, USA.
+  22:arch/stm32/mcu_arch.c ****  *
+  23:arch/stm32/mcu_arch.c ****  */
+  24:arch/stm32/mcu_arch.c **** 
+  25:arch/stm32/mcu_arch.c **** #include "mcu.h"
+  26:arch/stm32/mcu_arch.c **** 
+  27:arch/stm32/mcu_arch.c **** #include BOARD_CONFIG
+  28:arch/stm32/mcu_arch.c **** 
+  29:arch/stm32/mcu_arch.c **** #include <inttypes.h>
+  30:arch/stm32/mcu_arch.c **** #include <stm32/gpio.h>
+  31:arch/stm32/mcu_arch.c **** #include <stm32/rcc.h>
+  32:arch/stm32/mcu_arch.c **** #include <stm32/flash.h>
+  33:arch/stm32/mcu_arch.c **** #include <stm32/misc.h>
+  34:arch/stm32/mcu_arch.c **** #if USE_OPENCM3
+  35:arch/stm32/mcu_arch.c **** #	if defined(STM32F1) || defined(STM32F2) || defined(STM32F4)
+  36:arch/stm32/mcu_arch.c **** #		include <libopencm3/stm32/f1/rcc.h>
+  37:arch/stm32/mcu_arch.c **** #	else
+  38:arch/stm32/mcu_arch.c **** #		include <libopencm3/stm32/rcc.h>
+  39:arch/stm32/mcu_arch.c **** #	endif
+  40:arch/stm32/mcu_arch.c **** #endif
+  41:arch/stm32/mcu_arch.c **** 
+  42:arch/stm32/mcu_arch.c **** 
+  43:arch/stm32/mcu_arch.c **** void mcu_arch_init(void) {
+  26              		.loc 1 43 0
+  27              		.cfi_startproc
+  28              		@ args = 0, pretend = 0, frame = 0
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  30              		@ link register save eliminated.
+  44:arch/stm32/mcu_arch.c **** #if USE_OPENCM3
+  45:arch/stm32/mcu_arch.c ****   rcc_clock_setup_in_hse_12mhz_out_72mhz();
+  46:arch/stm32/mcu_arch.c ****   /* Don't mess around with this as the address is set by luftboot. Otherwise the default should be
+  47:arch/stm32/mcu_arch.c ****   /*NVIC_SetVectorTable(NVIC_VectTab_FLASH, 0x0);*/
+  48:arch/stm32/mcu_arch.c ****   return;
+  49:arch/stm32/mcu_arch.c **** #else // !USE_OPENCM3
+  50:arch/stm32/mcu_arch.c **** #ifdef HSE_TYPE_EXT_CLK
+  51:arch/stm32/mcu_arch.c **** #pragma message "Using external clock."
+  52:arch/stm32/mcu_arch.c ****   /* Setup the microcontroller system.
+  53:arch/stm32/mcu_arch.c ****    *  Initialize the Embedded Flash Interface,
+  54:arch/stm32/mcu_arch.c ****    *  initialize the PLL and update the SystemFrequency variable.
+  55:arch/stm32/mcu_arch.c ****    */
+  56:arch/stm32/mcu_arch.c ****   /* RCC system reset(for debug purpose) */
+  57:arch/stm32/mcu_arch.c ****   RCC_DeInit();
+  58:arch/stm32/mcu_arch.c ****   /* Enable HSE with external clock ( HSE_Bypass ) */
+  59:arch/stm32/mcu_arch.c ****   RCC_HSEConfig( STM32_RCC_MODE );
+  60:arch/stm32/mcu_arch.c ****   /* Wait till HSE is ready */
+  61:arch/stm32/mcu_arch.c ****   ErrorStatus HSEStartUpStatus = RCC_WaitForHSEStartUp();
+  62:arch/stm32/mcu_arch.c ****   if (HSEStartUpStatus != SUCCESS) {
+  63:arch/stm32/mcu_arch.c ****     /* block if something went wrong */
+  64:arch/stm32/mcu_arch.c ****     while(1) {}
+  65:arch/stm32/mcu_arch.c ****   }
+  66:arch/stm32/mcu_arch.c ****   else {
+  67:arch/stm32/mcu_arch.c ****     /* Enable Prefetch Buffer */
+  68:arch/stm32/mcu_arch.c ****     FLASH_PrefetchBufferCmd(FLASH_PrefetchBuffer_Enable);
+  69:arch/stm32/mcu_arch.c ****     /* Flash 2 wait state */
+  70:arch/stm32/mcu_arch.c ****     FLASH_SetLatency(FLASH_Latency_2);
+  71:arch/stm32/mcu_arch.c ****     /* HCLK = SYSCLK */
+  72:arch/stm32/mcu_arch.c ****     RCC_HCLKConfig(RCC_SYSCLK_Div1);
+  73:arch/stm32/mcu_arch.c ****     /* PCLK2 = HCLK */
+  74:arch/stm32/mcu_arch.c ****     RCC_PCLK2Config(RCC_HCLK_Div1);
+  75:arch/stm32/mcu_arch.c ****     /* PCLK1 = HCLK/2 */
+  76:arch/stm32/mcu_arch.c ****     RCC_PCLK1Config(RCC_HCLK_Div2);
+  77:arch/stm32/mcu_arch.c ****     /* PLLCLK = 8MHz * 9 = 72 MHz */
+  78:arch/stm32/mcu_arch.c ****     RCC_PLLConfig(RCC_PLLSource_HSE_Div1, STM32_PLL_MULT);
+  79:arch/stm32/mcu_arch.c ****     /* Enable PLL */
+  80:arch/stm32/mcu_arch.c ****     RCC_PLLCmd(ENABLE);
+  81:arch/stm32/mcu_arch.c ****     /* Wait till PLL is ready */
+  82:arch/stm32/mcu_arch.c ****     while (RCC_GetFlagStatus(RCC_FLAG_PLLRDY) == RESET) {}
+  83:arch/stm32/mcu_arch.c ****     /* Select PLL as system clock source */
+  84:arch/stm32/mcu_arch.c ****     RCC_SYSCLKConfig(RCC_SYSCLKSource_PLLCLK);
+  85:arch/stm32/mcu_arch.c ****     /* Wait till PLL is used as system clock source */
+  86:arch/stm32/mcu_arch.c ****     while(RCC_GetSYSCLKSource() != 0x08) {}
+  87:arch/stm32/mcu_arch.c ****   }
+  88:arch/stm32/mcu_arch.c **** #else  /* HSE_TYPE_EXT_CLK */
+  89:arch/stm32/mcu_arch.c **** #pragma message "Using normal system clock setup."
+  90:arch/stm32/mcu_arch.c ****   SystemInit();
+  91:arch/stm32/mcu_arch.c **** #endif /* HSE_TYPE_EXT_CLK */
+  92:arch/stm32/mcu_arch.c ****   /* Set the Vector Table base location at 0x08000000 */
+  93:arch/stm32/mcu_arch.c ****   /* Don't mess around with this as the address is set by luftboot. Otherwise the default should be
+  94:arch/stm32/mcu_arch.c ****   /*NVIC_SetVectorTable(NVIC_VectTab_FLASH, 0x0);*/
+  95:arch/stm32/mcu_arch.c **** 
+  96:arch/stm32/mcu_arch.c **** #ifdef STM32_FORCE_ALL_CLOCK_ON
+  97:arch/stm32/mcu_arch.c ****   RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB |
+  98:arch/stm32/mcu_arch.c ****                          RCC_APB2Periph_GPIOC | RCC_APB2Periph_GPIOD |
+  99:arch/stm32/mcu_arch.c ****                          RCC_APB2Periph_GPIOE | RCC_APB2Periph_AFIO, ENABLE);
+ 100:arch/stm32/mcu_arch.c **** #endif
+ 101:arch/stm32/mcu_arch.c **** 
+ 102:arch/stm32/mcu_arch.c **** #endif // USE_OPENCM3
+ 103:arch/stm32/mcu_arch.c **** }
+  31              		.loc 1 103 0
+  45:arch/stm32/mcu_arch.c ****   rcc_clock_setup_in_hse_12mhz_out_72mhz();
+  32              		.loc 1 45 0
+  33 0000 FFF7FEBF 		b	rcc_clock_setup_in_hse_12mhz_out_72mhz
+  34              		.cfi_endproc
+  35              	.LFE24:
+  37              		.text
+  38              	.Letext0:
+DEFINED SYMBOLS
+                            *ABS*:00000000 mcu_arch.c
+     /tmp/ccSLN7e4.s:18     .text.mcu_arch_init:00000000 $t
+     /tmp/ccSLN7e4.s:23     .text.mcu_arch_init:00000000 mcu_arch_init
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+rcc_clock_setup_in_hse_12mhz_out_72mhz

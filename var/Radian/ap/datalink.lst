@@ -1,0 +1,2165 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 18, 4
+  12              		.thumb
+  13              		.file	"datalink.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.global	__aeabi_i2f
+  18              		.global	__aeabi_fdiv
+  19              		.global	__aeabi_fsub
+  20              		.global	__aeabi_f2d
+  21              		.global	__aeabi_ddiv
+  22              		.global	__aeabi_dmul
+  23              		.global	__aeabi_d2f
+  24              		.global	__aeabi_ui2f
+  25              		.global	__aeabi_i2d
+  26              		.global	__aeabi_fadd
+  27              		.global	__aeabi_d2uiz
+  28              		.global	__aeabi_f2uiz
+  29              		.global	__aeabi_fcmpeq
+  30              		.section	.text.dl_parse_msg,"ax",%progbits
+  31              		.align	1
+  32              		.global	dl_parse_msg
+  33              		.thumb
+  34              		.thumb_func
+  36              	dl_parse_msg:
+  37              	.LFB42:
+  38              		.file 1 "firmwares/fixedwing/datalink.c"
+   1:firmwares/fixedwing/datalink.c **** /*
+   2:firmwares/fixedwing/datalink.c ****  * $Id$
+   3:firmwares/fixedwing/datalink.c ****  *
+   4:firmwares/fixedwing/datalink.c ****  * Copyright (C) 2005  Pascal Brisset, Antoine Drouin
+   5:firmwares/fixedwing/datalink.c ****  *
+   6:firmwares/fixedwing/datalink.c ****  * This file is part of paparazzi.
+   7:firmwares/fixedwing/datalink.c ****  *
+   8:firmwares/fixedwing/datalink.c ****  * paparazzi is free software; you can redistribute it and/or modify
+   9:firmwares/fixedwing/datalink.c ****  * it under the terms of the GNU General Public License as published by
+  10:firmwares/fixedwing/datalink.c ****  * the Free Software Foundation; either version 2, or (at your option)
+  11:firmwares/fixedwing/datalink.c ****  * any later version.
+  12:firmwares/fixedwing/datalink.c ****  *
+  13:firmwares/fixedwing/datalink.c ****  * paparazzi is distributed in the hope that it will be useful,
+  14:firmwares/fixedwing/datalink.c ****  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  15:firmwares/fixedwing/datalink.c ****  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  16:firmwares/fixedwing/datalink.c ****  * GNU General Public License for more details.
+  17:firmwares/fixedwing/datalink.c ****  *
+  18:firmwares/fixedwing/datalink.c ****  * You should have received a copy of the GNU General Public License
+  19:firmwares/fixedwing/datalink.c ****  * along with paparazzi; see the file COPYING.  If not, write to
+  20:firmwares/fixedwing/datalink.c ****  * the Free Software Foundation, 59 Temple Place - Suite 330,
+  21:firmwares/fixedwing/datalink.c ****  * Boston, MA 02111-1307, USA.
+  22:firmwares/fixedwing/datalink.c ****  *
+  23:firmwares/fixedwing/datalink.c ****  */
+  24:firmwares/fixedwing/datalink.c **** /** \file datalink.c
+  25:firmwares/fixedwing/datalink.c ****  *  \brief Handling of messages coming from ground and other A/Cs
+  26:firmwares/fixedwing/datalink.c ****  *
+  27:firmwares/fixedwing/datalink.c ****  */
+  28:firmwares/fixedwing/datalink.c **** #define DATALINK_C
+  29:firmwares/fixedwing/datalink.c **** 
+  30:firmwares/fixedwing/datalink.c **** #define MODULES_DATALINK_C
+  31:firmwares/fixedwing/datalink.c **** 
+  32:firmwares/fixedwing/datalink.c **** #include <inttypes.h>
+  33:firmwares/fixedwing/datalink.c **** #include <string.h>
+  34:firmwares/fixedwing/datalink.c **** #include "subsystems/datalink/datalink.h"
+  35:firmwares/fixedwing/datalink.c **** 
+  36:firmwares/fixedwing/datalink.c **** #include "generated/modules.h"
+  37:firmwares/fixedwing/datalink.c **** 
+  38:firmwares/fixedwing/datalink.c **** #ifdef TRAFFIC_INFO
+  39:firmwares/fixedwing/datalink.c **** #include "subsystems/navigation/traffic_info.h"
+  40:firmwares/fixedwing/datalink.c **** #endif // TRAFFIC_INFO
+  41:firmwares/fixedwing/datalink.c **** 
+  42:firmwares/fixedwing/datalink.c **** #if defined NAV || defined WIND_INFO
+  43:firmwares/fixedwing/datalink.c **** #include "estimator.h"
+  44:firmwares/fixedwing/datalink.c **** #include "subsystems/nav.h"
+  45:firmwares/fixedwing/datalink.c **** #endif
+  46:firmwares/fixedwing/datalink.c **** 
+  47:firmwares/fixedwing/datalink.c **** #if USE_JOYSTICK
+  48:firmwares/fixedwing/datalink.c **** #include "joystick.h"
+  49:firmwares/fixedwing/datalink.c **** #endif
+  50:firmwares/fixedwing/datalink.c **** 
+  51:firmwares/fixedwing/datalink.c **** #ifdef HITL
+  52:firmwares/fixedwing/datalink.c **** #include "subsystems/gps.h"
+  53:firmwares/fixedwing/datalink.c **** #endif
+  54:firmwares/fixedwing/datalink.c **** 
+  55:firmwares/fixedwing/datalink.c **** 
+  56:firmwares/fixedwing/datalink.c **** #include "subsystems/navigation/common_nav.h"
+  57:firmwares/fixedwing/datalink.c **** #include "generated/settings.h"
+  58:firmwares/fixedwing/datalink.c **** #include "math/pprz_geodetic_float.h"
+  59:firmwares/fixedwing/datalink.c **** 
+  60:firmwares/fixedwing/datalink.c **** #ifndef DOWNLINK_DEVICE
+  61:firmwares/fixedwing/datalink.c **** #define DOWNLINK_DEVICE DOWNLINK_AP_DEVICE
+  62:firmwares/fixedwing/datalink.c **** #endif
+  63:firmwares/fixedwing/datalink.c **** #include "mcu_periph/uart.h"
+  64:firmwares/fixedwing/datalink.c **** #include "subsystems/datalink/downlink.h"
+  65:firmwares/fixedwing/datalink.c **** #include "ap_downlink.h"
+  66:firmwares/fixedwing/datalink.c **** 
+  67:firmwares/fixedwing/datalink.c **** #define MOfCm(_x) (((float)(_x))/100.)
+  68:firmwares/fixedwing/datalink.c **** 
+  69:firmwares/fixedwing/datalink.c **** #define SenderIdOfMsg(x) (x[0])
+  70:firmwares/fixedwing/datalink.c **** #define IdOfMsg(x) (x[1])
+  71:firmwares/fixedwing/datalink.c **** 
+  72:firmwares/fixedwing/datalink.c **** void dl_parse_msg(void) {
+  39              		.loc 1 72 0
+  40              		.cfi_startproc
+  41              		@ args = 0, pretend = 0, frame = 88
+  42              		@ frame_needed = 0, uses_anonymous_args = 0
+  43 0000 2DE9F04F 		push	{r4, r5, r6, r7, r8, r9, sl, fp, lr}
+  44              	.LCFI0:
+  45              		.cfi_def_cfa_offset 36
+  46              		.cfi_offset 14, -4
+  47              		.cfi_offset 11, -8
+  48              		.cfi_offset 10, -12
+  49              		.cfi_offset 9, -16
+  50              		.cfi_offset 8, -20
+  51              		.cfi_offset 7, -24
+  52              		.cfi_offset 6, -28
+  53              		.cfi_offset 5, -32
+  54              		.cfi_offset 4, -36
+  73:firmwares/fixedwing/datalink.c ****   datalink_time = 0;
+  55              		.loc 1 73 0
+  56 0004 884B     		ldr	r3, .L73+8
+  74:firmwares/fixedwing/datalink.c ****   uint8_t msg_id = IdOfMsg(dl_buffer);
+  57              		.loc 1 74 0
+  58 0006 894C     		ldr	r4, .L73+12
+  73:firmwares/fixedwing/datalink.c ****   datalink_time = 0;
+  59              		.loc 1 73 0
+  60 0008 0022     		movs	r2, #0
+  61 000a 1A80     		strh	r2, [r3, #0]	@ movhi
+  62              		.loc 1 74 0
+  63 000c 6378     		ldrb	r3, [r4, #1]	@ zero_extendqisi2
+  64              	.LVL0:
+  72:firmwares/fixedwing/datalink.c **** void dl_parse_msg(void) {
+  65              		.loc 1 72 0
+  66 000e 97B0     		sub	sp, sp, #92
+  67              	.LCFI1:
+  68              		.cfi_def_cfa_offset 128
+  75:firmwares/fixedwing/datalink.c **** #if 0 // not ready yet
+  76:firmwares/fixedwing/datalink.c ****   uint8_t sender_id = SenderIdOfMsg(dl_buffer);
+  77:firmwares/fixedwing/datalink.c **** 
+  78:firmwares/fixedwing/datalink.c ****   /* parse telemetry messages coming from other AC */
+  79:firmwares/fixedwing/datalink.c ****   if (sender_id != 0) {
+  80:firmwares/fixedwing/datalink.c ****     switch (msg_id) {
+  81:firmwares/fixedwing/datalink.c **** #ifdef TCAS
+  82:firmwares/fixedwing/datalink.c ****       case DL_TCAS_RA:
+  83:firmwares/fixedwing/datalink.c ****         {
+  84:firmwares/fixedwing/datalink.c ****           if (DL_TCAS_RESOLVE_ac_id(dl_buffer) == AC_ID && SenderIdOfMsg(dl_buffer) != AC_ID) {
+  85:firmwares/fixedwing/datalink.c ****             uint8_t ac_id_conflict = SenderIdOfMsg(dl_buffer);
+  86:firmwares/fixedwing/datalink.c ****             tcas_acs_status[the_acs_id[ac_id_conflict]].resolve = DL_TCAS_RA_resolve(dl_buffer);
+  87:firmwares/fixedwing/datalink.c ****           }
+  88:firmwares/fixedwing/datalink.c ****         }
+  89:firmwares/fixedwing/datalink.c **** #endif
+  90:firmwares/fixedwing/datalink.c ****     }
+  91:firmwares/fixedwing/datalink.c ****     return;
+  92:firmwares/fixedwing/datalink.c ****   }
+  93:firmwares/fixedwing/datalink.c **** #endif
+  94:firmwares/fixedwing/datalink.c **** 
+  95:firmwares/fixedwing/datalink.c ****   if (msg_id == DL_PING) {
+  69              		.loc 1 95 0
+  70 0010 082B     		cmp	r3, #8
+  71 0012 2BD1     		bne	.L2
+  96:firmwares/fixedwing/datalink.c ****     DOWNLINK_SEND_PONG(DefaultChannel, DefaultDevice)
+  72              		.loc 1 96 0
+  73 0014 8648     		ldr	r0, .L73+16
+  74 0016 0621     		movs	r1, #6
+  75 0018 FFF7FEFF 		bl	uart_check_free_space
+  76              	.LVL1:
+  77 001c 0028     		cmp	r0, #0
+  78 001e 00F05A85 		beq	.L50
+  79              		.loc 1 96 0 is_stmt 0 discriminator 1
+  80 0022 844B     		ldr	r3, .L73+20
+  81              	.LBB64:
+  82 0024 8248     		ldr	r0, .L73+16
+  83              	.LBE64:
+  84 0026 1A88     		ldrh	r2, [r3, #0]
+  85              	.LBB65:
+  86 0028 9921     		movs	r1, #153
+  87              	.LBE65:
+  88 002a 0632     		adds	r2, r2, #6
+  89 002c 1A80     		strh	r2, [r3, #0]	@ movhi
+  90 002e 824B     		ldr	r3, .L73+24
+  91 0030 824D     		ldr	r5, .L73+28
+  92 0032 1A88     		ldrh	r2, [r3, #0]
+  93 0034 824C     		ldr	r4, .L73+32
+  94 0036 0132     		adds	r2, r2, #1
+  95 0038 1A80     		strh	r2, [r3, #0]	@ movhi
+  96              	.LBB66:
+  97 003a FFF7FEFF 		bl	uart_transmit
+  98              	.LVL2:
+  99 003e 7C48     		ldr	r0, .L73+16
+ 100 0040 0621     		movs	r1, #6
+ 101 0042 FFF7FEFF 		bl	uart_transmit
+ 102              	.LBE66:
+ 103 0046 0723     		movs	r3, #7
+ 104 0048 2B70     		strb	r3, [r5, #0]
+ 105 004a 0D23     		movs	r3, #13
+ 106 004c 2370     		strb	r3, [r4, #0]
+ 107 004e 7848     		ldr	r0, .L73+16
+ 108 0050 0121     		movs	r1, #1
+ 109 0052 FFF7FEFF 		bl	uart_transmit
+ 110 0056 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 111 0058 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 112 005a 0333     		adds	r3, r3, #3
+ 113 005c DBB2     		uxtb	r3, r3
+ 114              	.LVL3:
+ 115 005e 2B70     		strb	r3, [r5, #0]
+ 116 0060 9B18     		adds	r3, r3, r2
+ 117              	.LVL4:
+ 118 0062 2370     		strb	r3, [r4, #0]
+ 119 0064 7248     		ldr	r0, .L73+16
+ 120 0066 0321     		movs	r1, #3
+ 121 0068 00F02CBD 		b	.L67
+ 122              	.LVL5:
+ 123              	.L2:
+  97:firmwares/fixedwing/datalink.c ****   } else
+  98:firmwares/fixedwing/datalink.c **** #ifdef TRAFFIC_INFO
+  99:firmwares/fixedwing/datalink.c ****   if (msg_id == DL_ACINFO && DL_ACINFO_ac_id(dl_buffer) != AC_ID) {
+ 124              		.loc 1 99 0 is_stmt 1
+ 125 006c 012B     		cmp	r3, #1
+ 126 006e 40F0F780 		bne	.L5
+ 127              		.loc 1 99 0 is_stmt 0 discriminator 1
+ 128 0072 237E     		ldrb	r3, [r4, #24]	@ zero_extendqisi2
+ 129              	.LVL6:
+ 130 0074 012B     		cmp	r3, #1
+ 131 0076 00F03285 		beq	.L1
+ 132              	.LVL7:
+ 133              	.LBB67:
+ 100:firmwares/fixedwing/datalink.c ****     uint8_t id = DL_ACINFO_ac_id(dl_buffer);
+ 101:firmwares/fixedwing/datalink.c ****     float ux = MOfCm(DL_ACINFO_utm_east(dl_buffer));
+ 102:firmwares/fixedwing/datalink.c ****     float uy = MOfCm(DL_ACINFO_utm_north(dl_buffer));
+ 103:firmwares/fixedwing/datalink.c ****     float a = MOfCm(DL_ACINFO_alt(dl_buffer));
+ 134              		.loc 1 103 0 is_stmt 1
+ 135 007a 94F80DA0 		ldrb	sl, [r4, #13]	@ zero_extendqisi2
+ 136 007e 257B     		ldrb	r5, [r4, #12]	@ zero_extendqisi2
+ 137 0080 CDF808A0 		str	sl, [sp, #8]
+ 138 0084 94F80FA0 		ldrb	sl, [r4, #15]	@ zero_extendqisi2
+ 139 0088 0195     		str	r5, [sp, #4]
+ 140 008a CDF810A0 		str	sl, [sp, #16]
+ 104:firmwares/fixedwing/datalink.c ****     float c = RadOfDeg(((float)DL_ACINFO_course(dl_buffer))/ 10.);
+ 105:firmwares/fixedwing/datalink.c ****     float s = MOfCm(DL_ACINFO_speed(dl_buffer));
+ 141              		.loc 1 105 0
+ 142 008e 94F814A0 		ldrb	sl, [r4, #20]	@ zero_extendqisi2
+ 103:firmwares/fixedwing/datalink.c ****     float a = MOfCm(DL_ACINFO_alt(dl_buffer));
+ 143              		.loc 1 103 0
+ 144 0092 A57B     		ldrb	r5, [r4, #14]	@ zero_extendqisi2
+ 145              		.loc 1 105 0
+ 146 0094 CDF818A0 		str	sl, [sp, #24]
+ 147 0098 94F815A0 		ldrb	sl, [r4, #21]	@ zero_extendqisi2
+ 103:firmwares/fixedwing/datalink.c ****     float a = MOfCm(DL_ACINFO_alt(dl_buffer));
+ 148              		.loc 1 103 0
+ 149 009c 0395     		str	r5, [sp, #12]
+ 150              		.loc 1 105 0
+ 151 009e CDF81CA0 		str	sl, [sp, #28]
+ 106:firmwares/fixedwing/datalink.c ****     float cl = MOfCm(DL_ACINFO_climb(dl_buffer));
+ 152              		.loc 1 106 0
+ 153 00a2 94F816A0 		ldrb	sl, [r4, #22]	@ zero_extendqisi2
+ 104:firmwares/fixedwing/datalink.c ****     float c = RadOfDeg(((float)DL_ACINFO_course(dl_buffer))/ 10.);
+ 154              		.loc 1 104 0
+ 155 00a6 A578     		ldrb	r5, [r4, #2]	@ zero_extendqisi2
+ 156              		.loc 1 106 0
+ 157 00a8 CDF820A0 		str	sl, [sp, #32]
+ 158 00ac 94F817A0 		ldrb	sl, [r4, #23]	@ zero_extendqisi2
+ 101:firmwares/fixedwing/datalink.c ****     float ux = MOfCm(DL_ACINFO_utm_east(dl_buffer));
+ 159              		.loc 1 101 0
+ 160 00b0 2279     		ldrb	r2, [r4, #4]	@ zero_extendqisi2
+ 161              		.loc 1 106 0
+ 162 00b2 CDF824A0 		str	sl, [sp, #36]
+ 107:firmwares/fixedwing/datalink.c ****     uint32_t t = DL_ACINFO_itow(dl_buffer);
+ 163              		.loc 1 107 0
+ 164 00b6 94F810A0 		ldrb	sl, [r4, #16]	@ zero_extendqisi2
+ 101:firmwares/fixedwing/datalink.c ****     float ux = MOfCm(DL_ACINFO_utm_east(dl_buffer));
+ 165              		.loc 1 101 0
+ 166 00ba 6179     		ldrb	r1, [r4, #5]	@ zero_extendqisi2
+ 167              		.loc 1 107 0
+ 168 00bc CDF828A0 		str	sl, [sp, #40]
+ 169 00c0 94F811A0 		ldrb	sl, [r4, #17]	@ zero_extendqisi2
+ 101:firmwares/fixedwing/datalink.c ****     float ux = MOfCm(DL_ACINFO_utm_east(dl_buffer));
+ 170              		.loc 1 101 0
+ 171 00c4 94F806C0 		ldrb	ip, [r4, #6]	@ zero_extendqisi2
+ 172              		.loc 1 107 0
+ 173 00c8 CDF82CA0 		str	sl, [sp, #44]
+ 174 00cc 94F812A0 		ldrb	sl, [r4, #18]	@ zero_extendqisi2
+ 101:firmwares/fixedwing/datalink.c ****     float ux = MOfCm(DL_ACINFO_utm_east(dl_buffer));
+ 175              		.loc 1 101 0
+ 176 00d0 E079     		ldrb	r0, [r4, #7]	@ zero_extendqisi2
+ 177              	.LVL8:
+ 102:firmwares/fixedwing/datalink.c ****     float uy = MOfCm(DL_ACINFO_utm_north(dl_buffer));
+ 178              		.loc 1 102 0
+ 179 00d2 267A     		ldrb	r6, [r4, #8]	@ zero_extendqisi2
+ 180 00d4 677A     		ldrb	r7, [r4, #9]	@ zero_extendqisi2
+ 181 00d6 94F80A90 		ldrb	r9, [r4, #10]	@ zero_extendqisi2
+ 182 00da 94F80B80 		ldrb	r8, [r4, #11]	@ zero_extendqisi2
+ 183              	.LVL9:
+ 104:firmwares/fixedwing/datalink.c ****     float c = RadOfDeg(((float)DL_ACINFO_course(dl_buffer))/ 10.);
+ 184              		.loc 1 104 0
+ 185 00de 0595     		str	r5, [sp, #20]
+ 186              		.loc 1 107 0
+ 187 00e0 CDF830A0 		str	sl, [sp, #48]
+ 104:firmwares/fixedwing/datalink.c ****     float c = RadOfDeg(((float)DL_ACINFO_course(dl_buffer))/ 10.);
+ 188              		.loc 1 104 0
+ 189 00e4 E578     		ldrb	r5, [r4, #3]	@ zero_extendqisi2
+ 108:firmwares/fixedwing/datalink.c ****     SetAcInfo(id, ux, uy, c, a, s, cl, t);
+ 190              		.loc 1 108 0
+ 191 00e6 DFF870A1 		ldr	sl, .L73+56
+ 107:firmwares/fixedwing/datalink.c ****     uint32_t t = DL_ACINFO_itow(dl_buffer);
+ 192              		.loc 1 107 0
+ 193 00ea E47C     		ldrb	r4, [r4, #19]	@ zero_extendqisi2
+ 194 00ec 0D94     		str	r4, [sp, #52]
+ 195              	.LVL10:
+ 196              		.loc 1 108 0
+ 197 00ee 9AF80040 		ldrb	r4, [sl, #0]	@ zero_extendqisi2
+ 198 00f2 172C     		cmp	r4, #23
+ 199 00f4 00F2F384 		bhi	.L1
+ 200 00f8 DFF860E1 		ldr	lr, .L73+60
+ 201              		.loc 1 108 0 is_stmt 0 discriminator 1
+ 202 00fc 7BB1     		cbz	r3, .L7
+ 203              		.loc 1 108 0 discriminator 2
+ 204 00fe 1EF803B0 		ldrb	fp, [lr, r3]	@ zero_extendqisi2
+ 205 0102 BBF1000F 		cmp	fp, #0
+ 206 0106 0AD1     		bne	.L7
+ 207              		.loc 1 108 0 discriminator 4
+ 208 0108 04F1010B 		add	fp, r4, #1
+ 209 010c 8AF800B0 		strb	fp, [sl, #0]
+ 210 0110 DFF830A1 		ldr	sl, .L73+36
+ 211 0114 0EF80340 		strb	r4, [lr, r3]
+ 212 0118 6401     		lsls	r4, r4, #5
+ 213 011a 0AF80430 		strb	r3, [sl, r4]
+ 214              	.L7:
+ 101:firmwares/fixedwing/datalink.c ****     float ux = MOfCm(DL_ACINFO_utm_east(dl_buffer));
+ 215              		.loc 1 101 0 is_stmt 1 discriminator 3
+ 216 011e 4FEA0C4C 		lsl	ip, ip, #16
+ 217              	.LVL11:
+ 218              		.loc 1 108 0 discriminator 3
+ 219 0122 1EF80340 		ldrb	r4, [lr, r3]	@ zero_extendqisi2
+ 101:firmwares/fixedwing/datalink.c ****     float ux = MOfCm(DL_ACINFO_utm_east(dl_buffer));
+ 220              		.loc 1 101 0 discriminator 3
+ 221 0126 4CEA006C 		orr	ip, ip, r0, lsl #24
+ 222 012a 42EA0122 		orr	r2, r2, r1, lsl #8
+ 223              		.loc 1 108 0 discriminator 3
+ 224 012e 454B     		ldr	r3, .L73+36
+ 225              	.LVL12:
+ 101:firmwares/fixedwing/datalink.c ****     float ux = MOfCm(DL_ACINFO_utm_east(dl_buffer));
+ 226              		.loc 1 101 0 discriminator 3
+ 227 0130 4CEA0200 		orr	r0, ip, r2
+ 228              		.loc 1 108 0 discriminator 3
+ 229 0134 03EB4414 		add	r4, r3, r4, lsl #5
+ 101:firmwares/fixedwing/datalink.c ****     float ux = MOfCm(DL_ACINFO_utm_east(dl_buffer));
+ 230              		.loc 1 101 0 discriminator 3
+ 231 0138 FFF7FEFF 		bl	__aeabi_i2f
+ 232 013c 4249     		ldr	r1, .L73+40
+ 233 013e FFF7FEFF 		bl	__aeabi_fdiv
+ 234              		.loc 1 108 0 discriminator 3
+ 235 0142 424B     		ldr	r3, .L73+44
+ 101:firmwares/fixedwing/datalink.c ****     float ux = MOfCm(DL_ACINFO_utm_east(dl_buffer));
+ 236              		.loc 1 101 0 discriminator 3
+ 237 0144 8246     		mov	sl, r0
+ 238              		.loc 1 108 0 discriminator 3
+ 239 0146 1868     		ldr	r0, [r3, #0]
+ 240 0148 FFF7FEFF 		bl	__aeabi_i2f
+ 241 014c 0146     		mov	r1, r0
+ 242 014e 5046     		mov	r0, sl
+ 243 0150 FFF7FEFF 		bl	__aeabi_fsub
+ 102:firmwares/fixedwing/datalink.c ****     float uy = MOfCm(DL_ACINFO_utm_north(dl_buffer));
+ 244              		.loc 1 102 0 discriminator 3
+ 245 0154 4FEA0949 		lsl	r9, r9, #16
+ 246              	.LVL13:
+ 247 0158 46EA0726 		orr	r6, r6, r7, lsl #8
+ 248 015c 49EA0869 		orr	r9, r9, r8, lsl #24
+ 249              		.loc 1 108 0 discriminator 3
+ 250 0160 6060     		str	r0, [r4, #4]	@ float
+ 102:firmwares/fixedwing/datalink.c ****     float uy = MOfCm(DL_ACINFO_utm_north(dl_buffer));
+ 251              		.loc 1 102 0 discriminator 3
+ 252 0162 49EA0600 		orr	r0, r9, r6
+ 253 0166 FFF7FEFF 		bl	__aeabi_i2f
+ 254 016a 3749     		ldr	r1, .L73+40
+ 255 016c FFF7FEFF 		bl	__aeabi_fdiv
+ 256              		.loc 1 108 0 discriminator 3
+ 257 0170 374B     		ldr	r3, .L73+48
+ 102:firmwares/fixedwing/datalink.c ****     float uy = MOfCm(DL_ACINFO_utm_north(dl_buffer));
+ 258              		.loc 1 102 0 discriminator 3
+ 259 0172 0646     		mov	r6, r0
+ 260              		.loc 1 108 0 discriminator 3
+ 261 0174 1868     		ldr	r0, [r3, #0]
+ 262 0176 FFF7FEFF 		bl	__aeabi_i2f
+ 263 017a 0146     		mov	r1, r0
+ 264 017c 3046     		mov	r0, r6
+ 265 017e FFF7FEFF 		bl	__aeabi_fsub
+ 104:firmwares/fixedwing/datalink.c ****     float c = RadOfDeg(((float)DL_ACINFO_course(dl_buffer))/ 10.);
+ 266              		.loc 1 104 0 discriminator 3
+ 267 0182 059A     		ldr	r2, [sp, #20]
+ 268              		.loc 1 108 0 discriminator 3
+ 269 0184 A060     		str	r0, [r4, #8]	@ float
+ 104:firmwares/fixedwing/datalink.c ****     float c = RadOfDeg(((float)DL_ACINFO_course(dl_buffer))/ 10.);
+ 270              		.loc 1 104 0 discriminator 3
+ 271 0186 42EA0525 		orr	r5, r2, r5, lsl #8
+ 272 018a 28B2     		sxth	r0, r5
+ 273 018c FFF7FEFF 		bl	__aeabi_i2f
+ 274 0190 FFF7FEFF 		bl	__aeabi_f2d
+ 275 0194 0022     		movs	r2, #0
+ 276 0196 2F4B     		ldr	r3, .L73+52
+ 277 0198 FFF7FEFF 		bl	__aeabi_ddiv
+ 278 019c 20A3     		adr	r3, .L73
+ 279 019e D3E90023 		ldrd	r2, [r3]
+ 280 01a2 FFF7FEFF 		bl	__aeabi_dmul
+ 281 01a6 FFF7FEFF 		bl	__aeabi_d2f
+ 103:firmwares/fixedwing/datalink.c ****     float a = MOfCm(DL_ACINFO_alt(dl_buffer));
+ 282              		.loc 1 103 0 discriminator 3
+ 283 01aa 039D     		ldr	r5, [sp, #12]
+ 284 01ac DDF810A0 		ldr	sl, [sp, #16]
+ 104:firmwares/fixedwing/datalink.c ****     float c = RadOfDeg(((float)DL_ACINFO_course(dl_buffer))/ 10.);
+ 285              		.loc 1 104 0 discriminator 3
+ 286 01b0 E060     		str	r0, [r4, #12]	@ float
+ 103:firmwares/fixedwing/datalink.c ****     float a = MOfCm(DL_ACINFO_alt(dl_buffer));
+ 287              		.loc 1 103 0 discriminator 3
+ 288 01b2 2804     		lsls	r0, r5, #16
+ 289 01b4 40EA0A60 		orr	r0, r0, sl, lsl #24
+ 290 01b8 019D     		ldr	r5, [sp, #4]
+ 291 01ba DDF808A0 		ldr	sl, [sp, #8]
+ 292 01be 45EA0A23 		orr	r3, r5, sl, lsl #8
+ 293 01c2 1843     		orrs	r0, r0, r3
+ 294 01c4 FFF7FEFF 		bl	__aeabi_i2f
+ 295 01c8 1F49     		ldr	r1, .L73+40
+ 296 01ca FFF7FEFF 		bl	__aeabi_fdiv
+ 105:firmwares/fixedwing/datalink.c ****     float s = MOfCm(DL_ACINFO_speed(dl_buffer));
+ 297              		.loc 1 105 0 discriminator 3
+ 298 01ce 069D     		ldr	r5, [sp, #24]
+ 299 01d0 DDF81CA0 		ldr	sl, [sp, #28]
+ 300              		.loc 1 108 0 discriminator 3
+ 301 01d4 2061     		str	r0, [r4, #16]	@ float
+ 105:firmwares/fixedwing/datalink.c ****     float s = MOfCm(DL_ACINFO_speed(dl_buffer));
+ 302              		.loc 1 105 0 discriminator 3
+ 303 01d6 45EA0A20 		orr	r0, r5, sl, lsl #8
+ 304 01da FFF7FEFF 		bl	__aeabi_ui2f
+ 305 01de 1A49     		ldr	r1, .L73+40
+ 306 01e0 FFF7FEFF 		bl	__aeabi_fdiv
+ 106:firmwares/fixedwing/datalink.c ****     float cl = MOfCm(DL_ACINFO_climb(dl_buffer));
+ 307              		.loc 1 106 0 discriminator 3
+ 308 01e4 089D     		ldr	r5, [sp, #32]
+ 309 01e6 DDF824A0 		ldr	sl, [sp, #36]
+ 310              		.loc 1 108 0 discriminator 3
+ 311 01ea 6061     		str	r0, [r4, #20]	@ float
+ 106:firmwares/fixedwing/datalink.c ****     float cl = MOfCm(DL_ACINFO_climb(dl_buffer));
+ 312              		.loc 1 106 0 discriminator 3
+ 313 01ec 45EA0A20 		orr	r0, r5, sl, lsl #8
+ 314 01f0 00B2     		sxth	r0, r0
+ 315 01f2 FFF7FEFF 		bl	__aeabi_i2f
+ 316 01f6 1449     		ldr	r1, .L73+40
+ 317 01f8 FFF7FEFF 		bl	__aeabi_fdiv
+ 107:firmwares/fixedwing/datalink.c ****     uint32_t t = DL_ACINFO_itow(dl_buffer);
+ 318              		.loc 1 107 0 discriminator 3
+ 319 01fc 0C9D     		ldr	r5, [sp, #48]
+ 320 01fe DDF834A0 		ldr	sl, [sp, #52]
+ 321 0202 2B04     		lsls	r3, r5, #16
+ 322 0204 43EA0A63 		orr	r3, r3, sl, lsl #24
+ 323 0208 0A9D     		ldr	r5, [sp, #40]
+ 324 020a DDF82CA0 		ldr	sl, [sp, #44]
+ 325              		.loc 1 108 0 discriminator 3
+ 326 020e A061     		str	r0, [r4, #24]	@ float
+ 107:firmwares/fixedwing/datalink.c ****     uint32_t t = DL_ACINFO_itow(dl_buffer);
+ 327              		.loc 1 107 0 discriminator 3
+ 328 0210 45EA0A22 		orr	r2, r5, sl, lsl #8
+ 329 0214 1343     		orrs	r3, r3, r2
+ 330              		.loc 1 108 0 discriminator 3
+ 331 0216 E361     		str	r3, [r4, #28]
+ 332 0218 00F061BC 		b	.L1
+ 333              	.L74:
+ 334 021c AFF30080 		.align	3
+ 335              	.L73:
+ 336 0220 399D52A2 		.word	-1571644103
+ 337 0224 46DF913F 		.word	1066524486
+ 338 0228 00000000 		.word	.LANCHOR0
+ 339 022c 00000000 		.word	.LANCHOR1
+ 340 0230 00000000 		.word	uart2
+ 341 0234 00000000 		.word	downlink_nb_bytes
+ 342 0238 00000000 		.word	downlink_nb_msgs
+ 343 023c 00000000 		.word	ck_a
+ 344 0240 00000000 		.word	ck_b
+ 345 0244 00000000 		.word	the_acs
+ 346 0248 0000C842 		.word	1120403456
+ 347 024c 00000000 		.word	nav_utm_east0
+ 348 0250 00000000 		.word	nav_utm_north0
+ 349 0254 00002440 		.word	1076101120
+ 350 0258 00000000 		.word	acs_idx
+ 351 025c 00000000 		.word	the_acs_id
+ 352              	.LVL14:
+ 353              	.L5:
+ 354              	.LBE67:
+ 109:firmwares/fixedwing/datalink.c ****   } else
+ 110:firmwares/fixedwing/datalink.c **** #endif
+ 111:firmwares/fixedwing/datalink.c **** #ifdef NAV
+ 112:firmwares/fixedwing/datalink.c ****   if (msg_id == DL_MOVE_WP && DL_MOVE_WP_ac_id(dl_buffer) == AC_ID) {
+ 355              		.loc 1 112 0
+ 356 0260 022B     		cmp	r3, #2
+ 357 0262 40F09181 		bne	.L8
+ 358              		.loc 1 112 0 is_stmt 0 discriminator 1
+ 359 0266 E678     		ldrb	r6, [r4, #3]	@ zero_extendqisi2
+ 360 0268 012E     		cmp	r6, #1
+ 361 026a 40F03884 		bne	.L1
+ 362              	.LBB68:
+ 113:firmwares/fixedwing/datalink.c ****     uint8_t wp_id = DL_MOVE_WP_wp_id(dl_buffer);
+ 114:firmwares/fixedwing/datalink.c ****     float a = MOfCm(DL_MOVE_WP_alt(dl_buffer));
+ 363              		.loc 1 114 0 is_stmt 1
+ 364 026e A07B     		ldrb	r0, [r4, #14]	@ zero_extendqisi2
+ 365 0270 E37B     		ldrb	r3, [r4, #15]	@ zero_extendqisi2
+ 366              	.LVL15:
+ 367 0272 0004     		lsls	r0, r0, #16
+ 368 0274 627B     		ldrb	r2, [r4, #13]	@ zero_extendqisi2
+ 369 0276 40EA0360 		orr	r0, r0, r3, lsl #24
+ 370 027a 237B     		ldrb	r3, [r4, #12]	@ zero_extendqisi2
+ 113:firmwares/fixedwing/datalink.c ****     uint8_t wp_id = DL_MOVE_WP_wp_id(dl_buffer);
+ 371              		.loc 1 113 0
+ 372 027c A578     		ldrb	r5, [r4, #2]	@ zero_extendqisi2
+ 373              	.LVL16:
+ 374              		.loc 1 114 0
+ 375 027e 43EA0223 		orr	r3, r3, r2, lsl #8
+ 376 0282 1843     		orrs	r0, r0, r3
+ 377 0284 FFF7FEFF 		bl	__aeabi_i2f
+ 378 0288 B549     		ldr	r1, .L75+16
+ 379 028a FFF7FEFF 		bl	__aeabi_fdiv
+ 380 028e 0746     		mov	r7, r0
+ 381 0290 1590     		str	r0, [sp, #84]	@ float
+ 382              	.LVL17:
+ 115:firmwares/fixedwing/datalink.c **** 
+ 116:firmwares/fixedwing/datalink.c ****     /* Computes from (lat, long) in the referenced UTM zone */
+ 117:firmwares/fixedwing/datalink.c ****     struct LlaCoor_f lla;
+ 118:firmwares/fixedwing/datalink.c ****     lla.lat = RadOfDeg((float)(DL_MOVE_WP_lat(dl_buffer) / 1e7));
+ 383              		.loc 1 118 0
+ 384 0292 A079     		ldrb	r0, [r4, #6]	@ zero_extendqisi2
+ 385 0294 E379     		ldrb	r3, [r4, #7]	@ zero_extendqisi2
+ 386 0296 0004     		lsls	r0, r0, #16
+ 387 0298 6279     		ldrb	r2, [r4, #5]	@ zero_extendqisi2
+ 388 029a 40EA0360 		orr	r0, r0, r3, lsl #24
+ 389 029e 2379     		ldrb	r3, [r4, #4]	@ zero_extendqisi2
+ 119:firmwares/fixedwing/datalink.c ****     lla.lon = RadOfDeg((float)(DL_MOVE_WP_lon(dl_buffer) / 1e7));
+ 120:firmwares/fixedwing/datalink.c ****     struct UtmCoor_f utm;
+ 121:firmwares/fixedwing/datalink.c ****     utm.zone = nav_utm_zone0;
+ 122:firmwares/fixedwing/datalink.c ****     utm_of_lla_f(&utm, &lla);
+ 123:firmwares/fixedwing/datalink.c ****     nav_move_waypoint(wp_id, utm.east, utm.north, a);
+ 124:firmwares/fixedwing/datalink.c **** 
+ 125:firmwares/fixedwing/datalink.c ****     /* Waypoint range is limited. Computes the UTM pos back from the relative
+ 126:firmwares/fixedwing/datalink.c ****        coordinates */
+ 127:firmwares/fixedwing/datalink.c ****     utm.east = waypoints[wp_id].x + nav_utm_east0;
+ 390              		.loc 1 127 0
+ 391 02a0 4FF00C08 		mov	r8, #12
+ 118:firmwares/fixedwing/datalink.c ****     lla.lat = RadOfDeg((float)(DL_MOVE_WP_lat(dl_buffer) / 1e7));
+ 392              		.loc 1 118 0
+ 393 02a4 43EA0223 		orr	r3, r3, r2, lsl #8
+ 394 02a8 1843     		orrs	r0, r0, r3
+ 395 02aa FFF7FEFF 		bl	__aeabi_i2d
+ 396 02ae A8A3     		adr	r3, .L75
+ 397 02b0 D3E90023 		ldrd	r2, [r3]
+ 398 02b4 FFF7FEFF 		bl	__aeabi_ddiv
+ 399 02b8 FFF7FEFF 		bl	__aeabi_d2f
+ 400 02bc FFF7FEFF 		bl	__aeabi_f2d
+ 401 02c0 A5A3     		adr	r3, .L75+8
+ 402 02c2 D3E90023 		ldrd	r2, [r3]
+ 403 02c6 FFF7FEFF 		bl	__aeabi_dmul
+ 404 02ca FFF7FEFF 		bl	__aeabi_d2f
+ 405 02ce 1390     		str	r0, [sp, #76]	@ float
+ 119:firmwares/fixedwing/datalink.c ****     lla.lon = RadOfDeg((float)(DL_MOVE_WP_lon(dl_buffer) / 1e7));
+ 406              		.loc 1 119 0
+ 407 02d0 A07A     		ldrb	r0, [r4, #10]	@ zero_extendqisi2
+ 408 02d2 E37A     		ldrb	r3, [r4, #11]	@ zero_extendqisi2
+ 409 02d4 0004     		lsls	r0, r0, #16
+ 410 02d6 627A     		ldrb	r2, [r4, #9]	@ zero_extendqisi2
+ 411 02d8 40EA0360 		orr	r0, r0, r3, lsl #24
+ 412 02dc 237A     		ldrb	r3, [r4, #8]	@ zero_extendqisi2
+ 121:firmwares/fixedwing/datalink.c ****     utm.zone = nav_utm_zone0;
+ 413              		.loc 1 121 0
+ 414 02de A14C     		ldr	r4, .L75+20
+ 119:firmwares/fixedwing/datalink.c ****     lla.lon = RadOfDeg((float)(DL_MOVE_WP_lon(dl_buffer) / 1e7));
+ 415              		.loc 1 119 0
+ 416 02e0 43EA0223 		orr	r3, r3, r2, lsl #8
+ 417 02e4 1843     		orrs	r0, r0, r3
+ 418 02e6 FFF7FEFF 		bl	__aeabi_i2d
+ 419 02ea 99A3     		adr	r3, .L75
+ 420 02ec D3E90023 		ldrd	r2, [r3]
+ 421 02f0 FFF7FEFF 		bl	__aeabi_ddiv
+ 422 02f4 FFF7FEFF 		bl	__aeabi_d2f
+ 423 02f8 FFF7FEFF 		bl	__aeabi_f2d
+ 424 02fc 96A3     		adr	r3, .L75+8
+ 425 02fe D3E90023 		ldrd	r2, [r3]
+ 426 0302 FFF7FEFF 		bl	__aeabi_dmul
+ 427 0306 FFF7FEFF 		bl	__aeabi_d2f
+ 121:firmwares/fixedwing/datalink.c ****     utm.zone = nav_utm_zone0;
+ 428              		.loc 1 121 0
+ 429 030a 2378     		ldrb	r3, [r4, #0]	@ zero_extendqisi2
+ 119:firmwares/fixedwing/datalink.c ****     lla.lon = RadOfDeg((float)(DL_MOVE_WP_lon(dl_buffer) / 1e7));
+ 430              		.loc 1 119 0
+ 431 030c 1290     		str	r0, [sp, #72]	@ float
+ 122:firmwares/fixedwing/datalink.c ****     utm_of_lla_f(&utm, &lla);
+ 432              		.loc 1 122 0
+ 433 030e 12A9     		add	r1, sp, #72
+ 434 0310 0EA8     		add	r0, sp, #56
+ 121:firmwares/fixedwing/datalink.c ****     utm.zone = nav_utm_zone0;
+ 435              		.loc 1 121 0
+ 436 0312 8DF84430 		strb	r3, [sp, #68]
+ 122:firmwares/fixedwing/datalink.c ****     utm_of_lla_f(&utm, &lla);
+ 437              		.loc 1 122 0
+ 438 0316 FFF7FEFF 		bl	utm_of_lla_f
+ 123:firmwares/fixedwing/datalink.c ****     nav_move_waypoint(wp_id, utm.east, utm.north, a);
+ 439              		.loc 1 123 0
+ 440 031a 0E9A     		ldr	r2, [sp, #56]	@ float
+ 441 031c 0F99     		ldr	r1, [sp, #60]	@ float
+ 442 031e 3B46     		mov	r3, r7
+ 443 0320 2846     		mov	r0, r5
+ 444 0322 FFF7FEFF 		bl	nav_move_waypoint
+ 445              		.loc 1 127 0
+ 446 0326 904B     		ldr	r3, .L75+24
+ 447 0328 08FB05F8 		mul	r8, r8, r5
+ 448 032c 1868     		ldr	r0, [r3, #0]
+ 449 032e FFF7FEFF 		bl	__aeabi_i2f
+ 450 0332 DFF84C92 		ldr	r9, .L75+48
+ 451 0336 0146     		mov	r1, r0
+ 452 0338 59F80800 		ldr	r0, [r9, r8]	@ float
+ 453 033c FFF7FEFF 		bl	__aeabi_fadd
+ 128:firmwares/fixedwing/datalink.c ****     utm.north = waypoints[wp_id].y + nav_utm_north0;
+ 454              		.loc 1 128 0
+ 455 0340 8A4B     		ldr	r3, .L75+28
+ 127:firmwares/fixedwing/datalink.c ****     utm.east = waypoints[wp_id].x + nav_utm_east0;
+ 456              		.loc 1 127 0
+ 457 0342 0F90     		str	r0, [sp, #60]	@ float
+ 458              		.loc 1 128 0
+ 459 0344 1868     		ldr	r0, [r3, #0]
+ 460 0346 FFF7FEFF 		bl	__aeabi_i2f
+ 127:firmwares/fixedwing/datalink.c ****     utm.east = waypoints[wp_id].x + nav_utm_east0;
+ 461              		.loc 1 127 0
+ 462 034a 09EB0807 		add	r7, r9, r8
+ 463              		.loc 1 128 0
+ 464 034e 0146     		mov	r1, r0
+ 465 0350 7868     		ldr	r0, [r7, #4]	@ float
+ 466 0352 FFF7FEFF 		bl	__aeabi_fadd
+ 129:firmwares/fixedwing/datalink.c ****     DOWNLINK_SEND_WP_MOVED(DefaultChannel, DefaultDevice, &wp_id, &utm.east, &utm.north, &a, &nav_u
+ 467              		.loc 1 129 0
+ 468 0356 1421     		movs	r1, #20
+ 128:firmwares/fixedwing/datalink.c ****     utm.north = waypoints[wp_id].y + nav_utm_north0;
+ 469              		.loc 1 128 0
+ 470 0358 0E90     		str	r0, [sp, #56]	@ float
+ 471              		.loc 1 129 0
+ 472 035a 8548     		ldr	r0, .L75+32
+ 473 035c FFF7FEFF 		bl	uart_check_free_space
+ 474 0360 0028     		cmp	r0, #0
+ 475 0362 00F0B883 		beq	.L50
+ 476              		.loc 1 129 0 is_stmt 0 discriminator 1
+ 477 0366 834B     		ldr	r3, .L75+36
+ 478              	.LBB69:
+ 479 0368 8148     		ldr	r0, .L75+32
+ 480              	.LBE69:
+ 481 036a 1A88     		ldrh	r2, [r3, #0]
+ 482              	.LBB70:
+ 483 036c 9921     		movs	r1, #153
+ 484              	.LBE70:
+ 485 036e 1432     		adds	r2, r2, #20
+ 486 0370 1A80     		strh	r2, [r3, #0]	@ movhi
+ 487 0372 814B     		ldr	r3, .L75+40
+ 488 0374 DFF80C82 		ldr	r8, .L75+52
+ 489 0378 1A88     		ldrh	r2, [r3, #0]
+ 490 037a 804F     		ldr	r7, .L75+44
+ 491 037c 0132     		adds	r2, r2, #1
+ 492 037e 1A80     		strh	r2, [r3, #0]	@ movhi
+ 493              	.LBB71:
+ 494 0380 FFF7FEFF 		bl	uart_transmit
+ 495              	.LVL18:
+ 496 0384 7A48     		ldr	r0, .L75+32
+ 497 0386 1421     		movs	r1, #20
+ 498 0388 FFF7FEFF 		bl	uart_transmit
+ 499              	.LBE71:
+ 500 038c 1523     		movs	r3, #21
+ 501 038e 88F80030 		strb	r3, [r8, #0]
+ 502 0392 2923     		movs	r3, #41
+ 503 0394 3B70     		strb	r3, [r7, #0]
+ 504 0396 7648     		ldr	r0, .L75+32
+ 505 0398 3146     		mov	r1, r6
+ 506 039a FFF7FEFF 		bl	uart_transmit
+ 507 039e 98F80030 		ldrb	r3, [r8, #0]	@ zero_extendqisi2
+ 508 03a2 3A78     		ldrb	r2, [r7, #0]	@ zero_extendqisi2
+ 509 03a4 2333     		adds	r3, r3, #35
+ 510 03a6 DBB2     		uxtb	r3, r3
+ 511              	.LVL19:
+ 512 03a8 88F80030 		strb	r3, [r8, #0]
+ 513 03ac 9B18     		adds	r3, r3, r2
+ 514              	.LVL20:
+ 515 03ae 3B70     		strb	r3, [r7, #0]
+ 516 03b0 6F48     		ldr	r0, .L75+32
+ 517 03b2 2321     		movs	r1, #35
+ 518 03b4 FFF7FEFF 		bl	uart_transmit
+ 519              	.LVL21:
+ 520              	.LBB72:
+ 521 03b8 98F80030 		ldrb	r3, [r8, #0]	@ zero_extendqisi2
+ 522 03bc 3A78     		ldrb	r2, [r7, #0]	@ zero_extendqisi2
+ 523 03be EB18     		adds	r3, r5, r3
+ 524 03c0 DBB2     		uxtb	r3, r3
+ 525              	.LVL22:
+ 526 03c2 88F80030 		strb	r3, [r8, #0]
+ 527 03c6 9B18     		adds	r3, r3, r2
+ 528              	.LVL23:
+ 529 03c8 3B70     		strb	r3, [r7, #0]
+ 530 03ca 6948     		ldr	r0, .L75+32
+ 531 03cc 2946     		mov	r1, r5
+ 532 03ce FFF7FEFF 		bl	uart_transmit
+ 533              	.LBE72:
+ 534              	.LBB73:
+ 535 03d2 9DF83C10 		ldrb	r1, [sp, #60]	@ zero_extendqisi2
+ 536              	.LVL24:
+ 537 03d6 98F80030 		ldrb	r3, [r8, #0]	@ zero_extendqisi2
+ 538 03da 3A78     		ldrb	r2, [r7, #0]	@ zero_extendqisi2
+ 539 03dc CB18     		adds	r3, r1, r3
+ 540 03de DBB2     		uxtb	r3, r3
+ 541              	.LVL25:
+ 542 03e0 88F80030 		strb	r3, [r8, #0]
+ 543 03e4 9B18     		adds	r3, r3, r2
+ 544              	.LVL26:
+ 545 03e6 3B70     		strb	r3, [r7, #0]
+ 546 03e8 6148     		ldr	r0, .L75+32
+ 547 03ea FFF7FEFF 		bl	uart_transmit
+ 548              	.LVL27:
+ 549              	.LBE73:
+ 550              	.LBB74:
+ 551 03ee 9DF83D10 		ldrb	r1, [sp, #61]	@ zero_extendqisi2
+ 552              	.LVL28:
+ 553 03f2 98F80030 		ldrb	r3, [r8, #0]	@ zero_extendqisi2
+ 554 03f6 3A78     		ldrb	r2, [r7, #0]	@ zero_extendqisi2
+ 555 03f8 CB18     		adds	r3, r1, r3
+ 556 03fa DBB2     		uxtb	r3, r3
+ 557              	.LVL29:
+ 558 03fc 88F80030 		strb	r3, [r8, #0]
+ 559 0400 9B18     		adds	r3, r3, r2
+ 560              	.LVL30:
+ 561 0402 3B70     		strb	r3, [r7, #0]
+ 562 0404 5A48     		ldr	r0, .L75+32
+ 563 0406 FFF7FEFF 		bl	uart_transmit
+ 564              	.LVL31:
+ 565              	.LBE74:
+ 566              	.LBB75:
+ 567 040a 9DF83E10 		ldrb	r1, [sp, #62]	@ zero_extendqisi2
+ 568              	.LVL32:
+ 569 040e 98F80030 		ldrb	r3, [r8, #0]	@ zero_extendqisi2
+ 570 0412 3A78     		ldrb	r2, [r7, #0]	@ zero_extendqisi2
+ 571 0414 CB18     		adds	r3, r1, r3
+ 572 0416 DBB2     		uxtb	r3, r3
+ 573              	.LVL33:
+ 574 0418 88F80030 		strb	r3, [r8, #0]
+ 575 041c 9B18     		adds	r3, r3, r2
+ 576              	.LVL34:
+ 577 041e 3B70     		strb	r3, [r7, #0]
+ 578 0420 5348     		ldr	r0, .L75+32
+ 579 0422 FFF7FEFF 		bl	uart_transmit
+ 580              	.LVL35:
+ 581              	.LBE75:
+ 582              	.LBB76:
+ 583 0426 9DF83F10 		ldrb	r1, [sp, #63]	@ zero_extendqisi2
+ 584              	.LVL36:
+ 585 042a 98F80030 		ldrb	r3, [r8, #0]	@ zero_extendqisi2
+ 586 042e 3A78     		ldrb	r2, [r7, #0]	@ zero_extendqisi2
+ 587 0430 CB18     		adds	r3, r1, r3
+ 588 0432 DBB2     		uxtb	r3, r3
+ 589              	.LVL37:
+ 590 0434 88F80030 		strb	r3, [r8, #0]
+ 591 0438 9B18     		adds	r3, r3, r2
+ 592              	.LVL38:
+ 593 043a 3B70     		strb	r3, [r7, #0]
+ 594 043c 4C48     		ldr	r0, .L75+32
+ 595 043e FFF7FEFF 		bl	uart_transmit
+ 596              	.LVL39:
+ 597              	.LBE76:
+ 598              	.LBB77:
+ 599 0442 9DF83810 		ldrb	r1, [sp, #56]	@ zero_extendqisi2
+ 600              	.LVL40:
+ 601 0446 98F80030 		ldrb	r3, [r8, #0]	@ zero_extendqisi2
+ 602 044a 3A78     		ldrb	r2, [r7, #0]	@ zero_extendqisi2
+ 603 044c CB18     		adds	r3, r1, r3
+ 604 044e DBB2     		uxtb	r3, r3
+ 605              	.LVL41:
+ 606 0450 88F80030 		strb	r3, [r8, #0]
+ 607 0454 9B18     		adds	r3, r3, r2
+ 608              	.LVL42:
+ 609 0456 3B70     		strb	r3, [r7, #0]
+ 610 0458 4548     		ldr	r0, .L75+32
+ 611 045a FFF7FEFF 		bl	uart_transmit
+ 612              	.LVL43:
+ 613              	.LBE77:
+ 614              	.LBB78:
+ 615 045e 9DF83910 		ldrb	r1, [sp, #57]	@ zero_extendqisi2
+ 616              	.LVL44:
+ 617 0462 98F80030 		ldrb	r3, [r8, #0]	@ zero_extendqisi2
+ 618 0466 3A78     		ldrb	r2, [r7, #0]	@ zero_extendqisi2
+ 619 0468 CB18     		adds	r3, r1, r3
+ 620 046a DBB2     		uxtb	r3, r3
+ 621              	.LVL45:
+ 622 046c 88F80030 		strb	r3, [r8, #0]
+ 623 0470 9B18     		adds	r3, r3, r2
+ 624              	.LVL46:
+ 625 0472 3B70     		strb	r3, [r7, #0]
+ 626 0474 3E48     		ldr	r0, .L75+32
+ 627 0476 FFF7FEFF 		bl	uart_transmit
+ 628              	.LVL47:
+ 629              	.LBE78:
+ 630              	.LBB79:
+ 631 047a 9DF83A10 		ldrb	r1, [sp, #58]	@ zero_extendqisi2
+ 632              	.LVL48:
+ 633 047e 98F80030 		ldrb	r3, [r8, #0]	@ zero_extendqisi2
+ 634 0482 3A78     		ldrb	r2, [r7, #0]	@ zero_extendqisi2
+ 635 0484 CB18     		adds	r3, r1, r3
+ 636 0486 DBB2     		uxtb	r3, r3
+ 637              	.LVL49:
+ 638 0488 88F80030 		strb	r3, [r8, #0]
+ 639 048c 9B18     		adds	r3, r3, r2
+ 640              	.LVL50:
+ 641 048e 3B70     		strb	r3, [r7, #0]
+ 642 0490 3748     		ldr	r0, .L75+32
+ 643 0492 FFF7FEFF 		bl	uart_transmit
+ 644              	.LVL51:
+ 645              	.LBE79:
+ 646              	.LBB80:
+ 647 0496 9DF83B10 		ldrb	r1, [sp, #59]	@ zero_extendqisi2
+ 648              	.LVL52:
+ 649 049a 98F80030 		ldrb	r3, [r8, #0]	@ zero_extendqisi2
+ 650 049e 3A78     		ldrb	r2, [r7, #0]	@ zero_extendqisi2
+ 651 04a0 CB18     		adds	r3, r1, r3
+ 652 04a2 DBB2     		uxtb	r3, r3
+ 653              	.LVL53:
+ 654 04a4 88F80030 		strb	r3, [r8, #0]
+ 655 04a8 9B18     		adds	r3, r3, r2
+ 656              	.LVL54:
+ 657 04aa 3B70     		strb	r3, [r7, #0]
+ 658 04ac 3048     		ldr	r0, .L75+32
+ 659 04ae FFF7FEFF 		bl	uart_transmit
+ 660              	.LVL55:
+ 661              	.LBE80:
+ 662              	.LBB81:
+ 663 04b2 9DF85410 		ldrb	r1, [sp, #84]	@ zero_extendqisi2
+ 664              	.LVL56:
+ 665 04b6 98F80030 		ldrb	r3, [r8, #0]	@ zero_extendqisi2
+ 666 04ba 3A78     		ldrb	r2, [r7, #0]	@ zero_extendqisi2
+ 667 04bc CB18     		adds	r3, r1, r3
+ 668 04be DBB2     		uxtb	r3, r3
+ 669              	.LVL57:
+ 670 04c0 88F80030 		strb	r3, [r8, #0]
+ 671 04c4 9B18     		adds	r3, r3, r2
+ 672              	.LVL58:
+ 673 04c6 3B70     		strb	r3, [r7, #0]
+ 674 04c8 2948     		ldr	r0, .L75+32
+ 675 04ca FFF7FEFF 		bl	uart_transmit
+ 676              	.LVL59:
+ 677              	.LBE81:
+ 678              	.LBB82:
+ 679 04ce 9DF85510 		ldrb	r1, [sp, #85]	@ zero_extendqisi2
+ 680              	.LVL60:
+ 681 04d2 98F80030 		ldrb	r3, [r8, #0]	@ zero_extendqisi2
+ 682 04d6 3A78     		ldrb	r2, [r7, #0]	@ zero_extendqisi2
+ 683 04d8 CB18     		adds	r3, r1, r3
+ 684 04da DBB2     		uxtb	r3, r3
+ 685              	.LVL61:
+ 686 04dc 88F80030 		strb	r3, [r8, #0]
+ 687 04e0 9B18     		adds	r3, r3, r2
+ 688              	.LVL62:
+ 689 04e2 3B70     		strb	r3, [r7, #0]
+ 690 04e4 2248     		ldr	r0, .L75+32
+ 691 04e6 FFF7FEFF 		bl	uart_transmit
+ 692              	.LVL63:
+ 693              	.LBE82:
+ 694              	.LBB83:
+ 695 04ea 9DF85610 		ldrb	r1, [sp, #86]	@ zero_extendqisi2
+ 696              	.LVL64:
+ 697 04ee 98F80030 		ldrb	r3, [r8, #0]	@ zero_extendqisi2
+ 698 04f2 3A78     		ldrb	r2, [r7, #0]	@ zero_extendqisi2
+ 699 04f4 CB18     		adds	r3, r1, r3
+ 700 04f6 DBB2     		uxtb	r3, r3
+ 701              	.LVL65:
+ 702 04f8 88F80030 		strb	r3, [r8, #0]
+ 703 04fc 9B18     		adds	r3, r3, r2
+ 704              	.LVL66:
+ 705 04fe 3B70     		strb	r3, [r7, #0]
+ 706 0500 1B48     		ldr	r0, .L75+32
+ 707 0502 FFF7FEFF 		bl	uart_transmit
+ 708              	.LVL67:
+ 709              	.LBE83:
+ 710              	.LBB84:
+ 711 0506 9DF85710 		ldrb	r1, [sp, #87]	@ zero_extendqisi2
+ 712              	.LVL68:
+ 713 050a 98F80030 		ldrb	r3, [r8, #0]	@ zero_extendqisi2
+ 714 050e 3A78     		ldrb	r2, [r7, #0]	@ zero_extendqisi2
+ 715 0510 CB18     		adds	r3, r1, r3
+ 716 0512 DBB2     		uxtb	r3, r3
+ 717              	.LVL69:
+ 718 0514 88F80030 		strb	r3, [r8, #0]
+ 719 0518 9B18     		adds	r3, r3, r2
+ 720              	.LVL70:
+ 721 051a 3B70     		strb	r3, [r7, #0]
+ 722 051c 1448     		ldr	r0, .L75+32
+ 723 051e FFF7FEFF 		bl	uart_transmit
+ 724              	.LVL71:
+ 725              	.LBE84:
+ 726              	.LBB85:
+ 727 0522 2178     		ldrb	r1, [r4, #0]	@ zero_extendqisi2
+ 728              	.LVL72:
+ 729 0524 98F80030 		ldrb	r3, [r8, #0]	@ zero_extendqisi2
+ 730 0528 3A78     		ldrb	r2, [r7, #0]	@ zero_extendqisi2
+ 731 052a CB18     		adds	r3, r1, r3
+ 732 052c DBB2     		uxtb	r3, r3
+ 733              	.LVL73:
+ 734 052e 88F80030 		strb	r3, [r8, #0]
+ 735 0532 9B18     		adds	r3, r3, r2
+ 736              	.LVL74:
+ 737 0534 3B70     		strb	r3, [r7, #0]
+ 738 0536 0E48     		ldr	r0, .L75+32
+ 739 0538 FFF7FEFF 		bl	uart_transmit
+ 740              	.LVL75:
+ 741              	.LBE85:
+ 742 053c 0C48     		ldr	r0, .L75+32
+ 743 053e 98F80010 		ldrb	r1, [r8, #0]	@ zero_extendqisi2
+ 744 0542 FFF7FEFF 		bl	uart_transmit
+ 745 0546 0A48     		ldr	r0, .L75+32
+ 746 0548 3978     		ldrb	r1, [r7, #0]	@ zero_extendqisi2
+ 747              	.LVL76:
+ 748              	.L66:
+ 749 054a FFF7FEFF 		bl	uart_transmit
+ 750 054e C6E2     		b	.L1
+ 751              	.L76:
+ 752              		.align	3
+ 753              	.L75:
+ 754 0550 00000000 		.word	0
+ 755 0554 D0126341 		.word	1097011920
+ 756 0558 399D52A2 		.word	-1571644103
+ 757 055c 46DF913F 		.word	1066524486
+ 758 0560 0000C842 		.word	1120403456
+ 759 0564 00000000 		.word	nav_utm_zone0
+ 760 0568 00000000 		.word	nav_utm_east0
+ 761 056c 00000000 		.word	nav_utm_north0
+ 762 0570 00000000 		.word	uart2
+ 763 0574 00000000 		.word	downlink_nb_bytes
+ 764 0578 00000000 		.word	downlink_nb_msgs
+ 765 057c 00000000 		.word	ck_b
+ 766 0580 00000000 		.word	waypoints
+ 767 0584 00000000 		.word	ck_a
+ 768              	.LVL77:
+ 769              	.L8:
+ 770              	.LBE68:
+ 130:firmwares/fixedwing/datalink.c ****   } else if (msg_id == DL_BLOCK && DL_BLOCK_ac_id(dl_buffer) == AC_ID) {
+ 771              		.loc 1 130 0 is_stmt 1
+ 772 0588 052B     		cmp	r3, #5
+ 773 058a 40F04781 		bne	.L10
+ 774              		.loc 1 130 0 is_stmt 0 discriminator 1
+ 775 058e E578     		ldrb	r5, [r4, #3]	@ zero_extendqisi2
+ 776 0590 012D     		cmp	r5, #1
+ 777 0592 40F0A482 		bne	.L1
+ 131:firmwares/fixedwing/datalink.c ****     nav_goto_block(DL_BLOCK_block_id(dl_buffer));
+ 778              		.loc 1 131 0 is_stmt 1
+ 779 0596 A078     		ldrb	r0, [r4, #2]	@ zero_extendqisi2
+ 780 0598 FFF7FEFF 		bl	nav_goto_block
+ 781              	.LVL78:
+ 782              	.LBB86:
+ 132:firmwares/fixedwing/datalink.c ****     SEND_NAVIGATION(DefaultChannel, DefaultDevice);
+ 783              		.loc 1 132 0
+ 784 059c 924B     		ldr	r3, .L77+8
+ 785 059e 9348     		ldr	r0, .L77+12
+ 786 05a0 1A21     		movs	r1, #26
+ 787 05a2 1C68     		ldr	r4, [r3, #0]	@ float
+ 788              	.LVL79:
+ 789 05a4 FFF7FEFF 		bl	uart_check_free_space
+ 790              	.LVL80:
+ 791 05a8 0028     		cmp	r0, #0
+ 792 05aa 00F09482 		beq	.L50
+ 793              		.loc 1 132 0 is_stmt 0 discriminator 1
+ 794 05ae 24F00040 		bic	r0, r4, #-2147483648
+ 795 05b2 FFF7FEFF 		bl	__aeabi_f2d
+ 796 05b6 8AA3     		adr	r3, .L77
+ 797 05b8 D3E90023 		ldrd	r2, [r3]
+ 798 05bc FFF7FEFF 		bl	__aeabi_ddiv
+ 799 05c0 FFF7FEFF 		bl	__aeabi_d2uiz
+ 800 05c4 8A4B     		ldr	r3, .L77+16
+ 801 05c6 C7B2     		uxtb	r7, r0
+ 802 05c8 1A88     		ldrh	r2, [r3, #0]
+ 803              	.LBB87:
+ 804 05ca 9921     		movs	r1, #153
+ 805              	.LBE87:
+ 806 05cc 1A32     		adds	r2, r2, #26
+ 807 05ce 1A80     		strh	r2, [r3, #0]	@ movhi
+ 808 05d0 884B     		ldr	r3, .L77+20
+ 809              	.LBB88:
+ 810 05d2 8648     		ldr	r0, .L77+12
+ 811              	.LBE88:
+ 812 05d4 1A88     		ldrh	r2, [r3, #0]
+ 813 05d6 884E     		ldr	r6, .L77+24
+ 814 05d8 0132     		adds	r2, r2, #1
+ 815 05da 1A80     		strh	r2, [r3, #0]	@ movhi
+ 816              	.LBB89:
+ 817 05dc FFF7FEFF 		bl	uart_transmit
+ 818              	.LVL81:
+ 819 05e0 1A21     		movs	r1, #26
+ 820 05e2 8248     		ldr	r0, .L77+12
+ 821              	.LBE89:
+ 822 05e4 854C     		ldr	r4, .L77+28
+ 823              	.LVL82:
+ 824              	.LBB90:
+ 825 05e6 FFF7FEFF 		bl	uart_transmit
+ 826              	.LBE90:
+ 827 05ea 1B23     		movs	r3, #27
+ 828 05ec 3370     		strb	r3, [r6, #0]
+ 829 05ee 3523     		movs	r3, #53
+ 830 05f0 2946     		mov	r1, r5
+ 831 05f2 2370     		strb	r3, [r4, #0]
+ 832 05f4 7D48     		ldr	r0, .L77+12
+ 833 05f6 FFF7FEFF 		bl	uart_transmit
+ 834 05fa 3378     		ldrb	r3, [r6, #0]	@ zero_extendqisi2
+ 835 05fc 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 836 05fe 0A33     		adds	r3, r3, #10
+ 837 0600 DBB2     		uxtb	r3, r3
+ 838              	.LVL83:
+ 839 0602 3370     		strb	r3, [r6, #0]
+ 840 0604 9B18     		adds	r3, r3, r2
+ 841              	.LVL84:
+ 842 0606 0A21     		movs	r1, #10
+ 843 0608 2370     		strb	r3, [r4, #0]
+ 844 060a 7848     		ldr	r0, .L77+12
+ 845 060c FFF7FEFF 		bl	uart_transmit
+ 846              	.LBB91:
+ 847 0610 7B4B     		ldr	r3, .L77+32
+ 848 0612 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 849 0614 1978     		ldrb	r1, [r3, #0]	@ zero_extendqisi2
+ 850              	.LVL85:
+ 851 0616 3378     		ldrb	r3, [r6, #0]	@ zero_extendqisi2
+ 852 0618 7448     		ldr	r0, .L77+12
+ 853 061a CB18     		adds	r3, r1, r3
+ 854 061c DBB2     		uxtb	r3, r3
+ 855              	.LVL86:
+ 856 061e 3370     		strb	r3, [r6, #0]
+ 857 0620 9B18     		adds	r3, r3, r2
+ 858              	.LVL87:
+ 859 0622 2370     		strb	r3, [r4, #0]
+ 860 0624 FFF7FEFF 		bl	uart_transmit
+ 861              	.LVL88:
+ 862              	.LBE91:
+ 863              	.LBB92:
+ 864 0628 764B     		ldr	r3, .L77+36
+ 865 062a 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 866 062c 1978     		ldrb	r1, [r3, #0]	@ zero_extendqisi2
+ 867              	.LVL89:
+ 868 062e 3378     		ldrb	r3, [r6, #0]	@ zero_extendqisi2
+ 869              	.LBE92:
+ 870              	.LBB93:
+ 871 0630 754D     		ldr	r5, .L77+40
+ 872              	.LBE93:
+ 873              	.LBB94:
+ 874 0632 CB18     		adds	r3, r1, r3
+ 875 0634 DBB2     		uxtb	r3, r3
+ 876              	.LVL90:
+ 877 0636 3370     		strb	r3, [r6, #0]
+ 878 0638 9B18     		adds	r3, r3, r2
+ 879              	.LVL91:
+ 880 063a 2370     		strb	r3, [r4, #0]
+ 881 063c 6B48     		ldr	r0, .L77+12
+ 882 063e FFF7FEFF 		bl	uart_transmit
+ 883              	.LVL92:
+ 884              	.LBE94:
+ 885              	.LBB95:
+ 886 0642 2978     		ldrb	r1, [r5, #0]	@ zero_extendqisi2
+ 887              	.LVL93:
+ 888 0644 3378     		ldrb	r3, [r6, #0]	@ zero_extendqisi2
+ 889 0646 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 890 0648 CB18     		adds	r3, r1, r3
+ 891 064a DBB2     		uxtb	r3, r3
+ 892              	.LVL94:
+ 893 064c 3370     		strb	r3, [r6, #0]
+ 894 064e 9B18     		adds	r3, r3, r2
+ 895              	.LVL95:
+ 896 0650 2370     		strb	r3, [r4, #0]
+ 897 0652 6648     		ldr	r0, .L77+12
+ 898 0654 FFF7FEFF 		bl	uart_transmit
+ 899              	.LVL96:
+ 900              	.LBE95:
+ 901              	.LBB96:
+ 902 0658 6978     		ldrb	r1, [r5, #1]	@ zero_extendqisi2
+ 903              	.LVL97:
+ 904 065a 3378     		ldrb	r3, [r6, #0]	@ zero_extendqisi2
+ 905 065c 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 906 065e CB18     		adds	r3, r1, r3
+ 907 0660 DBB2     		uxtb	r3, r3
+ 908              	.LVL98:
+ 909 0662 3370     		strb	r3, [r6, #0]
+ 910 0664 9B18     		adds	r3, r3, r2
+ 911              	.LVL99:
+ 912 0666 2370     		strb	r3, [r4, #0]
+ 913 0668 6048     		ldr	r0, .L77+12
+ 914 066a FFF7FEFF 		bl	uart_transmit
+ 915              	.LVL100:
+ 916              	.LBE96:
+ 917              	.LBB97:
+ 918 066e A978     		ldrb	r1, [r5, #2]	@ zero_extendqisi2
+ 919              	.LVL101:
+ 920 0670 3378     		ldrb	r3, [r6, #0]	@ zero_extendqisi2
+ 921 0672 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 922 0674 CB18     		adds	r3, r1, r3
+ 923 0676 DBB2     		uxtb	r3, r3
+ 924              	.LVL102:
+ 925 0678 3370     		strb	r3, [r6, #0]
+ 926 067a 9B18     		adds	r3, r3, r2
+ 927              	.LVL103:
+ 928 067c 2370     		strb	r3, [r4, #0]
+ 929 067e 5B48     		ldr	r0, .L77+12
+ 930 0680 FFF7FEFF 		bl	uart_transmit
+ 931              	.LVL104:
+ 932              	.LBE97:
+ 933              	.LBB98:
+ 934 0684 E978     		ldrb	r1, [r5, #3]	@ zero_extendqisi2
+ 935              	.LVL105:
+ 936 0686 3378     		ldrb	r3, [r6, #0]	@ zero_extendqisi2
+ 937 0688 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 938 068a CB18     		adds	r3, r1, r3
+ 939 068c DBB2     		uxtb	r3, r3
+ 940              	.LBE98:
+ 941              	.LBB99:
+ 942 068e 5F4D     		ldr	r5, .L77+44
+ 943              	.LVL106:
+ 944              	.LBE99:
+ 945              	.LBB100:
+ 946 0690 3370     		strb	r3, [r6, #0]
+ 947 0692 9B18     		adds	r3, r3, r2
+ 948              	.LVL107:
+ 949 0694 2370     		strb	r3, [r4, #0]
+ 950 0696 5548     		ldr	r0, .L77+12
+ 951 0698 FFF7FEFF 		bl	uart_transmit
+ 952              	.LVL108:
+ 953              	.LBE100:
+ 954              	.LBB101:
+ 955 069c 2978     		ldrb	r1, [r5, #0]	@ zero_extendqisi2
+ 956              	.LVL109:
+ 957 069e 3378     		ldrb	r3, [r6, #0]	@ zero_extendqisi2
+ 958 06a0 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 959 06a2 CB18     		adds	r3, r1, r3
+ 960 06a4 DBB2     		uxtb	r3, r3
+ 961              	.LVL110:
+ 962 06a6 3370     		strb	r3, [r6, #0]
+ 963 06a8 9B18     		adds	r3, r3, r2
+ 964              	.LVL111:
+ 965 06aa 2370     		strb	r3, [r4, #0]
+ 966 06ac 4F48     		ldr	r0, .L77+12
+ 967 06ae FFF7FEFF 		bl	uart_transmit
+ 968              	.LVL112:
+ 969              	.LBE101:
+ 970              	.LBB102:
+ 971 06b2 6978     		ldrb	r1, [r5, #1]	@ zero_extendqisi2
+ 972              	.LVL113:
+ 973 06b4 3378     		ldrb	r3, [r6, #0]	@ zero_extendqisi2
+ 974 06b6 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 975 06b8 CB18     		adds	r3, r1, r3
+ 976 06ba DBB2     		uxtb	r3, r3
+ 977              	.LVL114:
+ 978 06bc 3370     		strb	r3, [r6, #0]
+ 979 06be 9B18     		adds	r3, r3, r2
+ 980              	.LVL115:
+ 981 06c0 2370     		strb	r3, [r4, #0]
+ 982 06c2 4A48     		ldr	r0, .L77+12
+ 983 06c4 FFF7FEFF 		bl	uart_transmit
+ 984              	.LVL116:
+ 985              	.LBE102:
+ 986              	.LBB103:
+ 987 06c8 A978     		ldrb	r1, [r5, #2]	@ zero_extendqisi2
+ 988              	.LVL117:
+ 989 06ca 3378     		ldrb	r3, [r6, #0]	@ zero_extendqisi2
+ 990 06cc 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 991 06ce CB18     		adds	r3, r1, r3
+ 992 06d0 DBB2     		uxtb	r3, r3
+ 993              	.LVL118:
+ 994 06d2 3370     		strb	r3, [r6, #0]
+ 995 06d4 9B18     		adds	r3, r3, r2
+ 996              	.LVL119:
+ 997 06d6 2370     		strb	r3, [r4, #0]
+ 998 06d8 4448     		ldr	r0, .L77+12
+ 999 06da FFF7FEFF 		bl	uart_transmit
+ 1000              	.LVL120:
+ 1001              	.LBE103:
+ 1002              	.LBB104:
+ 1003 06de E978     		ldrb	r1, [r5, #3]	@ zero_extendqisi2
+ 1004              	.LVL121:
+ 1005 06e0 3378     		ldrb	r3, [r6, #0]	@ zero_extendqisi2
+ 1006 06e2 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1007 06e4 CB18     		adds	r3, r1, r3
+ 1008 06e6 DBB2     		uxtb	r3, r3
+ 1009              	.LBE104:
+ 1010              	.LBB105:
+ 1011 06e8 494D     		ldr	r5, .L77+48
+ 1012              	.LVL122:
+ 1013              	.LBE105:
+ 1014              	.LBB106:
+ 1015 06ea 3370     		strb	r3, [r6, #0]
+ 1016 06ec 9B18     		adds	r3, r3, r2
+ 1017              	.LVL123:
+ 1018 06ee 2370     		strb	r3, [r4, #0]
+ 1019 06f0 3E48     		ldr	r0, .L77+12
+ 1020 06f2 FFF7FEFF 		bl	uart_transmit
+ 1021              	.LVL124:
+ 1022              	.LBE106:
+ 1023              	.LBB107:
+ 1024 06f6 2978     		ldrb	r1, [r5, #0]	@ zero_extendqisi2
+ 1025              	.LVL125:
+ 1026 06f8 3378     		ldrb	r3, [r6, #0]	@ zero_extendqisi2
+ 1027 06fa 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1028 06fc CB18     		adds	r3, r1, r3
+ 1029 06fe DBB2     		uxtb	r3, r3
+ 1030              	.LVL126:
+ 1031 0700 3370     		strb	r3, [r6, #0]
+ 1032 0702 9B18     		adds	r3, r3, r2
+ 1033              	.LVL127:
+ 1034 0704 2370     		strb	r3, [r4, #0]
+ 1035 0706 3948     		ldr	r0, .L77+12
+ 1036 0708 FFF7FEFF 		bl	uart_transmit
+ 1037              	.LVL128:
+ 1038              	.LBE107:
+ 1039              	.LBB108:
+ 1040 070c 6978     		ldrb	r1, [r5, #1]	@ zero_extendqisi2
+ 1041              	.LVL129:
+ 1042 070e 3378     		ldrb	r3, [r6, #0]	@ zero_extendqisi2
+ 1043 0710 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1044 0712 CB18     		adds	r3, r1, r3
+ 1045 0714 DBB2     		uxtb	r3, r3
+ 1046              	.LVL130:
+ 1047 0716 3370     		strb	r3, [r6, #0]
+ 1048 0718 9B18     		adds	r3, r3, r2
+ 1049              	.LVL131:
+ 1050 071a 2370     		strb	r3, [r4, #0]
+ 1051 071c 3348     		ldr	r0, .L77+12
+ 1052 071e FFF7FEFF 		bl	uart_transmit
+ 1053              	.LVL132:
+ 1054              	.LBE108:
+ 1055              	.LBB109:
+ 1056 0722 A978     		ldrb	r1, [r5, #2]	@ zero_extendqisi2
+ 1057              	.LVL133:
+ 1058 0724 3378     		ldrb	r3, [r6, #0]	@ zero_extendqisi2
+ 1059 0726 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1060 0728 CB18     		adds	r3, r1, r3
+ 1061 072a DBB2     		uxtb	r3, r3
+ 1062              	.LVL134:
+ 1063 072c 3370     		strb	r3, [r6, #0]
+ 1064 072e 9B18     		adds	r3, r3, r2
+ 1065              	.LVL135:
+ 1066 0730 2370     		strb	r3, [r4, #0]
+ 1067 0732 2E48     		ldr	r0, .L77+12
+ 1068 0734 FFF7FEFF 		bl	uart_transmit
+ 1069              	.LVL136:
+ 1070              	.LBE109:
+ 1071              	.LBB110:
+ 1072 0738 E978     		ldrb	r1, [r5, #3]	@ zero_extendqisi2
+ 1073              	.LVL137:
+ 1074 073a 3378     		ldrb	r3, [r6, #0]	@ zero_extendqisi2
+ 1075 073c 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1076 073e CB18     		adds	r3, r1, r3
+ 1077 0740 DBB2     		uxtb	r3, r3
+ 1078              	.LBE110:
+ 1079              	.LBB111:
+ 1080 0742 344D     		ldr	r5, .L77+52
+ 1081              	.LVL138:
+ 1082              	.LBE111:
+ 1083              	.LBB112:
+ 1084 0744 3370     		strb	r3, [r6, #0]
+ 1085 0746 9B18     		adds	r3, r3, r2
+ 1086              	.LVL139:
+ 1087 0748 2370     		strb	r3, [r4, #0]
+ 1088 074a 2848     		ldr	r0, .L77+12
+ 1089 074c FFF7FEFF 		bl	uart_transmit
+ 1090              	.LVL140:
+ 1091              	.LBE112:
+ 1092              	.LBB113:
+ 1093 0750 2978     		ldrb	r1, [r5, #0]	@ zero_extendqisi2
+ 1094              	.LVL141:
+ 1095 0752 3378     		ldrb	r3, [r6, #0]	@ zero_extendqisi2
+ 1096 0754 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1097 0756 CB18     		adds	r3, r1, r3
+ 1098 0758 DBB2     		uxtb	r3, r3
+ 1099              	.LVL142:
+ 1100 075a 3370     		strb	r3, [r6, #0]
+ 1101 075c 9B18     		adds	r3, r3, r2
+ 1102              	.LVL143:
+ 1103 075e 2370     		strb	r3, [r4, #0]
+ 1104 0760 2248     		ldr	r0, .L77+12
+ 1105 0762 FFF7FEFF 		bl	uart_transmit
+ 1106              	.LVL144:
+ 1107              	.LBE113:
+ 1108              	.LBB114:
+ 1109 0766 6978     		ldrb	r1, [r5, #1]	@ zero_extendqisi2
+ 1110              	.LVL145:
+ 1111 0768 3378     		ldrb	r3, [r6, #0]	@ zero_extendqisi2
+ 1112 076a 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1113 076c CB18     		adds	r3, r1, r3
+ 1114 076e DBB2     		uxtb	r3, r3
+ 1115              	.LVL146:
+ 1116 0770 3370     		strb	r3, [r6, #0]
+ 1117 0772 9B18     		adds	r3, r3, r2
+ 1118              	.LVL147:
+ 1119 0774 2370     		strb	r3, [r4, #0]
+ 1120 0776 1D48     		ldr	r0, .L77+12
+ 1121 0778 FFF7FEFF 		bl	uart_transmit
+ 1122              	.LVL148:
+ 1123              	.LBE114:
+ 1124              	.LBB115:
+ 1125 077c A978     		ldrb	r1, [r5, #2]	@ zero_extendqisi2
+ 1126              	.LVL149:
+ 1127 077e 3378     		ldrb	r3, [r6, #0]	@ zero_extendqisi2
+ 1128 0780 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1129 0782 CB18     		adds	r3, r1, r3
+ 1130 0784 DBB2     		uxtb	r3, r3
+ 1131              	.LVL150:
+ 1132 0786 3370     		strb	r3, [r6, #0]
+ 1133 0788 9B18     		adds	r3, r3, r2
+ 1134              	.LVL151:
+ 1135 078a 2370     		strb	r3, [r4, #0]
+ 1136 078c 1748     		ldr	r0, .L77+12
+ 1137 078e FFF7FEFF 		bl	uart_transmit
+ 1138              	.LVL152:
+ 1139              	.LBE115:
+ 1140              	.LBB116:
+ 1141 0792 E978     		ldrb	r1, [r5, #3]	@ zero_extendqisi2
+ 1142              	.LVL153:
+ 1143 0794 3378     		ldrb	r3, [r6, #0]	@ zero_extendqisi2
+ 1144 0796 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1145 0798 CB18     		adds	r3, r1, r3
+ 1146 079a DBB2     		uxtb	r3, r3
+ 1147              	.LVL154:
+ 1148 079c 3370     		strb	r3, [r6, #0]
+ 1149 079e 9B18     		adds	r3, r3, r2
+ 1150              	.LVL155:
+ 1151 07a0 2370     		strb	r3, [r4, #0]
+ 1152 07a2 1248     		ldr	r0, .L77+12
+ 1153 07a4 FFF7FEFF 		bl	uart_transmit
+ 1154              	.LVL156:
+ 1155              	.LBE116:
+ 1156              	.LBB117:
+ 1157 07a8 3378     		ldrb	r3, [r6, #0]	@ zero_extendqisi2
+ 1158 07aa 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1159 07ac FB18     		adds	r3, r7, r3
+ 1160 07ae DBB2     		uxtb	r3, r3
+ 1161              	.LVL157:
+ 1162 07b0 3370     		strb	r3, [r6, #0]
+ 1163 07b2 9B18     		adds	r3, r3, r2
+ 1164              	.LVL158:
+ 1165 07b4 2370     		strb	r3, [r4, #0]
+ 1166 07b6 0D48     		ldr	r0, .L77+12
+ 1167 07b8 3946     		mov	r1, r7
+ 1168 07ba FFF7FEFF 		bl	uart_transmit
+ 1169              	.LBE117:
+ 1170              	.LBB118:
+ 1171 07be 164B     		ldr	r3, .L77+56
+ 1172 07c0 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1173 07c2 1978     		ldrb	r1, [r3, #0]	@ zero_extendqisi2
+ 1174              	.LVL159:
+ 1175 07c4 3378     		ldrb	r3, [r6, #0]	@ zero_extendqisi2
+ 1176 07c6 0948     		ldr	r0, .L77+12
+ 1177 07c8 CB18     		adds	r3, r1, r3
+ 1178 07ca DBB2     		uxtb	r3, r3
+ 1179              	.LVL160:
+ 1180 07cc 3370     		strb	r3, [r6, #0]
+ 1181 07ce 9B18     		adds	r3, r3, r2
+ 1182              	.LVL161:
+ 1183 07d0 2370     		strb	r3, [r4, #0]
+ 1184 07d2 FFF7FEFF 		bl	uart_transmit
+ 1185              	.LVL162:
+ 1186              	.LBE118:
+ 1187 07d6 0548     		ldr	r0, .L77+12
+ 1188 07d8 3178     		ldrb	r1, [r6, #0]	@ zero_extendqisi2
+ 1189 07da 77E1     		b	.L68
+ 1190              	.L78:
+ 1191 07dc AFF30080 		.align	3
+ 1192              	.L77:
+ 1193 07e0 182D4454 		.word	1413754136
+ 1194 07e4 FB211940 		.word	1075388923
+ 1195 07e8 00000000 		.word	nav_circle_radians
+ 1196 07ec 00000000 		.word	uart2
+ 1197 07f0 00000000 		.word	downlink_nb_bytes
+ 1198 07f4 00000000 		.word	downlink_nb_msgs
+ 1199 07f8 00000000 		.word	ck_a
+ 1200 07fc 00000000 		.word	ck_b
+ 1201 0800 00000000 		.word	nav_block
+ 1202 0804 00000000 		.word	nav_stage
+ 1203 0808 00000000 		.word	estimator_x
+ 1204 080c 00000000 		.word	estimator_y
+ 1205 0810 00000000 		.word	dist2_to_wp
+ 1206 0814 00000000 		.word	dist2_to_home
+ 1207 0818 00000000 		.word	nav_oval_count
+ 1208              	.LVL163:
+ 1209              	.L10:
+ 1210              	.LBE86:
+ 133:firmwares/fixedwing/datalink.c ****   } else
+ 134:firmwares/fixedwing/datalink.c **** #endif /** NAV */
+ 135:firmwares/fixedwing/datalink.c **** #ifdef WIND_INFO
+ 136:firmwares/fixedwing/datalink.c ****   if (msg_id == DL_WIND_INFO && DL_WIND_INFO_ac_id(dl_buffer) == AC_ID) {
+ 1211              		.loc 1 136 0 is_stmt 1
+ 1212 081c 032B     		cmp	r3, #3
+ 1213 081e 28D1     		bne	.L12
+ 1214              		.loc 1 136 0 is_stmt 0 discriminator 1
+ 1215 0820 A378     		ldrb	r3, [r4, #2]	@ zero_extendqisi2
+ 1216              	.LVL164:
+ 1217 0822 012B     		cmp	r3, #1
+ 1218 0824 40F05B81 		bne	.L1
+ 1219              	.LBB119:
+ 137:firmwares/fixedwing/datalink.c ****     wind_east = DL_WIND_INFO_east(dl_buffer);
+ 1220              		.loc 1 137 0 is_stmt 1
+ 1221 0828 A279     		ldrb	r2, [r4, #6]	@ zero_extendqisi2
+ 1222 082a E379     		ldrb	r3, [r4, #7]	@ zero_extendqisi2
+ 1223 082c 1204     		lsls	r2, r2, #16
+ 1224 082e 42EA0362 		orr	r2, r2, r3, lsl #24
+ 1225 0832 6179     		ldrb	r1, [r4, #5]	@ zero_extendqisi2
+ 1226 0834 2379     		ldrb	r3, [r4, #4]	@ zero_extendqisi2
+ 1227 0836 43EA0123 		orr	r3, r3, r1, lsl #8
+ 1228              	.LBE119:
+ 1229 083a 1A43     		orrs	r2, r2, r3
+ 1230 083c 5C4B     		ldr	r3, .L79
+ 1231              	.LBB120:
+ 138:firmwares/fixedwing/datalink.c ****     wind_north = DL_WIND_INFO_north(dl_buffer);
+ 1232              		.loc 1 138 0
+ 1233 083e 617A     		ldrb	r1, [r4, #9]	@ zero_extendqisi2
+ 1234              	.LBE120:
+ 137:firmwares/fixedwing/datalink.c ****     wind_east = DL_WIND_INFO_east(dl_buffer);
+ 1235              		.loc 1 137 0
+ 1236 0840 1A60     		str	r2, [r3, #0]	@ float
+ 1237              	.LBB121:
+ 1238              		.loc 1 138 0
+ 1239 0842 A27A     		ldrb	r2, [r4, #10]	@ zero_extendqisi2
+ 1240 0844 E37A     		ldrb	r3, [r4, #11]	@ zero_extendqisi2
+ 1241 0846 1204     		lsls	r2, r2, #16
+ 1242 0848 42EA0362 		orr	r2, r2, r3, lsl #24
+ 1243 084c 237A     		ldrb	r3, [r4, #8]	@ zero_extendqisi2
+ 1244 084e 43EA0123 		orr	r3, r3, r1, lsl #8
+ 1245              	.LBE121:
+ 1246 0852 1A43     		orrs	r2, r2, r3
+ 1247 0854 574B     		ldr	r3, .L79+4
+ 1248              	.LBB122:
+ 139:firmwares/fixedwing/datalink.c **** #if !USE_AIRSPEED
+ 140:firmwares/fixedwing/datalink.c ****     estimator_airspeed = DL_WIND_INFO_airspeed(dl_buffer);
+ 1249              		.loc 1 140 0
+ 1250 0856 617B     		ldrb	r1, [r4, #13]	@ zero_extendqisi2
+ 1251              	.LBE122:
+ 138:firmwares/fixedwing/datalink.c ****     wind_north = DL_WIND_INFO_north(dl_buffer);
+ 1252              		.loc 1 138 0
+ 1253 0858 1A60     		str	r2, [r3, #0]	@ float
+ 1254              	.LBB123:
+ 1255              		.loc 1 140 0
+ 1256 085a A27B     		ldrb	r2, [r4, #14]	@ zero_extendqisi2
+ 1257 085c E37B     		ldrb	r3, [r4, #15]	@ zero_extendqisi2
+ 1258 085e 1204     		lsls	r2, r2, #16
+ 1259 0860 42EA0362 		orr	r2, r2, r3, lsl #24
+ 1260 0864 237B     		ldrb	r3, [r4, #12]	@ zero_extendqisi2
+ 1261 0866 43EA0123 		orr	r3, r3, r1, lsl #8
+ 1262              	.LBE123:
+ 1263 086a 1A43     		orrs	r2, r2, r3
+ 1264 086c 524B     		ldr	r3, .L79+8
+ 1265 086e 1A60     		str	r2, [r3, #0]	@ float
+ 1266 0870 35E1     		b	.L1
+ 1267              	.LVL165:
+ 1268              	.L12:
+ 141:firmwares/fixedwing/datalink.c **** #endif
+ 142:firmwares/fixedwing/datalink.c **** #ifdef WIND_INFO_RET
+ 143:firmwares/fixedwing/datalink.c ****     DOWNLINK_SEND_WIND_INFO_RET(DefaultChannel, DefaultDevice, &wind_east, &wind_north, &estimator_
+ 144:firmwares/fixedwing/datalink.c **** #endif
+ 145:firmwares/fixedwing/datalink.c ****   } else
+ 146:firmwares/fixedwing/datalink.c **** #endif /** WIND_INFO */
+ 147:firmwares/fixedwing/datalink.c **** 
+ 148:firmwares/fixedwing/datalink.c **** #ifdef HITL
+ 149:firmwares/fixedwing/datalink.c ****   /** Infrared and GPS sensors are replaced by messages on the datalink */
+ 150:firmwares/fixedwing/datalink.c ****   if (msg_id == DL_HITL_INFRARED) {
+ 151:firmwares/fixedwing/datalink.c ****     /** This code simulates infrared.c:ir_update() */
+ 152:firmwares/fixedwing/datalink.c ****     infrared.roll = DL_HITL_INFRARED_roll(dl_buffer);
+ 153:firmwares/fixedwing/datalink.c ****     infrared.pitch = DL_HITL_INFRARED_pitch(dl_buffer);
+ 154:firmwares/fixedwing/datalink.c ****     infrared.top = DL_HITL_INFRARED_top(dl_buffer);
+ 155:firmwares/fixedwing/datalink.c ****   } else if (msg_id == DL_HITL_UBX) {
+ 156:firmwares/fixedwing/datalink.c ****     /** This code simulates gps_ubx.c:parse_ubx() */
+ 157:firmwares/fixedwing/datalink.c ****     if (gps_msg_received) {
+ 158:firmwares/fixedwing/datalink.c ****       gps_nb_ovrn++;
+ 159:firmwares/fixedwing/datalink.c ****     } else {
+ 160:firmwares/fixedwing/datalink.c ****       ubx_class = DL_HITL_UBX_class(dl_buffer);
+ 161:firmwares/fixedwing/datalink.c ****       ubx_id = DL_HITL_UBX_id(dl_buffer);
+ 162:firmwares/fixedwing/datalink.c ****       uint8_t l = DL_HITL_UBX_ubx_payload_length(dl_buffer);
+ 163:firmwares/fixedwing/datalink.c ****       uint8_t *ubx_payload = DL_HITL_UBX_ubx_payload(dl_buffer);
+ 164:firmwares/fixedwing/datalink.c ****       memcpy(ubx_msg_buf, ubx_payload, l);
+ 165:firmwares/fixedwing/datalink.c ****       gps_msg_received = TRUE;
+ 166:firmwares/fixedwing/datalink.c ****     }
+ 167:firmwares/fixedwing/datalink.c ****   } else
+ 168:firmwares/fixedwing/datalink.c **** #endif
+ 169:firmwares/fixedwing/datalink.c **** #ifdef DlSetting
+ 170:firmwares/fixedwing/datalink.c ****   if (msg_id == DL_SETTING && DL_SETTING_ac_id(dl_buffer) == AC_ID) {
+ 1269              		.loc 1 170 0
+ 1270 0872 042B     		cmp	r3, #4
+ 1271 0874 6BD1     		bne	.L6
+ 1272              		.loc 1 170 0 is_stmt 0 discriminator 1
+ 1273 0876 E378     		ldrb	r3, [r4, #3]	@ zero_extendqisi2
+ 1274              	.LVL166:
+ 1275 0878 012B     		cmp	r3, #1
+ 1276 087a 40F03081 		bne	.L1
+ 1277              	.LBB124:
+ 1278              	.LBB125:
+ 171:firmwares/fixedwing/datalink.c ****     uint8_t i = DL_SETTING_index(dl_buffer);
+ 172:firmwares/fixedwing/datalink.c ****     float val = DL_SETTING_value(dl_buffer);
+ 1279              		.loc 1 172 0 is_stmt 1
+ 1280 087e A279     		ldrb	r2, [r4, #6]	@ zero_extendqisi2
+ 1281 0880 E379     		ldrb	r3, [r4, #7]	@ zero_extendqisi2
+ 1282 0882 1204     		lsls	r2, r2, #16
+ 1283 0884 42EA0362 		orr	r2, r2, r3, lsl #24
+ 1284 0888 6179     		ldrb	r1, [r4, #5]	@ zero_extendqisi2
+ 1285 088a 2379     		ldrb	r3, [r4, #4]	@ zero_extendqisi2
+ 1286              	.LBE125:
+ 171:firmwares/fixedwing/datalink.c ****     uint8_t i = DL_SETTING_index(dl_buffer);
+ 1287              		.loc 1 171 0
+ 1288 088c A678     		ldrb	r6, [r4, #2]	@ zero_extendqisi2
+ 1289              	.LVL167:
+ 1290              	.LBB126:
+ 1291              		.loc 1 172 0
+ 1292 088e 43EA0123 		orr	r3, r3, r1, lsl #8
+ 1293              	.LBE126:
+ 1294 0892 42EA0304 		orr	r4, r2, r3
+ 1295              	.LVL168:
+ 1296 0896 1594     		str	r4, [sp, #84]	@ float
+ 1297              	.LVL169:
+ 173:firmwares/fixedwing/datalink.c ****     DlSetting(i, val);
+ 1298              		.loc 1 173 0
+ 1299 0898 0B2E     		cmp	r6, #11
+ 1300 089a 00F2AF80 		bhi	.L72
+ 1301 089e DFE806F0 		tbb	[pc, r6]
+ 1302              	.L26:
+ 1303 08a2 06       		.byte	(.L14-.L26)/2
+ 1304 08a3 0B       		.byte	(.L15-.L26)/2
+ 1305 08a4 10       		.byte	(.L16-.L26)/2
+ 1306 08a5 12       		.byte	(.L17-.L26)/2
+ 1307 08a6 15       		.byte	(.L18-.L26)/2
+ 1308 08a7 25       		.byte	(.L19-.L26)/2
+ 1309 08a8 2B       		.byte	(.L20-.L26)/2
+ 1310 08a9 41       		.byte	(.L21-.L26)/2
+ 1311 08aa 46       		.byte	(.L22-.L26)/2
+ 1312 08ab 4B       		.byte	(.L23-.L26)/2
+ 1313 08ac 7E       		.byte	(.L47-.L26)/2
+ 1314 08ad 50       		.byte	(.L25-.L26)/2
+ 1315              		.align	1
+ 1316              	.L14:
+ 1317              		.loc 1 173 0 is_stmt 0 discriminator 2
+ 1318 08ae 2046     		mov	r0, r4
+ 1319 08b0 FFF7FEFF 		bl	__aeabi_f2uiz
+ 1320 08b4 414B     		ldr	r3, .L79+12
+ 1321 08b6 48E0     		b	.L61
+ 1322              	.L15:
+ 1323              		.loc 1 173 0 discriminator 3
+ 1324 08b8 2046     		mov	r0, r4
+ 1325 08ba FFF7FEFF 		bl	__aeabi_f2uiz
+ 1326 08be 404B     		ldr	r3, .L79+16
+ 1327 08c0 43E0     		b	.L61
+ 1328              	.L16:
+ 1329              		.loc 1 173 0 discriminator 4
+ 1330 08c2 404B     		ldr	r3, .L79+20
+ 1331 08c4 00E0     		b	.L62
+ 1332              	.L17:
+ 1333              		.loc 1 173 0 discriminator 5
+ 1334 08c6 404B     		ldr	r3, .L79+24
+ 1335              	.L62:
+ 1336 08c8 1C60     		str	r4, [r3, #0]	@ float
+ 1337 08ca 97E0     		b	.L72
+ 1338              	.L18:
+ 1339              		.loc 1 173 0 discriminator 6
+ 1340 08cc 0027     		movs	r7, #0
+ 1341 08ce 2046     		mov	r0, r4
+ 1342 08d0 3946     		mov	r1, r7
+ 1343 08d2 FFF7FEFF 		bl	__aeabi_fcmpeq
+ 1344 08d6 3D4D     		ldr	r5, .L79+28
+ 1345 08d8 08B1     		cbz	r0, .L57
+ 1346              		.loc 1 173 0 discriminator 14
+ 1347 08da 2F60     		str	r7, [r5, #0]	@ float
+ 1348 08dc 04E0     		b	.L29
+ 1349              	.L57:
+ 1350              		.loc 1 173 0 discriminator 15
+ 1351 08de 2868     		ldr	r0, [r5, #0]	@ float
+ 1352 08e0 2146     		mov	r1, r4
+ 1353 08e2 FFF7FEFF 		bl	__aeabi_fadd
+ 1354 08e6 2860     		str	r0, [r5, #0]	@ float
+ 1355              	.L29:
+ 1356              		.loc 1 173 0 discriminator 16
+ 1357 08e8 2B68     		ldr	r3, [r5, #0]	@ float
+ 1358 08ea 19E0     		b	.L63
+ 1359              	.L19:
+ 1360              		.loc 1 173 0 discriminator 7
+ 1361 08ec 2046     		mov	r0, r4
+ 1362 08ee FFF7FEFF 		bl	__aeabi_f2uiz
+ 1363 08f2 374B     		ldr	r3, .L79+32
+ 1364 08f4 1880     		strh	r0, [r3, #0]	@ movhi
+ 1365 08f6 81E0     		b	.L72
+ 1366              	.L20:
+ 1367              		.loc 1 173 0 discriminator 8
+ 1368 08f8 2046     		mov	r0, r4
+ 1369 08fa 4FF07E51 		mov	r1, #1065353216
+ 1370 08fe FFF7FEFF 		bl	__aeabi_fcmpeq
+ 1371 0902 344D     		ldr	r5, .L79+36
+ 1372 0904 08B1     		cbz	r0, .L58
+ 1373              		.loc 1 173 0 discriminator 17
+ 1374 0906 344B     		ldr	r3, .L79+40
+ 1375 0908 05E0     		b	.L60
+ 1376              	.L58:
+ 1377              		.loc 1 173 0 discriminator 18
+ 1378 090a 2046     		mov	r0, r4
+ 1379 090c 3349     		ldr	r1, .L79+44
+ 1380 090e FFF7FEFF 		bl	__aeabi_fcmpeq
+ 1381 0912 10B1     		cbz	r0, .L59
+ 1382              		.loc 1 173 0 discriminator 19
+ 1383 0914 324B     		ldr	r3, .L79+48
+ 1384              	.L60:
+ 1385 0916 2B60     		str	r3, [r5, #0]	@ float
+ 1386 0918 00E0     		b	.L32
+ 1387              	.L59:
+ 1388              		.loc 1 173 0 discriminator 20
+ 1389 091a 2C60     		str	r4, [r5, #0]	@ float
+ 1390              	.L32:
+ 1391              		.loc 1 173 0 discriminator 21
+ 1392 091c 2D4B     		ldr	r3, .L79+36
+ 1393 091e 1B68     		ldr	r3, [r3, #0]	@ float
+ 1394              	.L63:
+ 1395 0920 1593     		str	r3, [sp, #84]	@ float
+ 1396 0922 6BE0     		b	.L72
+ 1397              	.L21:
+ 1398              		.loc 1 173 0 discriminator 9
+ 1399 0924 2046     		mov	r0, r4
+ 1400 0926 FFF7FEFF 		bl	__aeabi_f2uiz
+ 1401 092a 2E4B     		ldr	r3, .L79+52
+ 1402 092c 0DE0     		b	.L61
+ 1403              	.L22:
+ 1404              		.loc 1 173 0 discriminator 10
+ 1405 092e 2046     		mov	r0, r4
+ 1406 0930 FFF7FEFF 		bl	__aeabi_f2uiz
+ 1407 0934 2C4B     		ldr	r3, .L79+56
+ 1408 0936 08E0     		b	.L61
+ 1409              	.L23:
+ 1410              		.loc 1 173 0 discriminator 11
+ 1411 0938 2046     		mov	r0, r4
+ 1412 093a FFF7FEFF 		bl	__aeabi_f2uiz
+ 1413 093e 2B4B     		ldr	r3, .L79+60
+ 1414 0940 03E0     		b	.L61
+ 1415              	.L25:
+ 1416              		.loc 1 173 0 discriminator 13
+ 1417 0942 2046     		mov	r0, r4
+ 1418 0944 FFF7FEFF 		bl	__aeabi_f2uiz
+ 1419 0948 294B     		ldr	r3, .L79+64
+ 1420              	.L61:
+ 1421 094a 1870     		strb	r0, [r3, #0]
+ 1422 094c 56E0     		b	.L72
+ 1423              	.LVL170:
+ 1424              	.L6:
+ 1425              	.LBE124:
+ 174:firmwares/fixedwing/datalink.c ****     DOWNLINK_SEND_DL_VALUE(DefaultChannel, DefaultDevice, &i, &val);
+ 175:firmwares/fixedwing/datalink.c ****   } else if (msg_id == DL_GET_SETTING && DL_GET_SETTING_ac_id(dl_buffer) == AC_ID) {
+ 1426              		.loc 1 175 0 is_stmt 1
+ 1427 094e 102B     		cmp	r3, #16
+ 1428 0950 40F0C580 		bne	.L1
+ 1429              		.loc 1 175 0 is_stmt 0 discriminator 1
+ 1430 0954 E378     		ldrb	r3, [r4, #3]	@ zero_extendqisi2
+ 1431              	.LVL171:
+ 1432 0956 012B     		cmp	r3, #1
+ 1433 0958 40F0C180 		bne	.L1
+ 1434              	.LBB127:
+ 176:firmwares/fixedwing/datalink.c ****     uint8_t i = DL_GET_SETTING_index(dl_buffer);
+ 1435              		.loc 1 176 0 is_stmt 1
+ 1436 095c A678     		ldrb	r6, [r4, #2]	@ zero_extendqisi2
+ 1437              	.LVL172:
+ 1438              	.LBB128:
+ 1439              	.LBB129:
+ 1440              		.file 2 "/home/mav/paparazzi/var/Radian/generated/settings.h"
+   1:/home/mav/paparazzi/var/Radian/generated/settings.h **** /* This file has been generated from /home/mav/paparazzi/var/Radian/settings_modules.xml /home/mav/
+   2:/home/mav/paparazzi/var/Radian/generated/settings.h **** /* Please DO NOT EDIT */
+   3:/home/mav/paparazzi/var/Radian/generated/settings.h **** 
+   4:/home/mav/paparazzi/var/Radian/generated/settings.h **** #ifndef SETTINGS_H
+   5:/home/mav/paparazzi/var/Radian/generated/settings.h **** #define SETTINGS_H
+   6:/home/mav/paparazzi/var/Radian/generated/settings.h **** 
+   7:/home/mav/paparazzi/var/Radian/generated/settings.h **** #define RCSettings(mode_changed) { \
+   8:/home/mav/paparazzi/var/Radian/generated/settings.h **** }
+   9:/home/mav/paparazzi/var/Radian/generated/settings.h **** 
+  10:/home/mav/paparazzi/var/Radian/generated/settings.h **** #include "autopilot.h"
+  11:/home/mav/paparazzi/var/Radian/generated/settings.h **** #include "estimator.h"
+  12:/home/mav/paparazzi/var/Radian/generated/settings.h **** #include "subsystems/gps.h"
+  13:/home/mav/paparazzi/var/Radian/generated/settings.h **** #include "subsystems/nav.h"
+  14:/home/mav/paparazzi/var/Radian/generated/settings.h **** #include "generated/modules.h"
+  15:/home/mav/paparazzi/var/Radian/generated/settings.h **** #include "generated/periodic_telemetry.h"
+  16:/home/mav/paparazzi/var/Radian/generated/settings.h **** 
+  17:/home/mav/paparazzi/var/Radian/generated/settings.h **** #define DlSetting(_idx, _value) { \
+  18:/home/mav/paparazzi/var/Radian/generated/settings.h ****   switch (_idx) { \
+  19:/home/mav/paparazzi/var/Radian/generated/settings.h ****     case 0: telemetry_mode_Ap = _value; break;\
+  20:/home/mav/paparazzi/var/Radian/generated/settings.h ****     case 1: telemetry_mode_Fbw = _value; break;\
+  21:/home/mav/paparazzi/var/Radian/generated/settings.h ****     case 2: flight_altitude = _value; break;\
+  22:/home/mav/paparazzi/var/Radian/generated/settings.h ****     case 3: nav_course = _value; break;\
+  23:/home/mav/paparazzi/var/Radian/generated/settings.h ****     case 4: nav_IncreaseShift( _value ); _value = nav_shift; break;\
+  24:/home/mav/paparazzi/var/Radian/generated/settings.h ****     case 5: estimator_flight_time = _value; break;\
+  25:/home/mav/paparazzi/var/Radian/generated/settings.h ****     case 6: nav_SetNavRadius( _value ); _value = nav_radius; break;\
+  26:/home/mav/paparazzi/var/Radian/generated/settings.h ****     case 7: pprz_mode = _value; break;\
+  27:/home/mav/paparazzi/var/Radian/generated/settings.h ****     case 8: launch = _value; break;\
+  28:/home/mav/paparazzi/var/Radian/generated/settings.h ****     case 9: kill_throttle = _value; break;\
+  29:/home/mav/paparazzi/var/Radian/generated/settings.h ****     case 10: gps_Reset( _value ); _value = gps.reset; break;\
+  30:/home/mav/paparazzi/var/Radian/generated/settings.h ****     case 11: gps_ubx_gps_ubx_ucenter_periodic_status = _value; break;\
+  31:/home/mav/paparazzi/var/Radian/generated/settings.h ****     default: break;\
+  32:/home/mav/paparazzi/var/Radian/generated/settings.h ****   }\
+  33:/home/mav/paparazzi/var/Radian/generated/settings.h **** }
+  34:/home/mav/paparazzi/var/Radian/generated/settings.h **** #define PeriodicSendDlValue(_trans, _dev) { \
+  35:/home/mav/paparazzi/var/Radian/generated/settings.h ****   static uint8_t i;\
+  36:/home/mav/paparazzi/var/Radian/generated/settings.h ****   float var;\
+  37:/home/mav/paparazzi/var/Radian/generated/settings.h ****   if (i >= 12) i = 0;\
+  38:/home/mav/paparazzi/var/Radian/generated/settings.h ****   switch (i) { \
+  39:/home/mav/paparazzi/var/Radian/generated/settings.h ****     case 0: var = telemetry_mode_Ap; break;\
+  40:/home/mav/paparazzi/var/Radian/generated/settings.h ****     case 1: var = telemetry_mode_Fbw; break;\
+  41:/home/mav/paparazzi/var/Radian/generated/settings.h ****     case 2: var = flight_altitude; break;\
+  42:/home/mav/paparazzi/var/Radian/generated/settings.h ****     case 3: var = nav_course; break;\
+  43:/home/mav/paparazzi/var/Radian/generated/settings.h ****     case 4: var = nav_shift; break;\
+  44:/home/mav/paparazzi/var/Radian/generated/settings.h ****     case 5: var = estimator_flight_time; break;\
+  45:/home/mav/paparazzi/var/Radian/generated/settings.h ****     case 6: var = nav_radius; break;\
+  46:/home/mav/paparazzi/var/Radian/generated/settings.h ****     case 7: var = pprz_mode; break;\
+  47:/home/mav/paparazzi/var/Radian/generated/settings.h ****     case 8: var = launch; break;\
+  48:/home/mav/paparazzi/var/Radian/generated/settings.h ****     case 9: var = kill_throttle; break;\
+  49:/home/mav/paparazzi/var/Radian/generated/settings.h ****     case 10: var = gps.reset; break;\
+  50:/home/mav/paparazzi/var/Radian/generated/settings.h ****     case 11: var = gps_ubx_gps_ubx_ucenter_periodic_status; break;\
+  51:/home/mav/paparazzi/var/Radian/generated/settings.h ****     default: var = 0.; break;\
+  52:/home/mav/paparazzi/var/Radian/generated/settings.h ****   }\
+  53:/home/mav/paparazzi/var/Radian/generated/settings.h ****   DOWNLINK_SEND_DL_VALUE(_trans, _dev, &i, &var);\
+  54:/home/mav/paparazzi/var/Radian/generated/settings.h ****   i++;\
+  55:/home/mav/paparazzi/var/Radian/generated/settings.h **** }
+  56:/home/mav/paparazzi/var/Radian/generated/settings.h **** static inline float settings_get_value(uint8_t i) {
+  57:/home/mav/paparazzi/var/Radian/generated/settings.h ****   switch (i) { \
+ 1441              		.loc 2 57 0
+ 1442 095e 0B2E     		cmp	r6, #11
+ 1443 0960 4AD8     		bhi	.L51
+ 1444 0962 DFE806F0 		tbb	[pc, r6]
+ 1445              	.L49:
+ 1446 0966 06       		.byte	(.L37-.L49)/2
+ 1447 0967 08       		.byte	(.L38-.L49)/2
+ 1448 0968 0A       		.byte	(.L39-.L49)/2
+ 1449 0969 0C       		.byte	(.L40-.L49)/2
+ 1450 096a 0E       		.byte	(.L41-.L49)/2
+ 1451 096b 10       		.byte	(.L42-.L49)/2
+ 1452 096c 13       		.byte	(.L43-.L49)/2
+ 1453 096d 16       		.byte	(.L44-.L49)/2
+ 1454 096e 18       		.byte	(.L45-.L49)/2
+ 1455 096f 1A       		.byte	(.L46-.L49)/2
+ 1456 0970 1C       		.byte	(.L47-.L49)/2
+ 1457 0971 20       		.byte	(.L48-.L49)/2
+ 1458              		.align	1
+ 1459              	.L37:
+  58:/home/mav/paparazzi/var/Radian/generated/settings.h ****     case 0: return telemetry_mode_Ap;
+ 1460              		.loc 2 58 0
+ 1461 0972 124B     		ldr	r3, .L79+12
+ 1462 0974 18E0     		b	.L69
+ 1463              	.L38:
+  59:/home/mav/paparazzi/var/Radian/generated/settings.h ****     case 1: return telemetry_mode_Fbw;
+ 1464              		.loc 2 59 0
+ 1465 0976 124B     		ldr	r3, .L79+16
+ 1466 0978 16E0     		b	.L69
+ 1467              	.L39:
+  60:/home/mav/paparazzi/var/Radian/generated/settings.h ****     case 2: return flight_altitude;
+ 1468              		.loc 2 60 0
+ 1469 097a 124B     		ldr	r3, .L79+20
+ 1470 097c 07E0     		b	.L65
+ 1471              	.L40:
+  61:/home/mav/paparazzi/var/Radian/generated/settings.h ****     case 3: return nav_course;
+ 1472              		.loc 2 61 0
+ 1473 097e 124B     		ldr	r3, .L79+24
+ 1474 0980 05E0     		b	.L65
+ 1475              	.L41:
+  62:/home/mav/paparazzi/var/Radian/generated/settings.h ****     case 4: return nav_shift;
+ 1476              		.loc 2 62 0
+ 1477 0982 124B     		ldr	r3, .L79+28
+ 1478 0984 03E0     		b	.L65
+ 1479              	.L42:
+  63:/home/mav/paparazzi/var/Radian/generated/settings.h ****     case 5: return estimator_flight_time;
+ 1480              		.loc 2 63 0
+ 1481 0986 124B     		ldr	r3, .L79+32
+ 1482 0988 1888     		ldrh	r0, [r3, #0]
+ 1483 098a 0EE0     		b	.L64
+ 1484              	.L43:
+  64:/home/mav/paparazzi/var/Radian/generated/settings.h ****     case 6: return nav_radius;
+ 1485              		.loc 2 64 0
+ 1486 098c 114B     		ldr	r3, .L79+36
+ 1487              	.L65:
+ 1488 098e 1868     		ldr	r0, [r3, #0]	@ float
+ 1489 0990 33E0     		b	.L36
+ 1490              	.L44:
+  65:/home/mav/paparazzi/var/Radian/generated/settings.h ****     case 7: return pprz_mode;
+ 1491              		.loc 2 65 0
+ 1492 0992 144B     		ldr	r3, .L79+52
+ 1493 0994 08E0     		b	.L69
+ 1494              	.L45:
+  66:/home/mav/paparazzi/var/Radian/generated/settings.h ****     case 8: return launch;
+ 1495              		.loc 2 66 0
+ 1496 0996 144B     		ldr	r3, .L79+56
+ 1497 0998 06E0     		b	.L69
+ 1498              	.L46:
+  67:/home/mav/paparazzi/var/Radian/generated/settings.h ****     case 9: return kill_throttle;
+ 1499              		.loc 2 67 0
+ 1500 099a 144B     		ldr	r3, .L79+60
+ 1501 099c 04E0     		b	.L69
+ 1502              	.LVL173:
+ 1503              	.L47:
+  68:/home/mav/paparazzi/var/Radian/generated/settings.h ****     case 10: return gps.reset;
+ 1504              		.loc 2 68 0
+ 1505 099e 154B     		ldr	r3, .L79+68
+ 1506 09a0 B3F8F000 		ldrh	r0, [r3, #240]
+ 1507 09a4 01E0     		b	.L64
+ 1508              	.LVL174:
+ 1509              	.L48:
+  69:/home/mav/paparazzi/var/Radian/generated/settings.h ****     case 11: return gps_ubx_gps_ubx_ucenter_periodic_status;
+ 1510              		.loc 2 69 0
+ 1511 09a6 124B     		ldr	r3, .L79+64
+ 1512              	.L69:
+ 1513 09a8 1878     		ldrb	r0, [r3, #0]	@ zero_extendqisi2
+ 1514              	.LVL175:
+ 1515              	.L64:
+ 1516 09aa FFF7FEFF 		bl	__aeabi_ui2f
+ 1517 09ae 24E0     		b	.L36
+ 1518              	.L80:
+ 1519              		.align	2
+ 1520              	.L79:
+ 1521 09b0 00000000 		.word	wind_east
+ 1522 09b4 00000000 		.word	wind_north
+ 1523 09b8 00000000 		.word	estimator_airspeed
+ 1524 09bc 00000000 		.word	telemetry_mode_Ap
+ 1525 09c0 00000000 		.word	telemetry_mode_Fbw
+ 1526 09c4 00000000 		.word	flight_altitude
+ 1527 09c8 00000000 		.word	nav_course
+ 1528 09cc 00000000 		.word	nav_shift
+ 1529 09d0 00000000 		.word	estimator_flight_time
+ 1530 09d4 00000000 		.word	nav_radius
+ 1531 09d8 0000F042 		.word	1123024896
+ 1532 09dc 000080BF 		.word	-1082130432
+ 1533 09e0 0000F0C2 		.word	-1024458752
+ 1534 09e4 00000000 		.word	pprz_mode
+ 1535 09e8 00000000 		.word	launch
+ 1536 09ec 00000000 		.word	kill_throttle
+ 1537 09f0 00000000 		.word	gps_ubx_gps_ubx_ucenter_periodic_status
+ 1538 09f4 00000000 		.word	gps
+ 1539              	.LVL176:
+ 1540              	.L51:
+  70:/home/mav/paparazzi/var/Radian/generated/settings.h ****     default: return 0.;
+ 1541              		.loc 2 70 0
+ 1542 09f8 0020     		movs	r0, #0
+ 1543              	.LVL177:
+ 1544              	.L36:
+ 1545              	.LBE129:
+ 1546              	.LBE128:
+ 177:firmwares/fixedwing/datalink.c ****     float val = settings_get_value(i);
+ 1547              		.loc 1 177 0
+ 1548 09fa 1590     		str	r0, [sp, #84]	@ float
+ 1549              	.L72:
+ 178:firmwares/fixedwing/datalink.c ****     DOWNLINK_SEND_DL_VALUE(DefaultChannel, DefaultDevice, &i, &val);
+ 1550              		.loc 1 178 0
+ 1551 09fc 3948     		ldr	r0, .L81
+ 1552 09fe 0B21     		movs	r1, #11
+ 1553 0a00 FFF7FEFF 		bl	uart_check_free_space
+ 1554 0a04 0028     		cmp	r0, #0
+ 1555 0a06 66D0     		beq	.L50
+ 1556              		.loc 1 178 0 is_stmt 0 discriminator 1
+ 1557 0a08 374B     		ldr	r3, .L81+4
+ 1558              	.LBB130:
+ 1559 0a0a 3648     		ldr	r0, .L81
+ 1560              	.LBE130:
+ 1561 0a0c 1A88     		ldrh	r2, [r3, #0]
+ 1562              	.LBB131:
+ 1563 0a0e 9921     		movs	r1, #153
+ 1564              	.LBE131:
+ 1565 0a10 0B32     		adds	r2, r2, #11
+ 1566 0a12 1A80     		strh	r2, [r3, #0]	@ movhi
+ 1567 0a14 354B     		ldr	r3, .L81+8
+ 1568 0a16 364D     		ldr	r5, .L81+12
+ 1569 0a18 1A88     		ldrh	r2, [r3, #0]
+ 1570 0a1a 364C     		ldr	r4, .L81+16
+ 1571 0a1c 0132     		adds	r2, r2, #1
+ 1572 0a1e 1A80     		strh	r2, [r3, #0]	@ movhi
+ 1573              	.LBB132:
+ 1574 0a20 FFF7FEFF 		bl	uart_transmit
+ 1575              	.LVL178:
+ 1576 0a24 2F48     		ldr	r0, .L81
+ 1577 0a26 0B21     		movs	r1, #11
+ 1578 0a28 FFF7FEFF 		bl	uart_transmit
+ 1579              	.LBE132:
+ 1580 0a2c 0C23     		movs	r3, #12
+ 1581 0a2e 2B70     		strb	r3, [r5, #0]
+ 1582 0a30 1723     		movs	r3, #23
+ 1583 0a32 2370     		strb	r3, [r4, #0]
+ 1584 0a34 2B48     		ldr	r0, .L81
+ 1585 0a36 0121     		movs	r1, #1
+ 1586 0a38 FFF7FEFF 		bl	uart_transmit
+ 1587 0a3c 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 1588 0a3e 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1589 0a40 1F33     		adds	r3, r3, #31
+ 1590 0a42 DBB2     		uxtb	r3, r3
+ 1591 0a44 2B70     		strb	r3, [r5, #0]
+ 1592 0a46 9B18     		adds	r3, r3, r2
+ 1593 0a48 2370     		strb	r3, [r4, #0]
+ 1594 0a4a 2648     		ldr	r0, .L81
+ 1595 0a4c 1F21     		movs	r1, #31
+ 1596 0a4e FFF7FEFF 		bl	uart_transmit
+ 1597              	.LVL179:
+ 1598              	.LBB133:
+ 1599 0a52 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 1600 0a54 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1601 0a56 F318     		adds	r3, r6, r3
+ 1602 0a58 DBB2     		uxtb	r3, r3
+ 1603              	.LVL180:
+ 1604 0a5a 2B70     		strb	r3, [r5, #0]
+ 1605 0a5c 9B18     		adds	r3, r3, r2
+ 1606              	.LVL181:
+ 1607 0a5e 2370     		strb	r3, [r4, #0]
+ 1608 0a60 2048     		ldr	r0, .L81
+ 1609 0a62 3146     		mov	r1, r6
+ 1610 0a64 FFF7FEFF 		bl	uart_transmit
+ 1611              	.LBE133:
+ 1612              	.LBB134:
+ 1613 0a68 9DF85410 		ldrb	r1, [sp, #84]	@ zero_extendqisi2
+ 1614              	.LVL182:
+ 1615 0a6c 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 1616 0a6e 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1617 0a70 CB18     		adds	r3, r1, r3
+ 1618 0a72 DBB2     		uxtb	r3, r3
+ 1619              	.LVL183:
+ 1620 0a74 2B70     		strb	r3, [r5, #0]
+ 1621 0a76 9B18     		adds	r3, r3, r2
+ 1622              	.LVL184:
+ 1623 0a78 2370     		strb	r3, [r4, #0]
+ 1624 0a7a 1A48     		ldr	r0, .L81
+ 1625 0a7c FFF7FEFF 		bl	uart_transmit
+ 1626              	.LVL185:
+ 1627              	.LBE134:
+ 1628              	.LBB135:
+ 1629 0a80 9DF85510 		ldrb	r1, [sp, #85]	@ zero_extendqisi2
+ 1630              	.LVL186:
+ 1631 0a84 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 1632 0a86 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1633 0a88 CB18     		adds	r3, r1, r3
+ 1634 0a8a DBB2     		uxtb	r3, r3
+ 1635              	.LVL187:
+ 1636 0a8c 2B70     		strb	r3, [r5, #0]
+ 1637 0a8e 9B18     		adds	r3, r3, r2
+ 1638              	.LVL188:
+ 1639 0a90 2370     		strb	r3, [r4, #0]
+ 1640 0a92 1448     		ldr	r0, .L81
+ 1641 0a94 FFF7FEFF 		bl	uart_transmit
+ 1642              	.LVL189:
+ 1643              	.LBE135:
+ 1644              	.LBB136:
+ 1645 0a98 9DF85610 		ldrb	r1, [sp, #86]	@ zero_extendqisi2
+ 1646              	.LVL190:
+ 1647 0a9c 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 1648 0a9e 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1649 0aa0 CB18     		adds	r3, r1, r3
+ 1650 0aa2 DBB2     		uxtb	r3, r3
+ 1651              	.LVL191:
+ 1652 0aa4 2B70     		strb	r3, [r5, #0]
+ 1653 0aa6 9B18     		adds	r3, r3, r2
+ 1654              	.LVL192:
+ 1655 0aa8 2370     		strb	r3, [r4, #0]
+ 1656 0aaa 0E48     		ldr	r0, .L81
+ 1657 0aac FFF7FEFF 		bl	uart_transmit
+ 1658              	.LVL193:
+ 1659              	.LBE136:
+ 1660              	.LBB137:
+ 1661 0ab0 9DF85710 		ldrb	r1, [sp, #87]	@ zero_extendqisi2
+ 1662              	.LVL194:
+ 1663 0ab4 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 1664 0ab6 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1665 0ab8 CB18     		adds	r3, r1, r3
+ 1666 0aba DBB2     		uxtb	r3, r3
+ 1667              	.LVL195:
+ 1668 0abc 2B70     		strb	r3, [r5, #0]
+ 1669 0abe 0948     		ldr	r0, .L81
+ 1670 0ac0 9B18     		adds	r3, r3, r2
+ 1671              	.LVL196:
+ 1672 0ac2 2370     		strb	r3, [r4, #0]
+ 1673              	.LVL197:
+ 1674              	.L67:
+ 1675 0ac4 FFF7FEFF 		bl	uart_transmit
+ 1676              	.LBE137:
+ 1677 0ac8 0648     		ldr	r0, .L81
+ 1678 0aca 2978     		ldrb	r1, [r5, #0]	@ zero_extendqisi2
+ 1679              	.L68:
+ 1680 0acc FFF7FEFF 		bl	uart_transmit
+ 1681 0ad0 0448     		ldr	r0, .L81
+ 1682 0ad2 2178     		ldrb	r1, [r4, #0]	@ zero_extendqisi2
+ 1683 0ad4 39E5     		b	.L66
+ 1684              	.LVL198:
+ 1685              	.L50:
+ 1686              		.loc 1 178 0 discriminator 2
+ 1687 0ad6 084B     		ldr	r3, .L81+20
+ 1688 0ad8 1A78     		ldrb	r2, [r3, #0]	@ zero_extendqisi2
+ 1689 0ada 0132     		adds	r2, r2, #1
+ 1690 0adc 1A70     		strb	r2, [r3, #0]
+ 1691              	.L1:
+ 1692              	.LBE127:
+ 179:firmwares/fixedwing/datalink.c ****   } else
+ 180:firmwares/fixedwing/datalink.c **** #endif /** Else there is no dl_settings section in the flight plan */
+ 181:firmwares/fixedwing/datalink.c **** #if USE_JOYSTICK
+ 182:firmwares/fixedwing/datalink.c ****     if (msg_id == DL_JOYSTICK_RAW && DL_JOYSTICK_RAW_ac_id(dl_buffer) == AC_ID) {
+ 183:firmwares/fixedwing/datalink.c ****       JoystickHandeDatalink(DL_JOYSTICK_RAW_roll(dl_buffer),
+ 184:firmwares/fixedwing/datalink.c **** 			    DL_JOYSTICK_RAW_pitch(dl_buffer),
+ 185:firmwares/fixedwing/datalink.c **** 			    DL_JOYSTICK_RAW_throttle(dl_buffer));
+ 186:firmwares/fixedwing/datalink.c ****     } else
+ 187:firmwares/fixedwing/datalink.c **** #endif // USE_JOYSTICK
+ 188:firmwares/fixedwing/datalink.c **** #if defined RADIO_CONTROL && defined RADIO_CONTROL_TYPE_DATALINK
+ 189:firmwares/fixedwing/datalink.c ****     if (msg_id == DL_RC_3CH /*&& DL_RC_3CH_ac_id(dl_buffer) == TX_ID*/) {
+ 190:firmwares/fixedwing/datalink.c **** #ifdef RADIO_CONTROL_DATALINK_LED
+ 191:firmwares/fixedwing/datalink.c ****       LED_TOGGLE(RADIO_CONTROL_DATALINK_LED);
+ 192:firmwares/fixedwing/datalink.c **** #endif
+ 193:firmwares/fixedwing/datalink.c ****       parse_rc_3ch_datalink(
+ 194:firmwares/fixedwing/datalink.c ****           DL_RC_3CH_throttle_mode(dl_buffer),
+ 195:firmwares/fixedwing/datalink.c ****           DL_RC_3CH_roll(dl_buffer),
+ 196:firmwares/fixedwing/datalink.c ****           DL_RC_3CH_pitch(dl_buffer));
+ 197:firmwares/fixedwing/datalink.c ****     } else
+ 198:firmwares/fixedwing/datalink.c ****     if (msg_id == DL_RC_4CH && DL_RC_4CH_ac_id(dl_buffer) == AC_ID) {
+ 199:firmwares/fixedwing/datalink.c **** #ifdef RADIO_CONTROL_DATALINK_LED
+ 200:firmwares/fixedwing/datalink.c ****       LED_TOGGLE(RADIO_CONTROL_DATALINK_LED);
+ 201:firmwares/fixedwing/datalink.c **** #endif
+ 202:firmwares/fixedwing/datalink.c ****       parse_rc_4ch_datalink(
+ 203:firmwares/fixedwing/datalink.c ****           DL_RC_4CH_mode(dl_buffer),
+ 204:firmwares/fixedwing/datalink.c ****           DL_RC_4CH_throttle(dl_buffer),
+ 205:firmwares/fixedwing/datalink.c ****           DL_RC_4CH_roll(dl_buffer),
+ 206:firmwares/fixedwing/datalink.c ****           DL_RC_4CH_pitch(dl_buffer),
+ 207:firmwares/fixedwing/datalink.c ****           DL_RC_4CH_yaw(dl_buffer));
+ 208:firmwares/fixedwing/datalink.c ****     } else
+ 209:firmwares/fixedwing/datalink.c **** #endif // RC_DATALINK
+ 210:firmwares/fixedwing/datalink.c ****   { /* Last else */
+ 211:firmwares/fixedwing/datalink.c ****     /* Parse modules datalink */
+ 212:firmwares/fixedwing/datalink.c ****     modules_parse_datalink(msg_id);
+ 213:firmwares/fixedwing/datalink.c ****   }
+ 214:firmwares/fixedwing/datalink.c **** }
+ 1693              		.loc 1 214 0 is_stmt 1
+ 1694 0ade 17B0     		add	sp, sp, #92
+ 1695 0ae0 BDE8F08F 		pop	{r4, r5, r6, r7, r8, r9, sl, fp, pc}
+ 1696              	.L82:
+ 1697              		.align	2
+ 1698              	.L81:
+ 1699 0ae4 00000000 		.word	uart2
+ 1700 0ae8 00000000 		.word	downlink_nb_bytes
+ 1701 0aec 00000000 		.word	downlink_nb_msgs
+ 1702 0af0 00000000 		.word	ck_a
+ 1703 0af4 00000000 		.word	ck_b
+ 1704 0af8 00000000 		.word	downlink_nb_ovrn
+ 1705              		.cfi_endproc
+ 1706              	.LFE42:
+ 1708              		.global	dl_buffer
+ 1709              		.global	datalink_time
+ 1710              		.global	dl_msg_available
+ 1711 0afc AFF30080 		.section	.bss.dl_msg_available,"aw",%nobits
+ 1714              	dl_msg_available:
+ 1715 0000 00       		.space	1
+ 1716              		.section	.bss.dl_buffer,"aw",%nobits
+ 1717              		.align	3
+ 1718              		.set	.LANCHOR1,. + 0
+ 1721              	dl_buffer:
+ 1722 0000 00000000 		.space	128
+ 1722      00000000 
+ 1722      00000000 
+ 1722      00000000 
+ 1722      00000000 
+ 1723              		.section	.bss.datalink_time,"aw",%nobits
+ 1724              		.align	1
+ 1725              		.set	.LANCHOR0,. + 0
+ 1728              	datalink_time:
+ 1729 0000 0000     		.space	2
+ 1730              		.text
+ 1731              	.Letext0:
+ 1732              		.file 3 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+ 1733              		.file 4 "/home/mav/paparazzi/sw/include/std.h"
+ 1734              		.file 5 "./subsystems/navigation/traffic_info.h"
+ 1735              		.file 6 "./paparazzi.h"
+ 1736              		.file 7 "./subsystems/navigation/common_nav.h"
+ 1737              		.file 8 "./mcu_periph/sys_time.h"
+ 1738              		.file 9 "./subsystems/radio_control.h"
+ 1739              		.file 10 "./math/pprz_algebra_int.h"
+ 1740              		.file 11 "./math/pprz_geodetic_int.h"
+ 1741              		.file 12 "./mcu_periph/uart.h"
+ 1742              		.file 13 "./subsystems/gps.h"
+ 1743              		.file 14 "./math/pprz_geodetic_float.h"
+ 1744              		.file 15 "./subsystems/imu.h"
+ 1745              		.file 16 "./subsystems/imu/imu_aspirin2.h"
+ 1746              		.file 17 "./subsystems/datalink/datalink.h"
+ 1747              		.file 18 "/home/mav/paparazzi/var/Radian/generated/modules.h"
+ 1748              		.file 19 "./estimator.h"
+ 1749              		.file 20 "./subsystems/navigation/common_flight_plan.h"
+ 1750              		.file 21 "./subsystems/nav.h"
+ 1751              		.file 22 "firmwares/fixedwing/autopilot.h"
+ 1752              		.file 23 "/home/mav/paparazzi/var/Radian/generated/periodic_telemetry.h"
+ 1753              		.file 24 "./subsystems/datalink/pprz_transport.h"
+ 1754              		.file 25 "./subsystems/datalink/xbee.h"
+ 1755              		.file 26 "./subsystems/datalink/downlink.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 datalink.c
+     /tmp/ccYQsfdm.s:31     .text.dl_parse_msg:00000000 $t
+     /tmp/ccYQsfdm.s:36     .text.dl_parse_msg:00000000 dl_parse_msg
+     /tmp/ccYQsfdm.s:336    .text.dl_parse_msg:00000220 $d
+     /tmp/ccYQsfdm.s:356    .text.dl_parse_msg:00000260 $t
+     /tmp/ccYQsfdm.s:754    .text.dl_parse_msg:00000550 $d
+     /tmp/ccYQsfdm.s:772    .text.dl_parse_msg:00000588 $t
+     /tmp/ccYQsfdm.s:1193   .text.dl_parse_msg:000007e0 $d
+     /tmp/ccYQsfdm.s:1212   .text.dl_parse_msg:0000081c $t
+     /tmp/ccYQsfdm.s:1303   .text.dl_parse_msg:000008a2 $d
+     /tmp/ccYQsfdm.s:1315   .text.dl_parse_msg:000008ae $t
+     /tmp/ccYQsfdm.s:1446   .text.dl_parse_msg:00000966 $d
+     /tmp/ccYQsfdm.s:1458   .text.dl_parse_msg:00000972 $t
+     /tmp/ccYQsfdm.s:1521   .text.dl_parse_msg:000009b0 $d
+     /tmp/ccYQsfdm.s:1542   .text.dl_parse_msg:000009f8 $t
+     /tmp/ccYQsfdm.s:1699   .text.dl_parse_msg:00000ae4 $d
+     /tmp/ccYQsfdm.s:1721   .bss.dl_buffer:00000000 dl_buffer
+     /tmp/ccYQsfdm.s:1728   .bss.datalink_time:00000000 datalink_time
+     /tmp/ccYQsfdm.s:1714   .bss.dl_msg_available:00000000 dl_msg_available
+     /tmp/ccYQsfdm.s:1715   .bss.dl_msg_available:00000000 $d
+     /tmp/ccYQsfdm.s:1717   .bss.dl_buffer:00000000 $d
+     /tmp/ccYQsfdm.s:1724   .bss.datalink_time:00000000 $d
+                     .debug_frame:00000010 $d
+     /tmp/ccYQsfdm.s:1711   .text.dl_parse_msg:00000afc $t
+
+UNDEFINED SYMBOLS
+__aeabi_i2f
+__aeabi_fdiv
+__aeabi_fsub
+__aeabi_f2d
+__aeabi_ddiv
+__aeabi_dmul
+__aeabi_d2f
+__aeabi_ui2f
+__aeabi_i2d
+__aeabi_fadd
+__aeabi_d2uiz
+__aeabi_f2uiz
+__aeabi_fcmpeq
+uart_check_free_space
+uart_transmit
+uart2
+downlink_nb_bytes
+downlink_nb_msgs
+ck_a
+ck_b
+the_acs
+nav_utm_east0
+nav_utm_north0
+acs_idx
+the_acs_id
+utm_of_lla_f
+nav_move_waypoint
+nav_utm_zone0
+waypoints
+nav_goto_block
+nav_circle_radians
+nav_block
+nav_stage
+estimator_x
+estimator_y
+dist2_to_wp
+dist2_to_home
+nav_oval_count
+wind_east
+wind_north
+estimator_airspeed
+telemetry_mode_Ap
+telemetry_mode_Fbw
+flight_altitude
+nav_course
+nav_shift
+estimator_flight_time
+nav_radius
+pprz_mode
+launch
+kill_throttle
+gps_ubx_gps_ubx_ucenter_periodic_status
+gps
+downlink_nb_ovrn

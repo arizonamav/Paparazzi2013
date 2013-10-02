@@ -1,0 +1,250 @@
+<!DOCTYPE airframe SYSTEM "../airframe.dtd">
+
+<airframe name="WHawk with Lisa/M 2.0">
+
+	<firmware name="MAVwingAttCtl">
+		<target name="sim"	board="pc">
+			<subsystem name="radio_control"	type="ppm"/>
+		</target>
+		<target name="ap"	board="lisa_m_2.0">
+			<subsystem name="radio_control"	type="spektrum"/>
+			<subsystem name="telemetry"	type="transparent">
+				<configure name="MODEM_BAUD"	value="B57600"/>
+				<configure name="MODEM_PORT"	value="UART2"/>
+			</subsystem>
+		</target>
+		<!--subsystem name="telemetry"	type="transparent">
+			<configure name="MODEM_BAUD"	value="B57600"/>
+			<configure name="MODEM_PORT"	value="UART2"/>
+		</subsystem-->
+		<subsystem name="control"/>
+		<subsystem name="ahrs"	type="int_cmpl_quat"/>
+		<subsystem name="stabilization" type="int_quat"/>
+		<subsystem name="gps"	type="ublox"/>
+		<define name="ALT_KALMAN"/>
+		<subsystem name="imu"	type="aspirin_v2.0"/>
+		<subsystem name="navigation"/>
+		
+	</firmware>
+
+	<modules>
+		<!-- Using this module initializes the GPS with the desired Paparazzi settings -->
+		<load name="gps_ubx_ucenter.xml"/>
+	</modules>
+
+	<servos>
+		<servo name="MOTOR"         no="0" min="1000" neutral="1000" max="2000"/>
+		<servo name="AILEVON_LEFT"  no="1" max="1000" neutral="1500" min="2000"/>
+		<servo name="AILEVON_RIGHT" no="2" min="1000" neutral="1500" max="2000"/>
+		<servo name="RUDDER"        no="3" min="1000" neutral="1500" max="2000"/>
+	</servos>
+
+	<commands>
+		<axis name="THROTTLE" failsafe_value="0"/>
+		<axis name="ROLL"     failsafe_value="0"/>
+		<axis name="PITCH"    failsafe_value="0"/>
+		<axis name="YAW"      failsafe_value="0"/>
+	</commands>
+
+	<rc_commands>
+		<set command="THROTTLE" value="@THROTTLE"/>
+		<set command="ROLL"     value="- @ROLL"/>
+		<set command="PITCH"    value="- @PITCH"/>
+		<set command="YAW"      value="- @YAW"/>
+	</rc_commands>
+
+	<auto_rc_commands>
+		<set command="YAW" value="- @YAW"/>
+	</auto_rc_commands>
+
+	<section name="MIXER">
+		<define name="AILEVON_AILERON_RATE" value="0.45"/>
+		<define name="AILEVON_ELEVATOR_RATE" value="0.8"/>
+	</section>
+
+	<command_laws>
+		<let var="aileron"  value="@ROLL  * AILEVON_AILERON_RATE"/>
+		<let var="elevator" value="@PITCH * AILEVON_ELEVATOR_RATE"/>
+		<set servo="MOTOR"         value="@THROTTLE"/>
+		<set servo="RUDDER"        value="@YAW"/>
+		<set servo="AILEVON_LEFT"  value="$elevator - $aileron"/>
+		<set servo="AILEVON_RIGHT" value="$elevator + $aileron"/>
+	</command_laws>
+
+	<section name="AUTO1" prefix="AUTO1_">
+		<define name="MAX_ROLL" value="50" unit="deg"/>
+		<define name="MAX_PITCH" value="35" unit="deg"/>
+	</section>
+
+	<section name="AUTO2" prefix="AUTO2_">
+		<define name="MAX_ROLL" value="50" unit="deg"/>
+		<define name="MAX_PITCH" value="35" unit="deg"/>
+	</section>
+
+	<section name="BAT">
+		<define name="CATASTROPHIC_BAT_LEVEL" value="9.9" unit="V"/>
+	</section>
+
+	<section name="MISC">
+		<define name="NOMINAL_AIRSPEED" value="6." unit="m/s"/>
+		<define name="CARROT" value="0.5" unit="s"/>
+		<define name="KILL_MODE_DISTANCE" value="(1.5*MAX_DIST_FROM_HOME)"/>
+		<define name="CONTROL_RATE" value="60" unit="Hz"/>
+		<define name="DEFAULT_CIRCLE_RADIUS" value="100"/>
+
+		<define name="NO_LUFTBOOT" value="1"/>
+		<define name="FLASH_MODE" value="JTAG"/>
+
+		<define name="ALT_KALMAN_ENABLED" value="TRUE"/>
+	</section>
+
+	<section name="VERTICAL CONTROL" prefix="V_CTL_">
+		<define name="POWER_CTL_BAT_NOMINAL" value="11.1" unit="volt"/>
+		<!-- outer loop proportional gain -->
+		<define name="ALTITUDE_PGAIN" value="0.06"/> <!-- -0.024 -->
+		<!-- outer loop saturation -->
+		<define name="ALTITUDE_MAX_CLIMB" value="2."/>
+
+		<!-- auto throttle inner loop -->
+		<define name="AUTO_THROTTLE_NOMINAL_CRUISE_THROTTLE" value="0.3"/>
+		<define name="AUTO_THROTTLE_MIN_CRUISE_THROTTLE" value="0.2"/>
+		<define name="AUTO_THROTTLE_MAX_CRUISE_THROTTLE" value="0.75"/>
+		<define name="AUTO_THROTTLE_CLIMB_THROTTLE_INCREMENT" value="0.2" unit="%/(m/s)"/>
+		<define name="AUTO_THROTTLE_PGAIN" value="0.023"/> <!-- -0.012 -->
+		<define name="AUTO_THROTTLE_IGAIN" value="0.01"/>
+		<define name="AUTO_THROTTLE_PITCH_OF_VZ_PGAIN" value="0.05"/>
+
+		<!-- auto pitch inner loop -->
+		<define name="AUTO_PITCH_PGAIN" value="0.06"/> <!-- -0.03 -->
+		<define name="AUTO_PITCH_IGAIN" value="0.0"/>
+		<define name="AUTO_PITCH_MAX_PITCH" value="0.35"/>
+		<define name="AUTO_PITCH_MIN_PITCH" value="-0.35"/>
+
+		<define name="THROTTLE_SLEW" value="0.1"/>
+	</section>
+
+	<section name="HORIZONTAL CONTROL" prefix="H_CTL_">
+		<define name="COURSE_PGAIN" value="0.9"/>
+		<define name="ROLL_MAX_SETPOINT" value="0.8" unit="rad"/> <!-- 0.5 -->
+		<define name="PITCH_MAX_SETPOINT" value="1.4" unit="rad"/>
+		<define name="PITCH_MIN_SETPOINT" value="0.0" unit="rad"/>
+
+		<define name="ROLL_PGAIN" value="-6600."/>
+		<define name="AILERON_OF_THROTTLE" value="0.0"/>
+		<define name="PITCH_PGAIN" value="-5500."/>
+		<define name="PITCH_DGAIN" value="0.4"/>
+
+		<define name="ELEVATOR_OF_ROLL" value="-2400"/>
+	</section>
+
+	<section name="NAV">
+		<define name="NAV_PITCH" value="0."/>
+		<define name="NAV_GLIDE_PITCH_TRIM" value="0"/>
+	</section>
+
+	<include href="conf/airframes/UniversityOfArizona/calib/tucson_magnetics.xml"/>
+	<include href="conf/airframes/UniversityOfArizona/calib/imu_asp21_008.xml"/>
+
+	<section name="IMU" prefix="IMU_">
+		<!-- This orientation is for about 30deg pitch-up normal flight -->
+		<define name="BODY_TO_IMU_PHI" value="RadOfDeg(180.)" />
+		<define name="BODY_TO_IMU_THETA" value="RadOfDeg(-30.)" />
+		<define name="BODY_TO_IMU_PSI" value="RadOfDeg(180.)" />
+	</section>
+
+	<section name="AHRS" prefix="AHRS_">
+		<define name="PROPAGATE_FREQUENCY" value="512"/>
+		<define name="H_X" value="0.3770441"/>
+		<define name="H_Y" value="0.0193986"/>
+		<define name="H_Z" value="0.9259921"/>
+	</section>
+
+	<section name="STABILIZATION_RATE" prefix="STABILIZATION_RATE_">
+		<!-- setpoints -->
+		<define name="SP_MAX_P" value="10000"/>
+		<define name="SP_MAX_Q" value="10000"/>
+		<define name="SP_MAX_R" value="10000"/>
+		<define name="DEADBAND_P" value="0"/>
+		<define name="DEADBAND_Q" value="0"/>
+		<define name="DEADBAND_R" value="200"/>
+		<define name="REF_TAU" value="4"/>
+
+		<!-- feedback -->
+		<define name="GAIN_P" value="400"/>
+		<define name="GAIN_Q" value="400"/>
+		<define name="GAIN_R" value="350"/>
+
+		<define name="IGAIN_P" value="75"/>
+		<define name="IGAIN_Q" value="75"/>
+		<define name="IGAIN_R" value="50"/>
+
+		<!-- feedforward -->
+		<define name="DDGAIN_P" value="300"/>
+		<define name="DDGAIN_Q" value="300"/>
+		<define name="DDGAIN_R" value="300"/>
+	</section>
+
+
+	<section name="STABILIZATION_ATTITUDE" prefix="STABILIZATION_ATTITUDE_">
+		<!-- setpoints -->
+		<define name="SP_MAX_PHI"     value="45." unit="deg"/>
+		<define name="SP_MAX_THETA"   value="45." unit="deg"/>
+		<define name="SP_MAX_PSI"     value="45." unit="deg"/>
+		<define name="SP_MAX_P"       value="180." unit="deg/s"/>
+		<define name="SP_MAX_Q"       value="180." unit="deg/s"/>
+		<define name="SP_MAX_R"       value="90." unit="deg/s"/>
+		<define name="DEADBAND_A"     value="250"/>
+		<define name="DEADBAND_E"     value="250"/>
+		<define name="DEADBAND_R"     value="250"/>
+
+		<!-- reference -->
+		<define name="REF_OMEGA_P"  value="800" unit="deg/s"/>
+		<define name="REF_ZETA_P"   value="0.85"/>
+		<define name="REF_MAX_P"    value="400." unit="deg/s"/>
+		<define name="REF_MAX_PDOT" value="RadOfDeg(8000.)"/>
+		
+		<define name="REF_OMEGA_Q"  value="800" unit="deg/s"/>
+		<define name="REF_ZETA_Q"   value="0.85"/>
+		<define name="REF_MAX_Q"    value="400." unit="deg/s"/>
+		<define name="REF_MAX_QDOT" value="RadOfDeg(8000.)"/>
+
+		<define name="REF_OMEGA_R"  value="500" unit="deg/s"/>
+		<define name="REF_ZETA_R"   value="0.85"/>
+		<define name="REF_MAX_R"    value="180." unit="deg/s"/>
+		<define name="REF_MAX_RDOT" value="RadOfDeg(1800.)"/>
+
+		<!-- feedback -->
+		<define name="PHI_PGAIN"  value="1000"/>
+		<define name="PHI_DGAIN"  value="400"/>
+		<define name="PHI_IGAIN"  value="200"/>
+
+		<define name="THETA_PGAIN"  value="1000"/>
+		<define name="THETA_DGAIN"  value="400"/>
+		<define name="THETA_IGAIN"  value="200"/>
+
+		<define name="PSI_PGAIN"  value="500"/>
+		<define name="PSI_DGAIN"  value="300"/>
+		<define name="PSI_IGAIN"  value="10"/>
+
+		<!-- feedforward -->
+		<define name="PHI_DDGAIN"   value="300"/>
+		<define name="THETA_DDGAIN" value="300"/>
+		<define name="PSI_DDGAIN"   value="300"/>
+	</section>
+
+  	<section name="AUTOPILOT">
+   		<define name="MODE_MANUAL" value="AP_MODE_ATTITUDE_DIRECT"/>
+	</section>
+
+	<section name="FAILSAFE" prefix="FAILSAFE_">
+		<define name="DELAY_WITHOUT_GPS" value="2" unit="s"/>
+		<define name="DEFAULT_THROTTLE" value="0.3" unit="%"/>
+		<define name="DEFAULT_ROLL" value="0.3" unit="rad"/>
+		<define name="DEFAULT_PITCH" value="0.5" unit="rad"/>
+		<define name="HOME_RADIUS" value="100" unit="m"/>
+	</section>
+
+	<section name="SIMU">
+		<define name="YAW_RESPONSE_FACTOR" value="0.1"/>
+	</section>
+</airframe>

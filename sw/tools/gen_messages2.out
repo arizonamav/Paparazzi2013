@@ -1,0 +1,8 @@
+#! /bin/sh
+if test -z "$PAPARAZZI_SRC"; then
+    PAPARAZZI_SRC=/usr/share/paparazzi
+    PAPARAZZI_BIN=$PAPARAZZI_SRC/bin
+else
+    PAPARAZZI_BIN=$PAPARAZZI_SRC/sw/tools
+fi
+ocaml -I $PAPARAZZI_SRC/sw/tools -I /usr/lib/ocaml/xml-light -I /usr/lib/ocaml/pcre -I /usr/lib/ocaml -I /usr/lib/ocaml/netsys -I /usr/lib/ocaml/netstring -I $PAPARAZZI_SRC/sw/lib/ocaml unix.cma str.cma ivy-ocaml.cma xml-light.cma pcre.cma unix.cma netsys.cma netstring.cma netaccel.cma netaccel_link.cmo lib-pprz.cma gen_common.cmo $PAPARAZZI_BIN/gen_messages2.ml $*

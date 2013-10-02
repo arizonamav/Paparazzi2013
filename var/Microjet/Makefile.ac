@@ -1,0 +1,254 @@
+# This file has been generated from /home/mav/paparazzi/conf/airframes/microjet_example.xml by /home/mav/paparazzi/sw/tools/gen_aircraft.ml
+# Please DO NOT EDIT
+
+####################################################
+# makefile firmware 'fixedwing'
+####################################################
+
+###########
+# -target: 'sim'
+ifeq ($(TARGET), sim)
+$(TARGET).CFLAGS += -DAGR_CLIMB
+$(TARGET).CFLAGS += -DLOITER_TRIM
+$(TARGET).CFLAGS += -DALT_KALMAN
+include $(PAPARAZZI_SRC)/conf/boards/pc.makefile
+include $(PAPARAZZI_SRC)/conf/autopilot/fixedwing.makefile
+# -subsystem: 'radio_control'
+ifneq ($(strip $(wildcard $(CFG_FIXEDWING)/radio_control_ppm.makefile)),)
+	include $(CFG_FIXEDWING)/radio_control_ppm.makefile
+else
+	include $(CFG_SHARED)/radio_control_ppm.makefile
+endif
+# -subsystem: 'telemetry'
+MODEM_BAUD = B9600
+ifneq ($(strip $(wildcard $(CFG_FIXEDWING)/telemetry_xbee_api.makefile)),)
+	include $(CFG_FIXEDWING)/telemetry_xbee_api.makefile
+else
+	include $(CFG_SHARED)/telemetry_xbee_api.makefile
+endif
+# -subsystem: 'control'
+ifneq ($(strip $(wildcard $(CFG_FIXEDWING)/control.makefile)),)
+	include $(CFG_FIXEDWING)/control.makefile
+else
+	include $(CFG_SHARED)/control.makefile
+endif
+# -subsystem: 'imu'
+GYRO_P = ADC_3
+ifneq ($(strip $(wildcard $(CFG_FIXEDWING)/imu_analog.makefile)),)
+	include $(CFG_FIXEDWING)/imu_analog.makefile
+else
+	include $(CFG_SHARED)/imu_analog.makefile
+endif
+# -subsystem: 'ahrs'
+ifneq ($(strip $(wildcard $(CFG_FIXEDWING)/ahrs_infrared.makefile)),)
+	include $(CFG_FIXEDWING)/ahrs_infrared.makefile
+else
+	include $(CFG_SHARED)/ahrs_infrared.makefile
+endif
+# -subsystem: 'gps'
+ifneq ($(strip $(wildcard $(CFG_FIXEDWING)/gps_ublox_utm.makefile)),)
+	include $(CFG_FIXEDWING)/gps_ublox_utm.makefile
+else
+	include $(CFG_SHARED)/gps_ublox_utm.makefile
+endif
+# -subsystem: 'navigation'
+ifneq ($(strip $(wildcard $(CFG_FIXEDWING)/navigation.makefile)),)
+	include $(CFG_FIXEDWING)/navigation.makefile
+else
+	include $(CFG_SHARED)/navigation.makefile
+endif
+endif
+
+
+###########
+# -target: 'jsbsim'
+ifeq ($(TARGET), jsbsim)
+$(TARGET).CFLAGS += -DAGR_CLIMB
+$(TARGET).CFLAGS += -DLOITER_TRIM
+$(TARGET).CFLAGS += -DALT_KALMAN
+include $(PAPARAZZI_SRC)/conf/boards/pc.makefile
+include $(PAPARAZZI_SRC)/conf/autopilot/fixedwing.makefile
+# -subsystem: 'radio_control'
+ifneq ($(strip $(wildcard $(CFG_FIXEDWING)/radio_control_ppm.makefile)),)
+	include $(CFG_FIXEDWING)/radio_control_ppm.makefile
+else
+	include $(CFG_SHARED)/radio_control_ppm.makefile
+endif
+# -subsystem: 'telemetry'
+MODEM_BAUD = B9600
+ifneq ($(strip $(wildcard $(CFG_FIXEDWING)/telemetry_xbee_api.makefile)),)
+	include $(CFG_FIXEDWING)/telemetry_xbee_api.makefile
+else
+	include $(CFG_SHARED)/telemetry_xbee_api.makefile
+endif
+# -subsystem: 'control'
+ifneq ($(strip $(wildcard $(CFG_FIXEDWING)/control.makefile)),)
+	include $(CFG_FIXEDWING)/control.makefile
+else
+	include $(CFG_SHARED)/control.makefile
+endif
+# -subsystem: 'imu'
+GYRO_P = ADC_3
+ifneq ($(strip $(wildcard $(CFG_FIXEDWING)/imu_analog.makefile)),)
+	include $(CFG_FIXEDWING)/imu_analog.makefile
+else
+	include $(CFG_SHARED)/imu_analog.makefile
+endif
+# -subsystem: 'ahrs'
+ifneq ($(strip $(wildcard $(CFG_FIXEDWING)/ahrs_infrared.makefile)),)
+	include $(CFG_FIXEDWING)/ahrs_infrared.makefile
+else
+	include $(CFG_SHARED)/ahrs_infrared.makefile
+endif
+# -subsystem: 'gps'
+ifneq ($(strip $(wildcard $(CFG_FIXEDWING)/gps_ublox_utm.makefile)),)
+	include $(CFG_FIXEDWING)/gps_ublox_utm.makefile
+else
+	include $(CFG_SHARED)/gps_ublox_utm.makefile
+endif
+# -subsystem: 'navigation'
+ifneq ($(strip $(wildcard $(CFG_FIXEDWING)/navigation.makefile)),)
+	include $(CFG_FIXEDWING)/navigation.makefile
+else
+	include $(CFG_SHARED)/navigation.makefile
+endif
+endif
+
+
+###########
+# -target: 'ap'
+ifeq ($(TARGET), ap)
+$(TARGET).CFLAGS += -DAGR_CLIMB
+$(TARGET).CFLAGS += -DLOITER_TRIM
+$(TARGET).CFLAGS += -DALT_KALMAN
+include $(PAPARAZZI_SRC)/conf/boards/tiny_1.1.makefile
+include $(PAPARAZZI_SRC)/conf/autopilot/fixedwing.makefile
+# -subsystem: 'radio_control'
+ifneq ($(strip $(wildcard $(CFG_FIXEDWING)/radio_control_ppm.makefile)),)
+	include $(CFG_FIXEDWING)/radio_control_ppm.makefile
+else
+	include $(CFG_SHARED)/radio_control_ppm.makefile
+endif
+# -subsystem: 'telemetry'
+MODEM_BAUD = B9600
+ifneq ($(strip $(wildcard $(CFG_FIXEDWING)/telemetry_xbee_api.makefile)),)
+	include $(CFG_FIXEDWING)/telemetry_xbee_api.makefile
+else
+	include $(CFG_SHARED)/telemetry_xbee_api.makefile
+endif
+# -subsystem: 'control'
+ifneq ($(strip $(wildcard $(CFG_FIXEDWING)/control.makefile)),)
+	include $(CFG_FIXEDWING)/control.makefile
+else
+	include $(CFG_SHARED)/control.makefile
+endif
+# -subsystem: 'imu'
+GYRO_P = ADC_3
+ifneq ($(strip $(wildcard $(CFG_FIXEDWING)/imu_analog.makefile)),)
+	include $(CFG_FIXEDWING)/imu_analog.makefile
+else
+	include $(CFG_SHARED)/imu_analog.makefile
+endif
+# -subsystem: 'ahrs'
+ifneq ($(strip $(wildcard $(CFG_FIXEDWING)/ahrs_infrared.makefile)),)
+	include $(CFG_FIXEDWING)/ahrs_infrared.makefile
+else
+	include $(CFG_SHARED)/ahrs_infrared.makefile
+endif
+# -subsystem: 'gps'
+ifneq ($(strip $(wildcard $(CFG_FIXEDWING)/gps_ublox_utm.makefile)),)
+	include $(CFG_FIXEDWING)/gps_ublox_utm.makefile
+else
+	include $(CFG_SHARED)/gps_ublox_utm.makefile
+endif
+# -subsystem: 'navigation'
+ifneq ($(strip $(wildcard $(CFG_FIXEDWING)/navigation.makefile)),)
+	include $(CFG_FIXEDWING)/navigation.makefile
+else
+	include $(CFG_SHARED)/navigation.makefile
+endif
+endif
+
+
+####################################################
+# makefile firmware 'setup'
+####################################################
+
+###########
+# -target: 'tunnel'
+ifeq ($(TARGET), tunnel)
+include $(PAPARAZZI_SRC)/conf/boards/tiny_1.1.makefile
+include $(PAPARAZZI_SRC)/conf/autopilot/setup.makefile
+endif
+
+
+###########
+# -target: 'usb_tunnel_0'
+ifeq ($(TARGET), usb_tunnel_0)
+include $(PAPARAZZI_SRC)/conf/boards/tiny_1.1.makefile
+include $(PAPARAZZI_SRC)/conf/autopilot/setup.makefile
+endif
+
+
+###########
+# -target: 'usb_tunnel_1'
+ifeq ($(TARGET), usb_tunnel_1)
+include $(PAPARAZZI_SRC)/conf/boards/tiny_1.1.makefile
+include $(PAPARAZZI_SRC)/conf/autopilot/setup.makefile
+endif
+
+
+####################################################
+# modules makefile section
+####################################################
+
+# include modules directory for all targets
+$(TARGET).CFLAGS += -I modules -I arch/$(ARCH)/modules
+DIGITAL_CAM_DIR = modules/digital_cam
+OPENLOG_DIR = modules/openlog
+SENSORS_DIR = modules/sensors
+
+# makefile for module openlog in modules/openlog
+ap.srcs += $(OPENLOG_DIR)/openlog.c
+sim.srcs += $(OPENLOG_DIR)/openlog.c
+
+# makefile for module ir_adc in modules/sensors
+ap.CFLAGS += -DUSE_INFRARED_TELEMETRY
+jsbsim.CFLAGS += -DUSE_INFRARED_TELEMETRY
+sim.CFLAGS += -DUSE_INFRARED_TELEMETRY
+ap.srcs += subsystems/sensors/infrared.c
+jsbsim.srcs += subsystems/sensors/infrared.c
+sim.srcs += subsystems/sensors/infrared.c
+ap.srcs += subsystems/sensors/infrared_adc.c
+jsbsim.srcs += subsystems/sensors/infrared_adc.c
+sim.srcs += subsystems/sensors/infrared_adc.c
+#
+# LPC only has one ADC
+#
+ifeq ($(ARCH), lpc21)
+ap.CFLAGS += -DADC_CHANNEL_IR1=$(ADC_IR1) -DUSE_$(ADC_IR1)
+ap.CFLAGS += -DADC_CHANNEL_IR2=$(ADC_IR2) -DUSE_$(ADC_IR2)
+ap.CFLAGS += -DADC_CHANNEL_IR_TOP=$(ADC_IR_TOP) -DUSE_$(ADC_IR_TOP)
+endif
+#
+# On STM32 let's hardwire infrared sensors to AD1 for now
+#
+ifeq ($(ARCH), stm32)
+ap.CFLAGS += -DUSE_AD1
+ap.CFLAGS += -DADC_CHANNEL_IR1=$(ADC_IR1_CHAN) -DUSE_AD1_$(ADC_IR1)
+ap.CFLAGS += -DADC_CHANNEL_IR2=$(ADC_IR2_CHAN) -DUSE_AD1_$(ADC_IR2)
+ap.CFLAGS += -DADC_CHANNEL_IR_TOP=$(ADC_IR_TOP_CHAN) -DUSE_AD1_$(ADC_IR_TOP)
+endif
+ap.CFLAGS += -DADC_CHANNEL_IR_NB_SAMPLES=$(ADC_IR_NB_SAMPLES)
+
+# makefile for module digital_cam_servo in modules/digital_cam
+ap.CFLAGS += -DDC_SHUTTER_SERVO=COMMAND_SHUTTER
+sim.CFLAGS += -DDC_SHUTTER_SERVO=COMMAND_SHUTTER
+ap.CFLAGS += -DDIGITAL_CAM
+sim.CFLAGS += -DDIGITAL_CAM
+ap.srcs += $(DIGITAL_CAM_DIR)/servo_cam_ctrl.c
+sim.srcs += $(DIGITAL_CAM_DIR)/servo_cam_ctrl.c
+ap.srcs += $(DIGITAL_CAM_DIR)/dc.c
+sim.srcs += $(DIGITAL_CAM_DIR)/dc.c
+ap.CFLAGS += -DSENSOR_SYNC_SEND=1
+sim.CFLAGS += -DSENSOR_SYNC_SEND=1

@@ -1,0 +1,213 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 18, 4
+  12              		.thumb
+  13              		.file	"common_flight_plan.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.nav_init_block,"ax",%progbits
+  18              		.align	1
+  19              		.global	nav_init_block
+  20              		.thumb
+  21              		.thumb_func
+  23              	nav_init_block:
+  24              	.LFB0:
+  25              		.file 1 "subsystems/navigation/common_flight_plan.c"
+   1:subsystems/navigation/common_flight_plan.c **** /*
+   2:subsystems/navigation/common_flight_plan.c ****  * $Id$
+   3:subsystems/navigation/common_flight_plan.c ****  *
+   4:subsystems/navigation/common_flight_plan.c ****  * Copyright (C) 2007-2009  ENAC, Pascal Brisset, Antoine Drouin
+   5:subsystems/navigation/common_flight_plan.c ****  *
+   6:subsystems/navigation/common_flight_plan.c ****  * This file is part of paparazzi.
+   7:subsystems/navigation/common_flight_plan.c ****  *
+   8:subsystems/navigation/common_flight_plan.c ****  * paparazzi is free software; you can redistribute it and/or modify
+   9:subsystems/navigation/common_flight_plan.c ****  * it under the terms of the GNU General Public License as published by
+  10:subsystems/navigation/common_flight_plan.c ****  * the Free Software Foundation; either version 2, or (at your option)
+  11:subsystems/navigation/common_flight_plan.c ****  * any later version.
+  12:subsystems/navigation/common_flight_plan.c ****  *
+  13:subsystems/navigation/common_flight_plan.c ****  * paparazzi is distributed in the hope that it will be useful,
+  14:subsystems/navigation/common_flight_plan.c ****  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  15:subsystems/navigation/common_flight_plan.c ****  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  16:subsystems/navigation/common_flight_plan.c ****  * GNU General Public License for more details.
+  17:subsystems/navigation/common_flight_plan.c ****  *
+  18:subsystems/navigation/common_flight_plan.c ****  * You should have received a copy of the GNU General Public License
+  19:subsystems/navigation/common_flight_plan.c ****  * along with paparazzi; see the file COPYING.  If not, write to
+  20:subsystems/navigation/common_flight_plan.c ****  * the Free Software Foundation, 59 Temple Place - Suite 330,
+  21:subsystems/navigation/common_flight_plan.c ****  * Boston, MA 02111-1307, USA.
+  22:subsystems/navigation/common_flight_plan.c ****  *
+  23:subsystems/navigation/common_flight_plan.c ****  */
+  24:subsystems/navigation/common_flight_plan.c **** 
+  25:subsystems/navigation/common_flight_plan.c **** #include "subsystems/navigation/common_flight_plan.h"
+  26:subsystems/navigation/common_flight_plan.c **** 
+  27:subsystems/navigation/common_flight_plan.c **** #include "generated/flight_plan.h"
+  28:subsystems/navigation/common_flight_plan.c **** 
+  29:subsystems/navigation/common_flight_plan.c **** 
+  30:subsystems/navigation/common_flight_plan.c **** /** In s */
+  31:subsystems/navigation/common_flight_plan.c **** uint16_t stage_time, block_time;
+  32:subsystems/navigation/common_flight_plan.c **** 
+  33:subsystems/navigation/common_flight_plan.c **** uint8_t nav_stage, nav_block;
+  34:subsystems/navigation/common_flight_plan.c **** 
+  35:subsystems/navigation/common_flight_plan.c **** /** To save the current block/stage to enable return */
+  36:subsystems/navigation/common_flight_plan.c **** uint8_t last_block, last_stage;
+  37:subsystems/navigation/common_flight_plan.c **** 
+  38:subsystems/navigation/common_flight_plan.c **** 
+  39:subsystems/navigation/common_flight_plan.c **** 
+  40:subsystems/navigation/common_flight_plan.c **** void nav_init_block(void) {
+  26              		.loc 1 40 0
+  27              		.cfi_startproc
+  28              		@ args = 0, pretend = 0, frame = 0
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  30              		@ link register save eliminated.
+  41:subsystems/navigation/common_flight_plan.c ****   if (nav_block >= NB_BLOCK)
+  31              		.loc 1 41 0
+  32 0000 064B     		ldr	r3, .L3
+  33 0002 1A78     		ldrb	r2, [r3, #0]	@ zero_extendqisi2
+  34 0004 0A2A     		cmp	r2, #10
+  35 0006 01D9     		bls	.L2
+  42:subsystems/navigation/common_flight_plan.c ****     nav_block=NB_BLOCK-1;
+  36              		.loc 1 42 0
+  37 0008 0A22     		movs	r2, #10
+  38 000a 1A70     		strb	r2, [r3, #0]
+  39              	.L2:
+  43:subsystems/navigation/common_flight_plan.c ****   nav_stage = 0;
+  40              		.loc 1 43 0
+  41 000c 044A     		ldr	r2, .L3+4
+  42 000e 0023     		movs	r3, #0
+  43 0010 1370     		strb	r3, [r2, #0]
+  44:subsystems/navigation/common_flight_plan.c ****   block_time = 0;
+  44              		.loc 1 44 0
+  45 0012 044A     		ldr	r2, .L3+8
+  46 0014 1380     		strh	r3, [r2, #0]	@ movhi
+  45:subsystems/navigation/common_flight_plan.c ****   InitStage();
+  46:subsystems/navigation/common_flight_plan.c **** }
+  47              		.loc 1 46 0
+  45:subsystems/navigation/common_flight_plan.c ****   InitStage();
+  48              		.loc 1 45 0
+  49 0016 FFF7FEBF 		b	nav_init_stage
+  50              	.L4:
+  51 001a 00BF     		.align	2
+  52              	.L3:
+  53 001c 00000000 		.word	.LANCHOR0
+  54 0020 00000000 		.word	.LANCHOR1
+  55 0024 00000000 		.word	.LANCHOR2
+  56              		.cfi_endproc
+  57              	.LFE0:
+  59              		.section	.text.nav_goto_block,"ax",%progbits
+  60              		.align	1
+  61              		.global	nav_goto_block
+  62              		.thumb
+  63              		.thumb_func
+  65              	nav_goto_block:
+  66              	.LFB1:
+  47:subsystems/navigation/common_flight_plan.c **** 
+  48:subsystems/navigation/common_flight_plan.c **** void nav_goto_block(uint8_t b) {
+  67              		.loc 1 48 0
+  68              		.cfi_startproc
+  69              		@ args = 0, pretend = 0, frame = 0
+  70              		@ frame_needed = 0, uses_anonymous_args = 0
+  71              		@ link register save eliminated.
+  72              	.LVL0:
+  49:subsystems/navigation/common_flight_plan.c ****   if (b != nav_block) { /* To avoid a loop in a the current block */
+  73              		.loc 1 49 0
+  74 0000 064A     		ldr	r2, .L7
+  75 0002 1378     		ldrb	r3, [r2, #0]	@ zero_extendqisi2
+  76 0004 9842     		cmp	r0, r3
+  77 0006 05D0     		beq	.L6
+  50:subsystems/navigation/common_flight_plan.c ****     last_block = nav_block;
+  78              		.loc 1 50 0
+  79 0008 0549     		ldr	r1, .L7+4
+  80 000a 0B70     		strb	r3, [r1, #0]
+  51:subsystems/navigation/common_flight_plan.c ****     last_stage = nav_stage;
+  81              		.loc 1 51 0
+  82 000c 054B     		ldr	r3, .L7+8
+  83 000e 1978     		ldrb	r1, [r3, #0]	@ zero_extendqisi2
+  84 0010 054B     		ldr	r3, .L7+12
+  85 0012 1970     		strb	r1, [r3, #0]
+  86              	.L6:
+  52:subsystems/navigation/common_flight_plan.c ****   }
+  53:subsystems/navigation/common_flight_plan.c ****   GotoBlock(b);
+  87              		.loc 1 53 0
+  88 0014 1070     		strb	r0, [r2, #0]
+  54:subsystems/navigation/common_flight_plan.c **** }
+  89              		.loc 1 54 0
+  53:subsystems/navigation/common_flight_plan.c ****   GotoBlock(b);
+  90              		.loc 1 53 0
+  91 0016 FFF7FEBF 		b	nav_init_block
+  92              	.LVL1:
+  93              	.L8:
+  94 001a 00BF     		.align	2
+  95              	.L7:
+  96 001c 00000000 		.word	.LANCHOR0
+  97 0020 00000000 		.word	.LANCHOR3
+  98 0024 00000000 		.word	.LANCHOR1
+  99 0028 00000000 		.word	.LANCHOR4
+ 100              		.cfi_endproc
+ 101              	.LFE1:
+ 103              		.global	last_stage
+ 104              		.global	last_block
+ 105              		.global	nav_block
+ 106              		.global	nav_stage
+ 107              		.global	block_time
+ 108              		.global	stage_time
+ 109              		.section	.bss.stage_time,"aw",%nobits
+ 110              		.align	1
+ 113              	stage_time:
+ 114 0000 0000     		.space	2
+ 115              		.section	.bss.last_block,"aw",%nobits
+ 116              		.set	.LANCHOR3,. + 0
+ 119              	last_block:
+ 120 0000 00       		.space	1
+ 121              		.section	.bss.block_time,"aw",%nobits
+ 122              		.align	1
+ 123              		.set	.LANCHOR2,. + 0
+ 126              	block_time:
+ 127 0000 0000     		.space	2
+ 128              		.section	.bss.nav_block,"aw",%nobits
+ 129              		.set	.LANCHOR0,. + 0
+ 132              	nav_block:
+ 133 0000 00       		.space	1
+ 134              		.section	.bss.last_stage,"aw",%nobits
+ 135              		.set	.LANCHOR4,. + 0
+ 138              	last_stage:
+ 139 0000 00       		.space	1
+ 140              		.section	.bss.nav_stage,"aw",%nobits
+ 141              		.set	.LANCHOR1,. + 0
+ 144              	nav_stage:
+ 145 0000 00       		.space	1
+ 146              		.text
+ 147              	.Letext0:
+ 148              		.file 2 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+ 149              		.file 3 "./subsystems/navigation/common_flight_plan.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 common_flight_plan.c
+     /tmp/ccyc7ZLK.s:18     .text.nav_init_block:00000000 $t
+     /tmp/ccyc7ZLK.s:23     .text.nav_init_block:00000000 nav_init_block
+     /tmp/ccyc7ZLK.s:53     .text.nav_init_block:0000001c $d
+     /tmp/ccyc7ZLK.s:60     .text.nav_goto_block:00000000 $t
+     /tmp/ccyc7ZLK.s:65     .text.nav_goto_block:00000000 nav_goto_block
+     /tmp/ccyc7ZLK.s:96     .text.nav_goto_block:0000001c $d
+     /tmp/ccyc7ZLK.s:138    .bss.last_stage:00000000 last_stage
+     /tmp/ccyc7ZLK.s:119    .bss.last_block:00000000 last_block
+     /tmp/ccyc7ZLK.s:132    .bss.nav_block:00000000 nav_block
+     /tmp/ccyc7ZLK.s:144    .bss.nav_stage:00000000 nav_stage
+     /tmp/ccyc7ZLK.s:126    .bss.block_time:00000000 block_time
+     /tmp/ccyc7ZLK.s:113    .bss.stage_time:00000000 stage_time
+     /tmp/ccyc7ZLK.s:110    .bss.stage_time:00000000 $d
+     /tmp/ccyc7ZLK.s:120    .bss.last_block:00000000 $d
+     /tmp/ccyc7ZLK.s:122    .bss.block_time:00000000 $d
+     /tmp/ccyc7ZLK.s:133    .bss.nav_block:00000000 $d
+     /tmp/ccyc7ZLK.s:139    .bss.last_stage:00000000 $d
+     /tmp/ccyc7ZLK.s:145    .bss.nav_stage:00000000 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+nav_init_stage

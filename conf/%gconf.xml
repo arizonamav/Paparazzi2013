@@ -1,0 +1,8 @@
+<gconf>
+  <entry name="left_pane_width" value="507" application="paparazzi center"/>
+  <entry name="height" value="846" application="paparazzi center"/>
+  <entry name="width" value="1438" application="paparazzi center"/>
+  <entry name="last target" value="ap" application="paparazzi center"/>
+  <entry name="last session" value="Flight USB-serial@57600" application="paparazzi center"/>
+  <entry name="last A/C" value="Radian" application="paparazzi center"/>
+</gconf>

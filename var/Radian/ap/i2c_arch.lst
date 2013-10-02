@@ -1,0 +1,1614 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 18, 4
+  12              		.thumb
+  13              		.file	"i2c_arch.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.i2c_event,"ax",%progbits
+  18              		.align	1
+  19              		.global	i2c_event
+  20              		.thumb
+  21              		.thumb_func
+  23              	i2c_event:
+  24              	.LFB36:
+  25              		.file 1 "arch/stm32/mcu_periph/i2c_arch.c"
+   1:arch/stm32/mcu_periph/i2c_arch.c **** #include "mcu_periph/i2c.h"
+   2:arch/stm32/mcu_periph/i2c_arch.c **** 
+   3:arch/stm32/mcu_periph/i2c_arch.c **** #include <stm32/rcc.h>
+   4:arch/stm32/mcu_periph/i2c_arch.c **** #include <stm32/gpio.h>
+   5:arch/stm32/mcu_periph/i2c_arch.c **** #include <stm32/flash.h>
+   6:arch/stm32/mcu_periph/i2c_arch.c **** #include <stm32/misc.h>
+   7:arch/stm32/mcu_periph/i2c_arch.c **** 
+   8:arch/stm32/mcu_periph/i2c_arch.c **** 
+   9:arch/stm32/mcu_periph/i2c_arch.c **** static void start_transaction(struct i2c_periph* p);
+  10:arch/stm32/mcu_periph/i2c_arch.c **** static inline void end_of_transaction(struct i2c_periph *p);
+  11:arch/stm32/mcu_periph/i2c_arch.c **** static inline void i2c_hard_reset(struct i2c_periph *p);
+  12:arch/stm32/mcu_periph/i2c_arch.c **** static inline void i2c_reset_init(struct i2c_periph *p);
+  13:arch/stm32/mcu_periph/i2c_arch.c **** 
+  14:arch/stm32/mcu_periph/i2c_arch.c **** #define I2C_BUSY 0x20
+  15:arch/stm32/mcu_periph/i2c_arch.c **** 
+  16:arch/stm32/mcu_periph/i2c_arch.c **** // If a hard reset cannot free up SDA, SCL lines abort. Previously stm32 would hang
+  17:arch/stm32/mcu_periph/i2c_arch.c **** // when lines stuck i.e. no pullups on I2C lines
+  18:arch/stm32/mcu_periph/i2c_arch.c **** #define I2C_MAX_RESET_FAIL_COUNT 20
+  19:arch/stm32/mcu_periph/i2c_arch.c **** 
+  20:arch/stm32/mcu_periph/i2c_arch.c **** #ifdef DEBUG_I2C
+  21:arch/stm32/mcu_periph/i2c_arch.c **** #define SPURIOUS_INTERRUPT(_periph, _status, _event) { while(1); }
+  22:arch/stm32/mcu_periph/i2c_arch.c **** #define OUT_OF_SYNC_STATE_MACHINE(_periph, _status, _event) { while(1); }
+  23:arch/stm32/mcu_periph/i2c_arch.c **** #else
+  24:arch/stm32/mcu_periph/i2c_arch.c **** //#define SPURIOUS_INTERRUPT(_periph, _status, _event) { periph->errors->unexpected_event_cnt++; ab
+  25:arch/stm32/mcu_periph/i2c_arch.c **** #define SPURIOUS_INTERRUPT(_periph, _status, _event) { if (_status == I2CAddrWrSent) abort_and_rese
+  26:arch/stm32/mcu_periph/i2c_arch.c **** #define OUT_OF_SYNC_STATE_MACHINE(_periph, _status, _event) { abort_and_reset(_periph);}
+  27:arch/stm32/mcu_periph/i2c_arch.c **** #endif
+  28:arch/stm32/mcu_periph/i2c_arch.c **** 
+  29:arch/stm32/mcu_periph/i2c_arch.c **** #ifdef USE_I2C1
+  30:arch/stm32/mcu_periph/i2c_arch.c **** #ifndef I2C1_BITRATE
+  31:arch/stm32/mcu_periph/i2c_arch.c **** #define I2C1_BITRATE 200000
+  32:arch/stm32/mcu_periph/i2c_arch.c **** #endif
+  33:arch/stm32/mcu_periph/i2c_arch.c **** static I2C_InitTypeDef  I2C1_InitStruct = {
+  34:arch/stm32/mcu_periph/i2c_arch.c ****       .I2C_Mode = I2C_Mode_I2C,
+  35:arch/stm32/mcu_periph/i2c_arch.c ****       .I2C_DutyCycle = I2C_DutyCycle_2,
+  36:arch/stm32/mcu_periph/i2c_arch.c ****       .I2C_OwnAddress1 = 0x00,
+  37:arch/stm32/mcu_periph/i2c_arch.c ****       .I2C_Ack = I2C_Ack_Enable,
+  38:arch/stm32/mcu_periph/i2c_arch.c ****       .I2C_AcknowledgedAddress = I2C_AcknowledgedAddress_7bit,
+  39:arch/stm32/mcu_periph/i2c_arch.c ****       .I2C_ClockSpeed = I2C1_BITRATE
+  40:arch/stm32/mcu_periph/i2c_arch.c **** };
+  41:arch/stm32/mcu_periph/i2c_arch.c **** #endif
+  42:arch/stm32/mcu_periph/i2c_arch.c **** 
+  43:arch/stm32/mcu_periph/i2c_arch.c **** #ifdef USE_I2C2
+  44:arch/stm32/mcu_periph/i2c_arch.c **** #ifndef I2C2_BITRATE
+  45:arch/stm32/mcu_periph/i2c_arch.c **** #define I2C2_BITRATE 300000
+  46:arch/stm32/mcu_periph/i2c_arch.c **** #endif
+  47:arch/stm32/mcu_periph/i2c_arch.c **** static I2C_InitTypeDef  I2C2_InitStruct = {
+  48:arch/stm32/mcu_periph/i2c_arch.c ****       .I2C_Mode = I2C_Mode_I2C,
+  49:arch/stm32/mcu_periph/i2c_arch.c ****       .I2C_DutyCycle = I2C_DutyCycle_2,
+  50:arch/stm32/mcu_periph/i2c_arch.c ****       .I2C_OwnAddress1 = 0x00,
+  51:arch/stm32/mcu_periph/i2c_arch.c ****       .I2C_Ack = I2C_Ack_Enable,
+  52:arch/stm32/mcu_periph/i2c_arch.c ****       .I2C_AcknowledgedAddress = I2C_AcknowledgedAddress_7bit,
+  53:arch/stm32/mcu_periph/i2c_arch.c ****       .I2C_ClockSpeed = I2C2_BITRATE
+  54:arch/stm32/mcu_periph/i2c_arch.c **** };
+  55:arch/stm32/mcu_periph/i2c_arch.c **** #endif
+  56:arch/stm32/mcu_periph/i2c_arch.c **** 
+  57:arch/stm32/mcu_periph/i2c_arch.c **** static inline void i2c_delay(void)
+  58:arch/stm32/mcu_periph/i2c_arch.c **** {
+  59:arch/stm32/mcu_periph/i2c_arch.c ****     for (__IO int j = 0; j < 50; j++);
+  60:arch/stm32/mcu_periph/i2c_arch.c **** }
+  61:arch/stm32/mcu_periph/i2c_arch.c **** 
+  62:arch/stm32/mcu_periph/i2c_arch.c **** static inline void i2c_apply_config(struct i2c_periph *p)
+  63:arch/stm32/mcu_periph/i2c_arch.c **** {
+  64:arch/stm32/mcu_periph/i2c_arch.c ****     I2C_Init(p->reg_addr, p->init_struct);
+  65:arch/stm32/mcu_periph/i2c_arch.c **** }
+  66:arch/stm32/mcu_periph/i2c_arch.c **** 
+  67:arch/stm32/mcu_periph/i2c_arch.c **** static inline void end_of_transaction(struct i2c_periph *p)
+  68:arch/stm32/mcu_periph/i2c_arch.c **** {
+  69:arch/stm32/mcu_periph/i2c_arch.c ****     p->trans_extract_idx++;
+  70:arch/stm32/mcu_periph/i2c_arch.c ****     if (p->trans_extract_idx >= I2C_TRANSACTION_QUEUE_LEN)
+  71:arch/stm32/mcu_periph/i2c_arch.c ****       p->trans_extract_idx = 0;
+  72:arch/stm32/mcu_periph/i2c_arch.c ****     /* if we have no more transaction to process, stop here */
+  73:arch/stm32/mcu_periph/i2c_arch.c ****     if (p->trans_extract_idx == p->trans_insert_idx)
+  74:arch/stm32/mcu_periph/i2c_arch.c ****       p->status = I2CIdle;
+  75:arch/stm32/mcu_periph/i2c_arch.c ****     /* if not, start next transaction */
+  76:arch/stm32/mcu_periph/i2c_arch.c ****     else
+  77:arch/stm32/mcu_periph/i2c_arch.c ****       start_transaction(p);
+  78:arch/stm32/mcu_periph/i2c_arch.c **** }
+  79:arch/stm32/mcu_periph/i2c_arch.c **** 
+  80:arch/stm32/mcu_periph/i2c_arch.c **** static inline void abort_and_reset(struct i2c_periph *p) {
+  81:arch/stm32/mcu_periph/i2c_arch.c ****     struct i2c_transaction* trans = p->trans[p->trans_extract_idx];
+  82:arch/stm32/mcu_periph/i2c_arch.c ****     trans->status = I2CTransFailed;
+  83:arch/stm32/mcu_periph/i2c_arch.c ****     I2C_ITConfig(p->reg_addr, I2C_IT_EVT | I2C_IT_BUF | I2C_IT_ERR, DISABLE);
+  84:arch/stm32/mcu_periph/i2c_arch.c ****     i2c_hard_reset(p);
+  85:arch/stm32/mcu_periph/i2c_arch.c ****     I2C_ITConfig(p->reg_addr, I2C_IT_ERR, ENABLE);
+  86:arch/stm32/mcu_periph/i2c_arch.c ****     end_of_transaction(p);
+  87:arch/stm32/mcu_periph/i2c_arch.c **** }
+  88:arch/stm32/mcu_periph/i2c_arch.c **** 
+  89:arch/stm32/mcu_periph/i2c_arch.c **** static inline void on_status_start_requested(struct i2c_periph *periph, struct i2c_transaction* tra
+  90:arch/stm32/mcu_periph/i2c_arch.c **** static inline void on_status_addr_wr_sent(struct i2c_periph *periph, struct i2c_transaction* trans,
+  91:arch/stm32/mcu_periph/i2c_arch.c **** static inline void on_status_sending_byte(struct i2c_periph *periph, struct i2c_transaction* trans,
+  92:arch/stm32/mcu_periph/i2c_arch.c **** static inline void on_status_stop_requested(struct i2c_periph *periph, struct i2c_transaction* tran
+  93:arch/stm32/mcu_periph/i2c_arch.c **** static inline void on_status_addr_rd_sent(struct i2c_periph *periph, struct i2c_transaction* trans,
+  94:arch/stm32/mcu_periph/i2c_arch.c **** static inline void on_status_reading_byte(struct i2c_periph *periph, struct i2c_transaction* trans,
+  95:arch/stm32/mcu_periph/i2c_arch.c **** static inline void on_status_reading_last_byte(struct i2c_periph *periph, struct i2c_transaction* t
+  96:arch/stm32/mcu_periph/i2c_arch.c **** static inline void on_status_restart_requested(struct i2c_periph *periph, struct i2c_transaction* t
+  97:arch/stm32/mcu_periph/i2c_arch.c **** 
+  98:arch/stm32/mcu_periph/i2c_arch.c **** /*
+  99:arch/stm32/mcu_periph/i2c_arch.c ****  * Start Requested
+ 100:arch/stm32/mcu_periph/i2c_arch.c ****  *
+ 101:arch/stm32/mcu_periph/i2c_arch.c ****  */
+ 102:arch/stm32/mcu_periph/i2c_arch.c **** static inline void on_status_start_requested(struct i2c_periph *periph, struct i2c_transaction* tra
+ 103:arch/stm32/mcu_periph/i2c_arch.c ****   if (event & I2C_FLAG_SB) {
+ 104:arch/stm32/mcu_periph/i2c_arch.c ****     if(trans->type == I2CTransRx) {
+ 105:arch/stm32/mcu_periph/i2c_arch.c ****       I2C_Send7bitAddress(periph->reg_addr, trans->slave_addr, I2C_Direction_Receiver);
+ 106:arch/stm32/mcu_periph/i2c_arch.c ****       periph->status = I2CAddrRdSent;
+ 107:arch/stm32/mcu_periph/i2c_arch.c ****     }
+ 108:arch/stm32/mcu_periph/i2c_arch.c ****     else {
+ 109:arch/stm32/mcu_periph/i2c_arch.c ****       I2C_Send7bitAddress(periph->reg_addr, trans->slave_addr, I2C_Direction_Transmitter);
+ 110:arch/stm32/mcu_periph/i2c_arch.c ****       periph->status = I2CAddrWrSent;
+ 111:arch/stm32/mcu_periph/i2c_arch.c ****     }
+ 112:arch/stm32/mcu_periph/i2c_arch.c ****   }
+ 113:arch/stm32/mcu_periph/i2c_arch.c ****   //  else
+ 114:arch/stm32/mcu_periph/i2c_arch.c ****   //    SPURIOUS_INTERRUPT(periph, I2CStartRequested, event);
+ 115:arch/stm32/mcu_periph/i2c_arch.c ****   // FIXME: this one seems to get called all the time with mkk controllers
+ 116:arch/stm32/mcu_periph/i2c_arch.c **** }
+ 117:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 118:arch/stm32/mcu_periph/i2c_arch.c **** /*
+ 119:arch/stm32/mcu_periph/i2c_arch.c ****  * Addr WR sent
+ 120:arch/stm32/mcu_periph/i2c_arch.c ****  *
+ 121:arch/stm32/mcu_periph/i2c_arch.c ****  */
+ 122:arch/stm32/mcu_periph/i2c_arch.c **** static inline void on_status_addr_wr_sent(struct i2c_periph *periph, struct i2c_transaction* trans,
+ 123:arch/stm32/mcu_periph/i2c_arch.c ****   if ((event & I2C_FLAG_ADDR) && (event & I2C_FLAG_TRA)) {
+ 124:arch/stm32/mcu_periph/i2c_arch.c ****     I2C_SendData(periph->reg_addr, trans->buf[0]);
+ 125:arch/stm32/mcu_periph/i2c_arch.c ****     if (trans->len_w > 1) {
+ 126:arch/stm32/mcu_periph/i2c_arch.c ****       I2C_SendData(periph->reg_addr, trans->buf[1]);
+ 127:arch/stm32/mcu_periph/i2c_arch.c ****       periph->idx_buf = 2;
+ 128:arch/stm32/mcu_periph/i2c_arch.c ****       I2C_ITConfig(periph->reg_addr, I2C_IT_BUF, ENABLE);
+ 129:arch/stm32/mcu_periph/i2c_arch.c ****       periph->status = I2CSendingByte;
+ 130:arch/stm32/mcu_periph/i2c_arch.c ****     }
+ 131:arch/stm32/mcu_periph/i2c_arch.c ****     else {
+ 132:arch/stm32/mcu_periph/i2c_arch.c ****       periph->idx_buf = 1;
+ 133:arch/stm32/mcu_periph/i2c_arch.c ****       if (trans->type == I2CTransTx) {
+ 134:arch/stm32/mcu_periph/i2c_arch.c ****         I2C_GenerateSTOP(periph->reg_addr, ENABLE);
+ 135:arch/stm32/mcu_periph/i2c_arch.c ****         periph->status = I2CStopRequested;
+ 136:arch/stm32/mcu_periph/i2c_arch.c ****       }
+ 137:arch/stm32/mcu_periph/i2c_arch.c ****       else {
+ 138:arch/stm32/mcu_periph/i2c_arch.c ****         I2C_GenerateSTART(periph->reg_addr, ENABLE);
+ 139:arch/stm32/mcu_periph/i2c_arch.c ****         periph->status = I2CRestartRequested;
+ 140:arch/stm32/mcu_periph/i2c_arch.c ****       }
+ 141:arch/stm32/mcu_periph/i2c_arch.c ****     }
+ 142:arch/stm32/mcu_periph/i2c_arch.c ****   }
+ 143:arch/stm32/mcu_periph/i2c_arch.c ****   else {
+ 144:arch/stm32/mcu_periph/i2c_arch.c ****     SPURIOUS_INTERRUPT(periph, I2CAddrWrSent, event);
+ 145:arch/stm32/mcu_periph/i2c_arch.c ****     // FIXME: this was where the code would break with mkk controllers on april 10 2011
+ 146:arch/stm32/mcu_periph/i2c_arch.c ****     // now have SPURIOUS_INTERRUPT call abort_and_reset
+ 147:arch/stm32/mcu_periph/i2c_arch.c ****   }
+ 148:arch/stm32/mcu_periph/i2c_arch.c **** }
+ 149:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 150:arch/stm32/mcu_periph/i2c_arch.c **** /*
+ 151:arch/stm32/mcu_periph/i2c_arch.c ****  * Sending Byte
+ 152:arch/stm32/mcu_periph/i2c_arch.c ****  *
+ 153:arch/stm32/mcu_periph/i2c_arch.c ****  */
+ 154:arch/stm32/mcu_periph/i2c_arch.c **** static inline void on_status_sending_byte(struct i2c_periph *periph, struct i2c_transaction* trans,
+ 155:arch/stm32/mcu_periph/i2c_arch.c ****   I2C_TypeDef *regs = (I2C_TypeDef *) periph->reg_addr;
+ 156:arch/stm32/mcu_periph/i2c_arch.c ****   if (event & I2C_FLAG_TXE) {
+ 157:arch/stm32/mcu_periph/i2c_arch.c ****     if (periph->idx_buf < trans->len_w) {
+ 158:arch/stm32/mcu_periph/i2c_arch.c ****       I2C_SendData(periph->reg_addr, trans->buf[periph->idx_buf]);
+ 159:arch/stm32/mcu_periph/i2c_arch.c ****       periph->idx_buf++;
+ 160:arch/stm32/mcu_periph/i2c_arch.c ****     }
+ 161:arch/stm32/mcu_periph/i2c_arch.c ****     else {
+ 162:arch/stm32/mcu_periph/i2c_arch.c ****       I2C_ITConfig(periph->reg_addr, I2C_IT_BUF, DISABLE);
+ 163:arch/stm32/mcu_periph/i2c_arch.c ****       if (trans->type == I2CTransTx) {
+ 164:arch/stm32/mcu_periph/i2c_arch.c ****         I2C_GenerateSTOP(periph->reg_addr, ENABLE);
+ 165:arch/stm32/mcu_periph/i2c_arch.c ****         /* Make sure that the STOP bit is cleared by Hardware */
+ 166:arch/stm32/mcu_periph/i2c_arch.c ****         static __IO uint8_t counter = 0;
+ 167:arch/stm32/mcu_periph/i2c_arch.c ****         while ((regs->CR1 & 0x200) == 0x200) {
+ 168:arch/stm32/mcu_periph/i2c_arch.c ****           counter++;
+ 169:arch/stm32/mcu_periph/i2c_arch.c ****           if (counter > 100) break;
+ 170:arch/stm32/mcu_periph/i2c_arch.c ****         }
+ 171:arch/stm32/mcu_periph/i2c_arch.c ****         periph->status = I2CStopRequested;
+ 172:arch/stm32/mcu_periph/i2c_arch.c ****       }
+ 173:arch/stm32/mcu_periph/i2c_arch.c ****       else {
+ 174:arch/stm32/mcu_periph/i2c_arch.c ****         I2C_GenerateSTART(periph->reg_addr, ENABLE);
+ 175:arch/stm32/mcu_periph/i2c_arch.c ****         periph->status = I2CRestartRequested;
+ 176:arch/stm32/mcu_periph/i2c_arch.c ****       }
+ 177:arch/stm32/mcu_periph/i2c_arch.c ****     }
+ 178:arch/stm32/mcu_periph/i2c_arch.c ****   }
+ 179:arch/stm32/mcu_periph/i2c_arch.c ****   else
+ 180:arch/stm32/mcu_periph/i2c_arch.c ****     SPURIOUS_INTERRUPT(periph, I2CSendingByte, event);
+ 181:arch/stm32/mcu_periph/i2c_arch.c **** }
+ 182:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 183:arch/stm32/mcu_periph/i2c_arch.c **** /*
+ 184:arch/stm32/mcu_periph/i2c_arch.c ****  * Stop Requested
+ 185:arch/stm32/mcu_periph/i2c_arch.c ****  *
+ 186:arch/stm32/mcu_periph/i2c_arch.c ****  */
+ 187:arch/stm32/mcu_periph/i2c_arch.c **** static inline void on_status_stop_requested(struct i2c_periph *periph, struct i2c_transaction* tran
+ 188:arch/stm32/mcu_periph/i2c_arch.c ****   /* bummer.... */
+ 189:arch/stm32/mcu_periph/i2c_arch.c ****   if (event & I2C_FLAG_RXNE) {
+ 190:arch/stm32/mcu_periph/i2c_arch.c ****     uint8_t read_byte =  I2C_ReceiveData(periph->reg_addr);
+ 191:arch/stm32/mcu_periph/i2c_arch.c ****     if (periph->idx_buf < trans->len_r) {
+ 192:arch/stm32/mcu_periph/i2c_arch.c ****       trans->buf[periph->idx_buf] = read_byte;
+ 193:arch/stm32/mcu_periph/i2c_arch.c ****     }
+ 194:arch/stm32/mcu_periph/i2c_arch.c ****   }
+ 195:arch/stm32/mcu_periph/i2c_arch.c ****   I2C_ITConfig(periph->reg_addr, I2C_IT_EVT|I2C_IT_BUF, DISABLE);  // should only need to disable e
+ 196:arch/stm32/mcu_periph/i2c_arch.c ****   trans->status = I2CTransSuccess;
+ 197:arch/stm32/mcu_periph/i2c_arch.c ****   end_of_transaction(periph);
+ 198:arch/stm32/mcu_periph/i2c_arch.c **** }
+ 199:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 200:arch/stm32/mcu_periph/i2c_arch.c **** /*
+ 201:arch/stm32/mcu_periph/i2c_arch.c ****  * Addr RD sent
+ 202:arch/stm32/mcu_periph/i2c_arch.c ****  *
+ 203:arch/stm32/mcu_periph/i2c_arch.c ****  */
+ 204:arch/stm32/mcu_periph/i2c_arch.c **** static inline void on_status_addr_rd_sent(struct i2c_periph *periph, struct i2c_transaction* trans,
+ 205:arch/stm32/mcu_periph/i2c_arch.c ****   I2C_TypeDef *regs = (I2C_TypeDef *) periph->reg_addr;
+ 206:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 207:arch/stm32/mcu_periph/i2c_arch.c ****   if ((event & I2C_FLAG_ADDR) && !(event & I2C_FLAG_TRA)) {
+ 208:arch/stm32/mcu_periph/i2c_arch.c ****     periph->idx_buf = 0;
+ 209:arch/stm32/mcu_periph/i2c_arch.c ****     if(trans->len_r == 1) {                                         // If we're going to read only 
+ 210:arch/stm32/mcu_periph/i2c_arch.c ****       I2C_AcknowledgeConfig(periph->reg_addr, DISABLE);             // make sure it's gonna be nack
+ 211:arch/stm32/mcu_periph/i2c_arch.c ****       I2C_GenerateSTOP(periph->reg_addr, ENABLE);               // and followed by a stop
+ 212:arch/stm32/mcu_periph/i2c_arch.c ****       /* Make sure that the STOP bit is cleared by Hardware */
+ 213:arch/stm32/mcu_periph/i2c_arch.c ****       static __IO uint8_t counter = 0;
+ 214:arch/stm32/mcu_periph/i2c_arch.c ****       while ((regs->CR1 & 0x200) == 0x200) {
+ 215:arch/stm32/mcu_periph/i2c_arch.c ****         counter++;
+ 216:arch/stm32/mcu_periph/i2c_arch.c ****         if (counter > 100) break;
+ 217:arch/stm32/mcu_periph/i2c_arch.c ****       }
+ 218:arch/stm32/mcu_periph/i2c_arch.c ****       periph->status = I2CReadingLastByte;                           // and remember we did
+ 219:arch/stm32/mcu_periph/i2c_arch.c ****     }
+ 220:arch/stm32/mcu_periph/i2c_arch.c ****     else {
+ 221:arch/stm32/mcu_periph/i2c_arch.c ****       I2C_AcknowledgeConfig(periph->reg_addr, ENABLE);               // if it's more than one byte,
+ 222:arch/stm32/mcu_periph/i2c_arch.c ****       I2C_ITConfig(periph->reg_addr, I2C_IT_BUF, ENABLE);
+ 223:arch/stm32/mcu_periph/i2c_arch.c ****       periph->status = I2CReadingByte;                               // and remember we did
+ 224:arch/stm32/mcu_periph/i2c_arch.c ****     }
+ 225:arch/stm32/mcu_periph/i2c_arch.c ****   }
+ 226:arch/stm32/mcu_periph/i2c_arch.c ****   else
+ 227:arch/stm32/mcu_periph/i2c_arch.c ****     SPURIOUS_INTERRUPT(periph, I2CAddrRdSent, event);
+ 228:arch/stm32/mcu_periph/i2c_arch.c **** }
+ 229:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 230:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 231:arch/stm32/mcu_periph/i2c_arch.c **** /*
+ 232:arch/stm32/mcu_periph/i2c_arch.c ****  * Reading byte
+ 233:arch/stm32/mcu_periph/i2c_arch.c ****  *
+ 234:arch/stm32/mcu_periph/i2c_arch.c ****  */
+ 235:arch/stm32/mcu_periph/i2c_arch.c **** static inline void on_status_reading_byte(struct i2c_periph *periph, struct i2c_transaction* trans,
+ 236:arch/stm32/mcu_periph/i2c_arch.c ****   I2C_TypeDef *regs = (I2C_TypeDef *) periph->reg_addr;
+ 237:arch/stm32/mcu_periph/i2c_arch.c ****   if (event & I2C_FLAG_RXNE) {
+ 238:arch/stm32/mcu_periph/i2c_arch.c ****     uint8_t read_byte =  I2C_ReceiveData(periph->reg_addr);
+ 239:arch/stm32/mcu_periph/i2c_arch.c ****     if (periph->idx_buf < trans->len_r) {
+ 240:arch/stm32/mcu_periph/i2c_arch.c ****       trans->buf[periph->idx_buf] = read_byte;
+ 241:arch/stm32/mcu_periph/i2c_arch.c ****       periph->idx_buf++;
+ 242:arch/stm32/mcu_periph/i2c_arch.c ****       if (periph->idx_buf >= trans->len_r-1) {                    // We're reading our last byte
+ 243:arch/stm32/mcu_periph/i2c_arch.c ****         I2C_AcknowledgeConfig(periph->reg_addr, DISABLE);         // give them a nack once it's don
+ 244:arch/stm32/mcu_periph/i2c_arch.c ****         I2C_GenerateSTOP(periph->reg_addr, ENABLE);               // and follow with a stop
+ 245:arch/stm32/mcu_periph/i2c_arch.c ****         /* Make sure that the STOP bit is cleared by Hardware */
+ 246:arch/stm32/mcu_periph/i2c_arch.c ****         static __IO uint8_t counter = 0;
+ 247:arch/stm32/mcu_periph/i2c_arch.c ****         while ((regs->CR1 & 0x200) == 0x200) {
+ 248:arch/stm32/mcu_periph/i2c_arch.c ****           counter++;
+ 249:arch/stm32/mcu_periph/i2c_arch.c ****           if (counter > 100) break;
+ 250:arch/stm32/mcu_periph/i2c_arch.c ****         }
+ 251:arch/stm32/mcu_periph/i2c_arch.c ****         periph->status = I2CStopRequested;                        // remember we already trigered t
+ 252:arch/stm32/mcu_periph/i2c_arch.c ****       }
+ 253:arch/stm32/mcu_periph/i2c_arch.c ****     } // else { something very wrong has happened }
+ 254:arch/stm32/mcu_periph/i2c_arch.c ****   }
+ 255:arch/stm32/mcu_periph/i2c_arch.c ****   else
+ 256:arch/stm32/mcu_periph/i2c_arch.c ****     SPURIOUS_INTERRUPT(periph, I2CReadingByte, event);
+ 257:arch/stm32/mcu_periph/i2c_arch.c **** }
+ 258:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 259:arch/stm32/mcu_periph/i2c_arch.c **** /*
+ 260:arch/stm32/mcu_periph/i2c_arch.c ****  * Reading last byte
+ 261:arch/stm32/mcu_periph/i2c_arch.c ****  *
+ 262:arch/stm32/mcu_periph/i2c_arch.c ****  */
+ 263:arch/stm32/mcu_periph/i2c_arch.c **** static inline void on_status_reading_last_byte(struct i2c_periph *periph, struct i2c_transaction* t
+ 264:arch/stm32/mcu_periph/i2c_arch.c ****   if (event & I2C_FLAG_BTF) {
+ 265:arch/stm32/mcu_periph/i2c_arch.c ****     uint8_t read_byte =  I2C_ReceiveData(periph->reg_addr);
+ 266:arch/stm32/mcu_periph/i2c_arch.c ****     trans->buf[periph->idx_buf] = read_byte;
+ 267:arch/stm32/mcu_periph/i2c_arch.c ****     I2C_GenerateSTOP(periph->reg_addr, ENABLE);
+ 268:arch/stm32/mcu_periph/i2c_arch.c ****     periph->status = I2CStopRequested;
+ 269:arch/stm32/mcu_periph/i2c_arch.c ****   }
+ 270:arch/stm32/mcu_periph/i2c_arch.c ****   else if (event & I2C_FLAG_RXNE) {       // should really be BTF ?
+ 271:arch/stm32/mcu_periph/i2c_arch.c ****     uint8_t read_byte =  I2C_ReceiveData(periph->reg_addr);
+ 272:arch/stm32/mcu_periph/i2c_arch.c ****     trans->buf[periph->idx_buf] = read_byte;
+ 273:arch/stm32/mcu_periph/i2c_arch.c ****     periph->status = I2CStopRequested;
+ 274:arch/stm32/mcu_periph/i2c_arch.c ****   }
+ 275:arch/stm32/mcu_periph/i2c_arch.c ****   else
+ 276:arch/stm32/mcu_periph/i2c_arch.c ****     SPURIOUS_INTERRUPT(periph, I2CReadingLastByte, event);
+ 277:arch/stm32/mcu_periph/i2c_arch.c **** }
+ 278:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 279:arch/stm32/mcu_periph/i2c_arch.c **** /*
+ 280:arch/stm32/mcu_periph/i2c_arch.c ****  * Restart requested
+ 281:arch/stm32/mcu_periph/i2c_arch.c ****  *
+ 282:arch/stm32/mcu_periph/i2c_arch.c ****  */
+ 283:arch/stm32/mcu_periph/i2c_arch.c **** static inline void on_status_restart_requested(struct i2c_periph *periph, struct i2c_transaction* t
+ 284:arch/stm32/mcu_periph/i2c_arch.c ****   if (event & I2C_FLAG_SB) {
+ 285:arch/stm32/mcu_periph/i2c_arch.c ****     I2C_Send7bitAddress(periph->reg_addr, trans->slave_addr, I2C_Direction_Receiver);
+ 286:arch/stm32/mcu_periph/i2c_arch.c ****     periph->status = I2CAddrRdSent;
+ 287:arch/stm32/mcu_periph/i2c_arch.c ****   }
+ 288:arch/stm32/mcu_periph/i2c_arch.c **** }
+ 289:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 290:arch/stm32/mcu_periph/i2c_arch.c **** void i2c_event(void)
+ 291:arch/stm32/mcu_periph/i2c_arch.c **** {
+  26              		.loc 1 291 0
+  27              		.cfi_startproc
+  28              		@ args = 0, pretend = 0, frame = 0
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  30              		@ link register save eliminated.
+ 292:arch/stm32/mcu_periph/i2c_arch.c **** }
+  31              		.loc 1 292 0
+  32 0000 7047     		bx	lr
+  33              		.cfi_endproc
+  34              	.LFE36:
+  36              		.section	.text.i2c_idle,"ax",%progbits
+  37              		.align	1
+  38              		.global	i2c_idle
+  39              		.thumb
+  40              		.thumb_func
+  42              	i2c_idle:
+  43              	.LFB41:
+ 293:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 294:arch/stm32/mcu_periph/i2c_arch.c **** static inline void i2c_driver_event(struct i2c_periph *p, uint32_t event)
+ 295:arch/stm32/mcu_periph/i2c_arch.c **** {
+ 296:arch/stm32/mcu_periph/i2c_arch.c ****   struct i2c_transaction* trans = p->trans[p->trans_extract_idx];
+ 297:arch/stm32/mcu_periph/i2c_arch.c ****   switch (p->status) {
+ 298:arch/stm32/mcu_periph/i2c_arch.c ****   case I2CStartRequested:
+ 299:arch/stm32/mcu_periph/i2c_arch.c ****     on_status_start_requested(p, trans, event);
+ 300:arch/stm32/mcu_periph/i2c_arch.c ****     break;
+ 301:arch/stm32/mcu_periph/i2c_arch.c ****   case I2CAddrWrSent:
+ 302:arch/stm32/mcu_periph/i2c_arch.c ****     on_status_addr_wr_sent(p, trans, event);
+ 303:arch/stm32/mcu_periph/i2c_arch.c ****     break;
+ 304:arch/stm32/mcu_periph/i2c_arch.c ****   case I2CSendingByte:
+ 305:arch/stm32/mcu_periph/i2c_arch.c ****     on_status_sending_byte(p, trans, event);
+ 306:arch/stm32/mcu_periph/i2c_arch.c ****     break;
+ 307:arch/stm32/mcu_periph/i2c_arch.c ****   case I2CStopRequested:
+ 308:arch/stm32/mcu_periph/i2c_arch.c ****     on_status_stop_requested(p, trans, event);
+ 309:arch/stm32/mcu_periph/i2c_arch.c ****     break;
+ 310:arch/stm32/mcu_periph/i2c_arch.c ****   case I2CAddrRdSent:
+ 311:arch/stm32/mcu_periph/i2c_arch.c ****     on_status_addr_rd_sent(p, trans, event);
+ 312:arch/stm32/mcu_periph/i2c_arch.c ****     break;
+ 313:arch/stm32/mcu_periph/i2c_arch.c ****   case I2CReadingByte:
+ 314:arch/stm32/mcu_periph/i2c_arch.c ****     on_status_reading_byte(p, trans, event);
+ 315:arch/stm32/mcu_periph/i2c_arch.c ****     break;
+ 316:arch/stm32/mcu_periph/i2c_arch.c ****   case I2CReadingLastByte:
+ 317:arch/stm32/mcu_periph/i2c_arch.c ****     on_status_reading_last_byte(p, trans, event);
+ 318:arch/stm32/mcu_periph/i2c_arch.c ****     break;
+ 319:arch/stm32/mcu_periph/i2c_arch.c ****   case I2CRestartRequested:
+ 320:arch/stm32/mcu_periph/i2c_arch.c ****     on_status_restart_requested(p, trans, event);
+ 321:arch/stm32/mcu_periph/i2c_arch.c ****     break;
+ 322:arch/stm32/mcu_periph/i2c_arch.c ****   default:
+ 323:arch/stm32/mcu_periph/i2c_arch.c ****     OUT_OF_SYNC_STATE_MACHINE(p, p->status, event);
+ 324:arch/stm32/mcu_periph/i2c_arch.c ****     break;
+ 325:arch/stm32/mcu_periph/i2c_arch.c ****   }
+ 326:arch/stm32/mcu_periph/i2c_arch.c **** }
+ 327:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 328:arch/stm32/mcu_periph/i2c_arch.c **** static inline void i2c_error(struct i2c_periph *p)
+ 329:arch/stm32/mcu_periph/i2c_arch.c **** {
+ 330:arch/stm32/mcu_periph/i2c_arch.c ****   p->errors->er_irq_cnt;
+ 331:arch/stm32/mcu_periph/i2c_arch.c ****   if (I2C_GetITStatus(p->reg_addr, I2C_IT_AF)) {       /* Acknowledge failure */
+ 332:arch/stm32/mcu_periph/i2c_arch.c ****     p->errors->ack_fail_cnt++;
+ 333:arch/stm32/mcu_periph/i2c_arch.c ****     I2C_ClearITPendingBit(p->reg_addr, I2C_IT_AF);
+ 334:arch/stm32/mcu_periph/i2c_arch.c ****   }
+ 335:arch/stm32/mcu_periph/i2c_arch.c ****   if (I2C_GetITStatus(p->reg_addr, I2C_IT_BERR)) {     /* Misplaced Start or Stop condition */
+ 336:arch/stm32/mcu_periph/i2c_arch.c ****     p->errors->miss_start_stop_cnt++;
+ 337:arch/stm32/mcu_periph/i2c_arch.c ****     I2C_ClearITPendingBit(p->reg_addr, I2C_IT_BERR);
+ 338:arch/stm32/mcu_periph/i2c_arch.c ****   }
+ 339:arch/stm32/mcu_periph/i2c_arch.c ****   if (I2C_GetITStatus(p->reg_addr, I2C_IT_ARLO)) {     /* Arbitration lost */
+ 340:arch/stm32/mcu_periph/i2c_arch.c ****     p->errors->arb_lost_cnt++;
+ 341:arch/stm32/mcu_periph/i2c_arch.c ****     I2C_ClearITPendingBit(p->reg_addr, I2C_IT_ARLO);
+ 342:arch/stm32/mcu_periph/i2c_arch.c ****     //    I2C_AcknowledgeConfig(I2C2, DISABLE);
+ 343:arch/stm32/mcu_periph/i2c_arch.c ****     //    uint8_t dummy __attribute__ ((unused)) = I2C_ReceiveData(I2C2);
+ 344:arch/stm32/mcu_periph/i2c_arch.c ****     //    I2C_GenerateSTOP(I2C2, ENABLE);
+ 345:arch/stm32/mcu_periph/i2c_arch.c ****   }
+ 346:arch/stm32/mcu_periph/i2c_arch.c ****   if (I2C_GetITStatus(p->reg_addr, I2C_IT_OVR)) {      /* Overrun/Underrun */
+ 347:arch/stm32/mcu_periph/i2c_arch.c ****     p->errors->over_under_cnt++;
+ 348:arch/stm32/mcu_periph/i2c_arch.c ****     I2C_ClearITPendingBit(p->reg_addr, I2C_IT_OVR);
+ 349:arch/stm32/mcu_periph/i2c_arch.c ****   }
+ 350:arch/stm32/mcu_periph/i2c_arch.c ****   if (I2C_GetITStatus(p->reg_addr, I2C_IT_PECERR)) {   /* PEC Error in reception */
+ 351:arch/stm32/mcu_periph/i2c_arch.c ****     p->errors->pec_recep_cnt++;
+ 352:arch/stm32/mcu_periph/i2c_arch.c ****     I2C_ClearITPendingBit(p->reg_addr, I2C_IT_PECERR);
+ 353:arch/stm32/mcu_periph/i2c_arch.c ****   }
+ 354:arch/stm32/mcu_periph/i2c_arch.c ****   if (I2C_GetITStatus(p->reg_addr, I2C_IT_TIMEOUT)) {  /* Timeout or Tlow error */
+ 355:arch/stm32/mcu_periph/i2c_arch.c ****     p->errors->timeout_tlow_cnt++;
+ 356:arch/stm32/mcu_periph/i2c_arch.c ****     I2C_ClearITPendingBit(p->reg_addr, I2C_IT_TIMEOUT);
+ 357:arch/stm32/mcu_periph/i2c_arch.c ****   }
+ 358:arch/stm32/mcu_periph/i2c_arch.c ****   if (I2C_GetITStatus(p->reg_addr, I2C_IT_SMBALERT)) { /* SMBus alert */
+ 359:arch/stm32/mcu_periph/i2c_arch.c ****     p->errors->smbus_alert_cnt++;
+ 360:arch/stm32/mcu_periph/i2c_arch.c ****     I2C_ClearITPendingBit(p->reg_addr, I2C_IT_SMBALERT);
+ 361:arch/stm32/mcu_periph/i2c_arch.c ****   }
+ 362:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 363:arch/stm32/mcu_periph/i2c_arch.c ****   abort_and_reset(p);
+ 364:arch/stm32/mcu_periph/i2c_arch.c **** }
+ 365:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 366:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 367:arch/stm32/mcu_periph/i2c_arch.c **** static inline void i2c_hard_reset(struct i2c_periph *p)
+ 368:arch/stm32/mcu_periph/i2c_arch.c **** {
+ 369:arch/stm32/mcu_periph/i2c_arch.c ****   uint8_t timeout_fails=0;
+ 370:arch/stm32/mcu_periph/i2c_arch.c ****   I2C_TypeDef *regs = (I2C_TypeDef *) p->reg_addr;
+ 371:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 372:arch/stm32/mcu_periph/i2c_arch.c ****   I2C_DeInit(p->reg_addr);
+ 373:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 374:arch/stm32/mcu_periph/i2c_arch.c ****   GPIO_InitTypeDef GPIO_InitStructure;
+ 375:arch/stm32/mcu_periph/i2c_arch.c ****   GPIO_InitStructure.GPIO_Pin = p->scl_pin | p->sda_pin;
+ 376:arch/stm32/mcu_periph/i2c_arch.c ****   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_10MHz;
+ 377:arch/stm32/mcu_periph/i2c_arch.c ****   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_OD;
+ 378:arch/stm32/mcu_periph/i2c_arch.c ****   GPIO_SetBits(GPIOB, p->scl_pin | p->sda_pin);
+ 379:arch/stm32/mcu_periph/i2c_arch.c ****   GPIO_Init(GPIOB, &GPIO_InitStructure);
+ 380:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 381:arch/stm32/mcu_periph/i2c_arch.c ****   while((GPIO_ReadInputDataBit(GPIOB, p->sda_pin) == Bit_RESET) && timeout_fails < I2C_MAX_RESET_FA
+ 382:arch/stm32/mcu_periph/i2c_arch.c ****     // Raise SCL, wait until SCL is high (in case of clock stretching)
+ 383:arch/stm32/mcu_periph/i2c_arch.c ****     GPIO_SetBits(GPIOB, p->scl_pin);
+ 384:arch/stm32/mcu_periph/i2c_arch.c ****     while ((GPIO_ReadInputDataBit(GPIOB, p->scl_pin) == Bit_RESET) && timeout_fails < I2C_MAX_RESET
+ 385:arch/stm32/mcu_periph/i2c_arch.c ****       i2c_delay();
+ 386:arch/stm32/mcu_periph/i2c_arch.c ****       timeout_fails++;
+ 387:arch/stm32/mcu_periph/i2c_arch.c ****     }
+ 388:arch/stm32/mcu_periph/i2c_arch.c ****     i2c_delay();
+ 389:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 390:arch/stm32/mcu_periph/i2c_arch.c ****     // Lower SCL, wait
+ 391:arch/stm32/mcu_periph/i2c_arch.c ****     GPIO_ResetBits(GPIOB, p->scl_pin);
+ 392:arch/stm32/mcu_periph/i2c_arch.c ****     i2c_delay();
+ 393:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 394:arch/stm32/mcu_periph/i2c_arch.c ****     // Raise SCL, wait
+ 395:arch/stm32/mcu_periph/i2c_arch.c ****     GPIO_SetBits(GPIOB, p->scl_pin);
+ 396:arch/stm32/mcu_periph/i2c_arch.c ****     i2c_delay();
+ 397:arch/stm32/mcu_periph/i2c_arch.c ****     timeout_fails++;
+ 398:arch/stm32/mcu_periph/i2c_arch.c ****   }
+ 399:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 400:arch/stm32/mcu_periph/i2c_arch.c ****   // Generate a start condition followed by a stop condition
+ 401:arch/stm32/mcu_periph/i2c_arch.c ****   GPIO_SetBits(GPIOB, p->scl_pin);
+ 402:arch/stm32/mcu_periph/i2c_arch.c ****   i2c_delay();
+ 403:arch/stm32/mcu_periph/i2c_arch.c ****   GPIO_ResetBits(GPIOB, p->sda_pin);
+ 404:arch/stm32/mcu_periph/i2c_arch.c ****   i2c_delay();
+ 405:arch/stm32/mcu_periph/i2c_arch.c ****   GPIO_ResetBits(GPIOB, p->sda_pin);
+ 406:arch/stm32/mcu_periph/i2c_arch.c ****   i2c_delay();
+ 407:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 408:arch/stm32/mcu_periph/i2c_arch.c ****   // Raise both SCL and SDA and wait for SCL high (in case of clock stretching)
+ 409:arch/stm32/mcu_periph/i2c_arch.c ****   GPIO_SetBits(GPIOB, p->scl_pin | p->sda_pin);
+ 410:arch/stm32/mcu_periph/i2c_arch.c ****   while (GPIO_ReadInputDataBit(GPIOB, p->scl_pin) == Bit_RESET && timeout_fails < I2C_MAX_RESET_FAI
+ 411:arch/stm32/mcu_periph/i2c_arch.c ****     i2c_delay();
+ 412:arch/stm32/mcu_periph/i2c_arch.c ****     timeout_fails++;
+ 413:arch/stm32/mcu_periph/i2c_arch.c ****   }
+ 414:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 415:arch/stm32/mcu_periph/i2c_arch.c ****   // Wait for SDA to be high
+ 416:arch/stm32/mcu_periph/i2c_arch.c ****   while (GPIO_ReadInputDataBit(GPIOB, p->sda_pin) != Bit_SET && timeout_fails < I2C_MAX_RESET_FAIL_
+ 417:arch/stm32/mcu_periph/i2c_arch.c ****   {
+ 418:arch/stm32/mcu_periph/i2c_arch.c ****     i2c_delay();
+ 419:arch/stm32/mcu_periph/i2c_arch.c ****     timeout_fails++;
+ 420:arch/stm32/mcu_periph/i2c_arch.c ****   }
+ 421:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 422:arch/stm32/mcu_periph/i2c_arch.c ****   // SCL and SDA should be high at this point, bus should be free
+ 423:arch/stm32/mcu_periph/i2c_arch.c ****   // Return the GPIO pins to the alternate function
+ 424:arch/stm32/mcu_periph/i2c_arch.c ****   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_OD;
+ 425:arch/stm32/mcu_periph/i2c_arch.c ****   GPIO_Init(GPIOB, &GPIO_InitStructure);
+ 426:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 427:arch/stm32/mcu_periph/i2c_arch.c ****   I2C_DeInit(p->reg_addr);
+ 428:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 429:arch/stm32/mcu_periph/i2c_arch.c ****   i2c_apply_config(p);
+ 430:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 431:arch/stm32/mcu_periph/i2c_arch.c ****   if (regs->SR2 & I2C_BUSY) {
+ 432:arch/stm32/mcu_periph/i2c_arch.c ****     // Reset the I2C block
+ 433:arch/stm32/mcu_periph/i2c_arch.c ****     I2C_SoftwareResetCmd(p->reg_addr, ENABLE);
+ 434:arch/stm32/mcu_periph/i2c_arch.c ****     I2C_SoftwareResetCmd(p->reg_addr, DISABLE);
+ 435:arch/stm32/mcu_periph/i2c_arch.c ****   }
+ 436:arch/stm32/mcu_periph/i2c_arch.c **** }
+ 437:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 438:arch/stm32/mcu_periph/i2c_arch.c **** static inline void i2c_reset_init(struct i2c_periph *p)
+ 439:arch/stm32/mcu_periph/i2c_arch.c **** {
+ 440:arch/stm32/mcu_periph/i2c_arch.c ****   // Reset bus and configure GPIO pins
+ 441:arch/stm32/mcu_periph/i2c_arch.c ****   i2c_hard_reset(p);
+ 442:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 443:arch/stm32/mcu_periph/i2c_arch.c ****   // enable peripheral
+ 444:arch/stm32/mcu_periph/i2c_arch.c ****   I2C_Cmd(p->reg_addr, ENABLE);
+ 445:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 446:arch/stm32/mcu_periph/i2c_arch.c ****   // enable error interrupts
+ 447:arch/stm32/mcu_periph/i2c_arch.c ****   I2C_ITConfig(p->reg_addr, I2C_IT_ERR, ENABLE);
+ 448:arch/stm32/mcu_periph/i2c_arch.c **** }
+ 449:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 450:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 451:arch/stm32/mcu_periph/i2c_arch.c **** #ifdef USE_I2C1
+ 452:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 453:arch/stm32/mcu_periph/i2c_arch.c **** struct i2c_errors i2c1_errors;
+ 454:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 455:arch/stm32/mcu_periph/i2c_arch.c **** #include "my_debug_servo.h"
+ 456:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 457:arch/stm32/mcu_periph/i2c_arch.c **** void i2c1_hw_init(void) {
+ 458:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 459:arch/stm32/mcu_periph/i2c_arch.c ****   i2c1.reg_addr = I2C1;
+ 460:arch/stm32/mcu_periph/i2c_arch.c ****   i2c1.init_struct = &I2C1_InitStruct;
+ 461:arch/stm32/mcu_periph/i2c_arch.c ****   i2c1.scl_pin = GPIO_Pin_6;
+ 462:arch/stm32/mcu_periph/i2c_arch.c ****   i2c1.sda_pin = GPIO_Pin_7;
+ 463:arch/stm32/mcu_periph/i2c_arch.c ****   i2c1.errors = &i2c1_errors;
+ 464:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 465:arch/stm32/mcu_periph/i2c_arch.c ****   /* zeros error counter */
+ 466:arch/stm32/mcu_periph/i2c_arch.c ****   ZEROS_ERR_COUNTER(i2c1_errors);
+ 467:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 468:arch/stm32/mcu_periph/i2c_arch.c ****   /* reset peripheral to default state ( sometimes not achieved on reset :(  ) */
+ 469:arch/stm32/mcu_periph/i2c_arch.c ****   I2C_DeInit(I2C1);
+ 470:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 471:arch/stm32/mcu_periph/i2c_arch.c ****   NVIC_PriorityGroupConfig(NVIC_PriorityGroup_0);
+ 472:arch/stm32/mcu_periph/i2c_arch.c ****   NVIC_InitTypeDef  NVIC_InitStructure;
+ 473:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 474:arch/stm32/mcu_periph/i2c_arch.c ****   /* Configure and enable I2C1 event interrupt -------------------------------*/
+ 475:arch/stm32/mcu_periph/i2c_arch.c ****   NVIC_InitStructure.NVIC_IRQChannel = I2C1_EV_IRQn;
+ 476:arch/stm32/mcu_periph/i2c_arch.c ****   NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+ 477:arch/stm32/mcu_periph/i2c_arch.c ****   NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+ 478:arch/stm32/mcu_periph/i2c_arch.c ****   NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+ 479:arch/stm32/mcu_periph/i2c_arch.c ****   NVIC_Init(&NVIC_InitStructure);
+ 480:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 481:arch/stm32/mcu_periph/i2c_arch.c ****   /* Configure and enable I2C1 err interrupt -------------------------------*/
+ 482:arch/stm32/mcu_periph/i2c_arch.c ****   NVIC_InitStructure.NVIC_IRQChannel = I2C1_ER_IRQn;
+ 483:arch/stm32/mcu_periph/i2c_arch.c ****   NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+ 484:arch/stm32/mcu_periph/i2c_arch.c ****   NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+ 485:arch/stm32/mcu_periph/i2c_arch.c ****   NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+ 486:arch/stm32/mcu_periph/i2c_arch.c ****   NVIC_Init(&NVIC_InitStructure);
+ 487:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 488:arch/stm32/mcu_periph/i2c_arch.c ****   /* Enable peripheral clocks --------------------------------------------------*/
+ 489:arch/stm32/mcu_periph/i2c_arch.c ****   /* Enable I2C1 clock */
+ 490:arch/stm32/mcu_periph/i2c_arch.c ****   RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C1, ENABLE);
+ 491:arch/stm32/mcu_periph/i2c_arch.c ****   /* Enable GPIOB clock */
+ 492:arch/stm32/mcu_periph/i2c_arch.c ****   RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
+ 493:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 494:arch/stm32/mcu_periph/i2c_arch.c ****   /* Configure I2C1 pins: SCL and SDA ------------------------------------------*/
+ 495:arch/stm32/mcu_periph/i2c_arch.c ****   GPIO_InitTypeDef GPIO_InitStructure;
+ 496:arch/stm32/mcu_periph/i2c_arch.c ****   GPIO_StructInit(&GPIO_InitStructure);
+ 497:arch/stm32/mcu_periph/i2c_arch.c ****   GPIO_InitStructure.GPIO_Pin =  GPIO_Pin_6 | GPIO_Pin_7;
+ 498:arch/stm32/mcu_periph/i2c_arch.c ****   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+ 499:arch/stm32/mcu_periph/i2c_arch.c ****   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_OD;
+ 500:arch/stm32/mcu_periph/i2c_arch.c ****   GPIO_Init(GPIOB, &GPIO_InitStructure);
+ 501:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 502:arch/stm32/mcu_periph/i2c_arch.c ****   /* I2C configuration ----------------------------------------------------------*/
+ 503:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 504:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 505:arch/stm32/mcu_periph/i2c_arch.c ****   /* Reset and initialize I2C HW */
+ 506:arch/stm32/mcu_periph/i2c_arch.c ****   i2c_reset_init(&i2c1);
+ 507:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 508:arch/stm32/mcu_periph/i2c_arch.c **** }
+ 509:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 510:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 511:arch/stm32/mcu_periph/i2c_arch.c **** void i2c1_ev_irq_handler(void) {
+ 512:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 513:arch/stm32/mcu_periph/i2c_arch.c ****   uint32_t event = I2C_GetLastEvent(I2C1);
+ 514:arch/stm32/mcu_periph/i2c_arch.c ****   i2c_driver_event(&i2c1, event);
+ 515:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 516:arch/stm32/mcu_periph/i2c_arch.c **** }
+ 517:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 518:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 519:arch/stm32/mcu_periph/i2c_arch.c **** void i2c1_er_irq_handler(void) {
+ 520:arch/stm32/mcu_periph/i2c_arch.c ****   i2c_error(&i2c1);
+ 521:arch/stm32/mcu_periph/i2c_arch.c **** }
+ 522:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 523:arch/stm32/mcu_periph/i2c_arch.c **** #endif /* USE_I2C1 */
+ 524:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 525:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 526:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 527:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 528:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 529:arch/stm32/mcu_periph/i2c_arch.c **** #ifdef USE_I2C2
+ 530:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 531:arch/stm32/mcu_periph/i2c_arch.c **** //  dec      hex
+ 532:arch/stm32/mcu_periph/i2c_arch.c **** //  196609   30001        BUSY  MSL |                 SB
+ 533:arch/stm32/mcu_periph/i2c_arch.c **** //  458882   70082    TRA BUSY  MSL | TXE       ADDR
+ 534:arch/stm32/mcu_periph/i2c_arch.c **** //  458884   70084    TRA BUSY  MSL | TXE  BTF
+ 535:arch/stm32/mcu_periph/i2c_arch.c **** //  196609   30001        BUSY  MSL |                 SB
+ 536:arch/stm32/mcu_periph/i2c_arch.c **** //  196610   30002        BUSY  MSL |           ADDR
+ 537:arch/stm32/mcu_periph/i2c_arch.c **** //
+ 538:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 539:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 540:arch/stm32/mcu_periph/i2c_arch.c **** struct i2c_errors i2c2_errors;
+ 541:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 542:arch/stm32/mcu_periph/i2c_arch.c **** #include "my_debug_servo.h"
+ 543:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 544:arch/stm32/mcu_periph/i2c_arch.c **** void i2c2_hw_init(void) {
+ 545:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 546:arch/stm32/mcu_periph/i2c_arch.c ****   i2c2.reg_addr = I2C2;
+ 547:arch/stm32/mcu_periph/i2c_arch.c ****   i2c2.init_struct = &I2C2_InitStruct;
+ 548:arch/stm32/mcu_periph/i2c_arch.c ****   i2c2.scl_pin = GPIO_Pin_10;
+ 549:arch/stm32/mcu_periph/i2c_arch.c ****   i2c2.sda_pin = GPIO_Pin_11;
+ 550:arch/stm32/mcu_periph/i2c_arch.c ****   i2c2.errors = &i2c2_errors;
+ 551:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 552:arch/stm32/mcu_periph/i2c_arch.c ****   /* zeros error counter */
+ 553:arch/stm32/mcu_periph/i2c_arch.c ****   ZEROS_ERR_COUNTER(i2c2_errors);
+ 554:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 555:arch/stm32/mcu_periph/i2c_arch.c ****   /* reset peripheral to default state ( sometimes not achieved on reset :(  ) */
+ 556:arch/stm32/mcu_periph/i2c_arch.c ****   I2C_DeInit(I2C2);
+ 557:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 558:arch/stm32/mcu_periph/i2c_arch.c ****   NVIC_PriorityGroupConfig(NVIC_PriorityGroup_0);
+ 559:arch/stm32/mcu_periph/i2c_arch.c ****   NVIC_InitTypeDef  NVIC_InitStructure;
+ 560:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 561:arch/stm32/mcu_periph/i2c_arch.c ****   /* Configure and enable I2C2 event interrupt --------------------------------*/
+ 562:arch/stm32/mcu_periph/i2c_arch.c ****   NVIC_InitStructure.NVIC_IRQChannel = I2C2_EV_IRQn;
+ 563:arch/stm32/mcu_periph/i2c_arch.c ****   NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+ 564:arch/stm32/mcu_periph/i2c_arch.c ****   NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+ 565:arch/stm32/mcu_periph/i2c_arch.c ****   NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+ 566:arch/stm32/mcu_periph/i2c_arch.c ****   NVIC_Init(&NVIC_InitStructure);
+ 567:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 568:arch/stm32/mcu_periph/i2c_arch.c ****   /* Configure and enable I2C2 err interrupt ----------------------------------*/
+ 569:arch/stm32/mcu_periph/i2c_arch.c ****   NVIC_InitStructure.NVIC_IRQChannel = I2C2_ER_IRQn;
+ 570:arch/stm32/mcu_periph/i2c_arch.c ****   NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+ 571:arch/stm32/mcu_periph/i2c_arch.c ****   NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+ 572:arch/stm32/mcu_periph/i2c_arch.c ****   NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+ 573:arch/stm32/mcu_periph/i2c_arch.c ****   NVIC_Init(&NVIC_InitStructure);
+ 574:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 575:arch/stm32/mcu_periph/i2c_arch.c ****   /* Enable peripheral clocks -------------------------------------------------*/
+ 576:arch/stm32/mcu_periph/i2c_arch.c ****   /* Enable I2C2 clock */
+ 577:arch/stm32/mcu_periph/i2c_arch.c ****   RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C2, ENABLE);
+ 578:arch/stm32/mcu_periph/i2c_arch.c ****   /* Enable GPIOB clock */
+ 579:arch/stm32/mcu_periph/i2c_arch.c ****   RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB, ENABLE);
+ 580:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 581:arch/stm32/mcu_periph/i2c_arch.c ****   // Reset and initialize I2C HW
+ 582:arch/stm32/mcu_periph/i2c_arch.c ****   i2c_reset_init(&i2c2);
+ 583:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 584:arch/stm32/mcu_periph/i2c_arch.c **** }
+ 585:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 586:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 587:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 588:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 589:arch/stm32/mcu_periph/i2c_arch.c **** void i2c2_ev_irq_handler(void) {
+ 590:arch/stm32/mcu_periph/i2c_arch.c ****   uint32_t event = I2C_GetLastEvent(I2C2);
+ 591:arch/stm32/mcu_periph/i2c_arch.c ****   i2c_driver_event(&i2c2, event);
+ 592:arch/stm32/mcu_periph/i2c_arch.c **** }
+ 593:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 594:arch/stm32/mcu_periph/i2c_arch.c **** void i2c2_er_irq_handler(void) {
+ 595:arch/stm32/mcu_periph/i2c_arch.c ****   i2c_error(&i2c2);
+ 596:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 597:arch/stm32/mcu_periph/i2c_arch.c **** }
+ 598:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 599:arch/stm32/mcu_periph/i2c_arch.c **** #endif /* USE_I2C2 */
+ 600:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 601:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 602:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 603:arch/stm32/mcu_periph/i2c_arch.c **** bool_t i2c_idle(struct i2c_periph* p)
+ 604:arch/stm32/mcu_periph/i2c_arch.c **** {
+  44              		.loc 1 604 0
+  45              		.cfi_startproc
+  46              		@ args = 0, pretend = 0, frame = 0
+  47              		@ frame_needed = 0, uses_anonymous_args = 0
+  48              	.LVL0:
+  49 0000 08B5     		push	{r3, lr}
+  50              	.LCFI0:
+  51              		.cfi_def_cfa_offset 8
+  52              		.cfi_offset 14, -4
+  53              		.cfi_offset 3, -8
+ 605:arch/stm32/mcu_periph/i2c_arch.c ****   return !I2C_GetFlagStatus(p->reg_addr, I2C_FLAG_BUSY);
+  54              		.loc 1 605 0
+  55 0002 4FF40031 		mov	r1, #131072
+  56 0006 406A     		ldr	r0, [r0, #36]
+  57              	.LVL1:
+  58 0008 FFF7FEFF 		bl	I2C_GetFlagStatus
+ 606:arch/stm32/mcu_periph/i2c_arch.c **** }
+  59              		.loc 1 606 0
+  60 000c D0F10100 		rsbs	r0, r0, #1
+  61 0010 38BF     		it	cc
+  62 0012 0020     		movcc	r0, #0
+  63 0014 08BD     		pop	{r3, pc}
+  64              		.cfi_endproc
+  65              	.LFE41:
+  67              		.section	.text.i2c_submit,"ax",%progbits
+  68              		.align	1
+  69              		.global	i2c_submit
+  70              		.thumb
+  71              		.thumb_func
+  73              	i2c_submit:
+  74              	.LFB42:
+ 607:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 608:arch/stm32/mcu_periph/i2c_arch.c **** bool_t i2c_submit(struct i2c_periph* p, struct i2c_transaction* t) {
+  75              		.loc 1 608 0
+  76              		.cfi_startproc
+  77              		@ args = 0, pretend = 0, frame = 0
+  78              		@ frame_needed = 0, uses_anonymous_args = 0
+  79              	.LVL2:
+  80 0000 38B5     		push	{r3, r4, r5, lr}
+  81              	.LCFI1:
+  82              		.cfi_def_cfa_offset 16
+  83              		.cfi_offset 14, -4
+  84              		.cfi_offset 5, -8
+  85              		.cfi_offset 4, -12
+  86              		.cfi_offset 3, -16
+ 609:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 610:arch/stm32/mcu_periph/i2c_arch.c ****   uint8_t temp;
+ 611:arch/stm32/mcu_periph/i2c_arch.c ****   temp = p->trans_insert_idx + 1;
+  87              		.loc 1 611 0
+  88 0002 90F82030 		ldrb	r3, [r0, #32]	@ zero_extendqisi2
+ 612:arch/stm32/mcu_periph/i2c_arch.c ****   if (temp >= I2C_TRANSACTION_QUEUE_LEN) temp = 0;
+ 613:arch/stm32/mcu_periph/i2c_arch.c ****   if (temp == p->trans_extract_idx)
+  89              		.loc 1 613 0
+  90 0006 90F82120 		ldrb	r2, [r0, #33]	@ zero_extendqisi2
+ 611:arch/stm32/mcu_periph/i2c_arch.c ****   temp = p->trans_insert_idx + 1;
+  91              		.loc 1 611 0
+  92 000a 0133     		adds	r3, r3, #1
+  93 000c DBB2     		uxtb	r3, r3
+  94              	.LVL3:
+ 612:arch/stm32/mcu_periph/i2c_arch.c ****   if (temp >= I2C_TRANSACTION_QUEUE_LEN) temp = 0;
+  95              		.loc 1 612 0
+  96 000e 072B     		cmp	r3, #7
+  97 0010 88BF     		it	hi
+  98 0012 0023     		movhi	r3, #0
+  99              	.LVL4:
+ 100              		.loc 1 613 0
+ 101 0014 9A42     		cmp	r2, r3
+ 608:arch/stm32/mcu_periph/i2c_arch.c **** bool_t i2c_submit(struct i2c_periph* p, struct i2c_transaction* t) {
+ 102              		.loc 1 608 0
+ 103 0016 0446     		mov	r4, r0
+ 104 0018 4FF00000 		mov	r0, #0
+ 105              	.LVL5:
+ 106              		.loc 1 613 0
+ 107 001c 1CD0     		beq	.L5
+ 614:arch/stm32/mcu_periph/i2c_arch.c ****     return FALSE;                          // queue full
+ 615:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 616:arch/stm32/mcu_periph/i2c_arch.c ****   t->status = I2CTransPending;
+ 108              		.loc 1 616 0
+ 109 001e 81F82500 		strb	r0, [r1, #37]
+ 110              	.LBB8:
+ 111              	.LBB9:
+ 112              		.file 2 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+   1:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /******************************************************************************
+   2:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @file:    core_cm3.h
+   3:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @purpose: CMSIS Cortex-M3 Core Peripheral Access Layer Header File
+   4:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @version: V1.10
+   5:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @date:    24. Feb. 2009
+   6:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *----------------------------------------------------------------------------
+   7:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+   8:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Copyright (C) 2009 ARM Limited. All rights reserved.
+   9:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+  10:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * ARM Limited (ARM) is supplying this software for use with Cortex-Mx 
+  11:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * processor based microcontrollers.  This file can be freely distributed 
+  12:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * within development tools that are supporting such ARM based processors. 
+  13:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+  14:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * THIS SOFTWARE IS PROVIDED "AS IS".  NO WARRANTIES, WHETHER EXPRESS, IMPLIED
+  15:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * OR STATUTORY, INCLUDING, BUT NOT LIMITED TO, IMPLIED WARRANTIES OF
+  16:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE APPLY TO THIS SOFTWARE.
+  17:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * ARM SHALL NOT, IN ANY CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR
+  18:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
+  19:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+  20:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  ******************************************************************************/
+  21:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+  22:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+  23:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+  24:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+  25:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #ifndef __CM3_CORE_H__
+  26:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define __CM3_CORE_H__
+  27:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+  28:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+  29:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define __CM3_CMSIS_VERSION_MAIN  (0x01)                                                       /*!<
+  30:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define __CM3_CMSIS_VERSION_SUB   (0x10)                                                       /*!<
+  31:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define __CM3_CMSIS_VERSION       ((__CM3_CMSIS_VERSION_MAIN << 16) | __CM3_CMSIS_VERSION_SUB) /*!<
+  32:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+  33:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define __CORTEX_M                (0x03)                                                       /*!<
+  34:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+  35:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /**
+  36:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *  Lint configuration \n
+  37:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *  ----------------------- \n
+  38:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+  39:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *  The following Lint messages will be suppressed and not shown: \n
+  40:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *  \n
+  41:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *    --- Error 10: --- \n
+  42:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *    register uint32_t __regBasePri         __asm("basepri"); \n
+  43:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *    Error 10: Expecting ';' \n
+  44:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *     \n
+  45:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *    --- Error 530: --- \n
+  46:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *    return(__regBasePri); \n
+  47:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *    Warning 530: Symbol '__regBasePri' (line 264) not initialized \n
+  48:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *     \n
+  49:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *    --- Error 550: --- \n
+  50:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *      __regBasePri = (basePri & 0x1ff); \n
+  51:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *    } \n
+  52:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *    Warning 550: Symbol '__regBasePri' (line 271) not accessed \n
+  53:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *     \n
+  54:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *    --- Error 754: --- \n
+  55:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *    uint32_t RESERVED0[24]; \n
+  56:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *    Info 754: local structure member '<some, not used in the HAL>' (line 109, file ./cm3_core.h) 
+  57:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *     \n
+  58:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *    --- Error 750: --- \n
+  59:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *    #define __CM3_CORE_H__ \n
+  60:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *    Info 750: local macro '__CM3_CORE_H__' (line 43, file./cm3_core.h) not referenced \n
+  61:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *     \n
+  62:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *    --- Error 528: --- \n
+  63:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *    static __INLINE void NVIC_DisableIRQ(uint32_t IRQn) \n
+  64:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *    Warning 528: Symbol 'NVIC_DisableIRQ(unsigned int)' (line 419, file ./cm3_core.h) not referen
+  65:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *     \n
+  66:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *    --- Error 751: --- \n
+  67:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *    } InterruptType_Type; \n
+  68:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *    Info 751: local typedef 'InterruptType_Type' (line 170, file ./cm3_core.h) not referenced \n
+  69:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * \n
+  70:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * \n
+  71:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *    Note:  To re-enable a Message, insert a space before 'lint' * \n
+  72:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+  73:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  */
+  74:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+  75:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /*lint -save */
+  76:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /*lint -e10  */
+  77:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /*lint -e530 */
+  78:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /*lint -e550 */
+  79:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /*lint -e754 */
+  80:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /*lint -e750 */
+  81:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /*lint -e528 */
+  82:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /*lint -e751 */
+  83:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+  84:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+  85:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #include <stdint.h>                           /* Include standard types */
+  86:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+  87:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #if defined (__ICCARM__)
+  88:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   #include <intrinsics.h>                     /* IAR Intrinsics   */
+  89:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #endif
+  90:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+  91:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+  92:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #ifndef __NVIC_PRIO_BITS
+  93:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   #define __NVIC_PRIO_BITS    4               /*!< standard definition for NVIC Priority Bits */
+  94:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #endif
+  95:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+  96:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+  97:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+  98:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+  99:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /**
+ 100:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * IO definitions
+ 101:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 102:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * define access restrictions to peripheral registers
+ 103:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  */
+ 104:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 105:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define     __I     volatile const            /*!< defines 'read only' permissions      */
+ 106:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define     __O     volatile                  /*!< defines 'write only' permissions     */
+ 107:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define     __IO    volatile                  /*!< defines 'read / write' permissions   */
+ 108:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 109:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 110:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 111:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /*******************************************************************************
+ 112:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *                 Register Abstraction
+ 113:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  ******************************************************************************/
+ 114:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 115:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 116:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /* System Reset */
+ 117:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define NVIC_VECTRESET              0         /*!< Vector Reset Bit             */
+ 118:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define NVIC_SYSRESETREQ            2         /*!< System Reset Request         */
+ 119:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define NVIC_AIRCR_VECTKEY    (0x5FA << 16)   /*!< AIRCR Key for write access   */
+ 120:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define NVIC_AIRCR_ENDIANESS        15        /*!< Endianess                    */
+ 121:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 122:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /* Core Debug */
+ 123:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define CoreDebug_DEMCR_TRCENA (1 << 24)      /*!< DEMCR TRCENA enable          */
+ 124:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define ITM_TCR_ITMENA              1         /*!< ITM enable                   */
+ 125:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 126:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 127:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 128:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 129:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /* memory mapping struct for Nested Vectored Interrupt Controller (NVIC) */
+ 130:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** typedef struct
+ 131:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** {
+ 132:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t ISER[8];                      /*!< Interrupt Set Enable Register            */
+ 133:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****        uint32_t RESERVED0[24];
+ 134:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t ICER[8];                      /*!< Interrupt Clear Enable Register          */
+ 135:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****        uint32_t RSERVED1[24];
+ 136:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t ISPR[8];                      /*!< Interrupt Set Pending Register           */
+ 137:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****        uint32_t RESERVED2[24];
+ 138:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t ICPR[8];                      /*!< Interrupt Clear Pending Register         */
+ 139:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****        uint32_t RESERVED3[24];
+ 140:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t IABR[8];                      /*!< Interrupt Active bit Register            */
+ 141:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****        uint32_t RESERVED4[56];
+ 142:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint8_t  IP[240];                      /*!< Interrupt Priority Register, 8Bit wide   */
+ 143:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****        uint32_t RESERVED5[644];
+ 144:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __O  uint32_t STIR;                         /*!< Software Trigger Interrupt Register      */
+ 145:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** }  NVIC_Type;
+ 146:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 147:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 148:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /* memory mapping struct for System Control Block */
+ 149:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** typedef struct
+ 150:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** {
+ 151:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __I  uint32_t CPUID;                        /*!< CPU ID Base Register                            
+ 152:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t ICSR;                         /*!< Interrupt Control State Register                
+ 153:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t VTOR;                         /*!< Vector Table Offset Register                    
+ 154:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t AIRCR;                        /*!< Application Interrupt / Reset Control Register  
+ 155:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t SCR;                          /*!< System Control Register                         
+ 156:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t CCR;                          /*!< Configuration Control Register                  
+ 157:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint8_t  SHP[12];                      /*!< System Handlers Priority Registers (4-7, 8-11, 1
+ 158:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t SHCSR;                        /*!< System Handler Control and State Register       
+ 159:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t CFSR;                         /*!< Configurable Fault Status Register              
+ 160:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t HFSR;                         /*!< Hard Fault Status Register                      
+ 161:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t DFSR;                         /*!< Debug Fault Status Register                     
+ 162:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t MMFAR;                        /*!< Mem Manage Address Register                     
+ 163:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t BFAR;                         /*!< Bus Fault Address Register                      
+ 164:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t AFSR;                         /*!< Auxiliary Fault Status Register                 
+ 165:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __I  uint32_t PFR[2];                       /*!< Processor Feature Register                      
+ 166:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __I  uint32_t DFR;                          /*!< Debug Feature Register                          
+ 167:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __I  uint32_t ADR;                          /*!< Auxiliary Feature Register                      
+ 168:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __I  uint32_t MMFR[4];                      /*!< Memory Model Feature Register                   
+ 169:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __I  uint32_t ISAR[5];                      /*!< ISA Feature Register                            
+ 170:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** } SCB_Type;
+ 171:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 172:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 173:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /* memory mapping struct for SysTick */
+ 174:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** typedef struct
+ 175:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** {
+ 176:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t CTRL;                         /*!< SysTick Control and Status Register */
+ 177:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t LOAD;                         /*!< SysTick Reload Value Register       */
+ 178:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t VAL;                          /*!< SysTick Current Value Register      */
+ 179:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __I  uint32_t CALIB;                        /*!< SysTick Calibration Register        */
+ 180:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** } SysTick_Type;
+ 181:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 182:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 183:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /* memory mapping structur for ITM */
+ 184:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** typedef struct
+ 185:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** {
+ 186:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __O  union  
+ 187:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   {
+ 188:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****     __O  uint8_t    u8;                       /*!< ITM Stimulus Port 8-bit               */
+ 189:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****     __O  uint16_t   u16;                      /*!< ITM Stimulus Port 16-bit              */
+ 190:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****     __O  uint32_t   u32;                      /*!< ITM Stimulus Port 32-bit              */
+ 191:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   }  PORT [32];                               /*!< ITM Stimulus Port Registers           */
+ 192:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****        uint32_t RESERVED0[864];
+ 193:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t TER;                          /*!< ITM Trace Enable Register             */
+ 194:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****        uint32_t RESERVED1[15];
+ 195:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t TPR;                          /*!< ITM Trace Privilege Register          */
+ 196:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****        uint32_t RESERVED2[15];
+ 197:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t TCR;                          /*!< ITM Trace Control Register            */
+ 198:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****        uint32_t RESERVED3[29];
+ 199:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t IWR;                          /*!< ITM Integration Write Register        */
+ 200:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t IRR;                          /*!< ITM Integration Read Register         */
+ 201:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t IMCR;                         /*!< ITM Integration Mode Control Register */
+ 202:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****        uint32_t RESERVED4[43];
+ 203:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t LAR;                          /*!< ITM Lock Access Register              */
+ 204:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t LSR;                          /*!< ITM Lock Status Register              */
+ 205:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****        uint32_t RESERVED5[6];
+ 206:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __I  uint32_t PID4;                         /*!< ITM Product ID Registers              */
+ 207:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __I  uint32_t PID5;
+ 208:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __I  uint32_t PID6;
+ 209:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __I  uint32_t PID7;
+ 210:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __I  uint32_t PID0;
+ 211:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __I  uint32_t PID1;
+ 212:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __I  uint32_t PID2;
+ 213:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __I  uint32_t PID3;
+ 214:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __I  uint32_t CID0;
+ 215:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __I  uint32_t CID1;
+ 216:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __I  uint32_t CID2;
+ 217:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __I  uint32_t CID3;
+ 218:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** } ITM_Type;
+ 219:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 220:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 221:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /* memory mapped struct for Interrupt Type */
+ 222:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** typedef struct
+ 223:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** {
+ 224:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****        uint32_t RESERVED0;
+ 225:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __I  uint32_t ICTR;                         /*!< Interrupt Control Type Register  */
+ 226:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #if ((defined __CM3_REV) && (__CM3_REV >= 0x200))
+ 227:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t ACTLR;                        /*!< Auxiliary Control Register       */
+ 228:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #else
+ 229:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****        uint32_t RESERVED1;
+ 230:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #endif
+ 231:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** } InterruptType_Type;
+ 232:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 233:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 234:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /* Memory Protection Unit */
+ 235:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #if defined (__MPU_PRESENT) && (__MPU_PRESENT == 1)
+ 236:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** typedef struct
+ 237:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** {
+ 238:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __I  uint32_t TYPE;                         /*!< MPU Type Register                               
+ 239:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t CTRL;                         /*!< MPU Control Register                            
+ 240:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t RNR;                          /*!< MPU Region RNRber Register                      
+ 241:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t RBAR;                         /*!< MPU Region Base Address Register                
+ 242:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t RASR;                         /*!< MPU Region Attribute and Size Register          
+ 243:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t RBAR_A1;                      /*!< MPU Alias 1 Region Base Address Register        
+ 244:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t RASR_A1;                      /*!< MPU Alias 1 Region Attribute and Size Register  
+ 245:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t RBAR_A2;                      /*!< MPU Alias 2 Region Base Address Register        
+ 246:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t RASR_A2;                      /*!< MPU Alias 2 Region Attribute and Size Register  
+ 247:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t RBAR_A3;                      /*!< MPU Alias 3 Region Base Address Register        
+ 248:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t RASR_A3;                      /*!< MPU Alias 3 Region Attribute and Size Register  
+ 249:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** } MPU_Type;
+ 250:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #endif
+ 251:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 252:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 253:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /* Core Debug Register */
+ 254:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** typedef struct
+ 255:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** {
+ 256:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t DHCSR;                        /*!< Debug Halting Control and Status Register       
+ 257:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __O  uint32_t DCRSR;                        /*!< Debug Core Register Selector Register           
+ 258:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t DCRDR;                        /*!< Debug Core Register Data Register               
+ 259:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __IO uint32_t DEMCR;                        /*!< Debug Exception and Monitor Control Register    
+ 260:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** } CoreDebug_Type;
+ 261:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 262:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 263:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /* Memory mapping of Cortex-M3 Hardware */
+ 264:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define SCS_BASE            (0xE000E000)                              /*!< System Control Space Bas
+ 265:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define ITM_BASE            (0xE0000000)                              /*!< ITM Base Address        
+ 266:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define CoreDebug_BASE      (0xE000EDF0)                              /*!< Core Debug Base Address 
+ 267:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define SysTick_BASE        (SCS_BASE +  0x0010)                      /*!< SysTick Base Address    
+ 268:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define NVIC_BASE           (SCS_BASE +  0x0100)                      /*!< NVIC Base Address       
+ 269:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define SCB_BASE            (SCS_BASE +  0x0D00)                      /*!< System Control Block Bas
+ 270:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 271:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define InterruptType       ((InterruptType_Type *) SCS_BASE)         /*!< Interrupt Type Register 
+ 272:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define SCB                 ((SCB_Type *)           SCB_BASE)         /*!< SCB configuration struct
+ 273:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define SysTick             ((SysTick_Type *)       SysTick_BASE)     /*!< SysTick configuration st
+ 274:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define NVIC                ((NVIC_Type *)          NVIC_BASE)        /*!< NVIC configuration struc
+ 275:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define ITM                 ((ITM_Type *)           ITM_BASE)         /*!< ITM configuration struct
+ 276:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define CoreDebug           ((CoreDebug_Type *)     CoreDebug_BASE)   /*!< Core Debug configuration
+ 277:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 278:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #if defined (__MPU_PRESENT) && (__MPU_PRESENT == 1)
+ 279:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   #define MPU_BASE          (SCS_BASE +  0x0D90)                      /*!< Memory Protection Unit  
+ 280:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   #define MPU               ((MPU_Type*)            MPU_BASE)         /*!< Memory Protection Unit  
+ 281:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #endif
+ 282:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 283:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 284:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 285:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /*******************************************************************************
+ 286:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *                Hardware Abstraction Layer
+ 287:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  ******************************************************************************/
+ 288:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 289:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 290:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #if defined ( __CC_ARM   )
+ 291:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   #define __ASM            __asm                                      /*!< asm keyword for ARM Comp
+ 292:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   #define __INLINE         __inline                                   /*!< inline keyword for ARM C
+ 293:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 294:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #elif defined ( __ICCARM__ )
+ 295:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   #define __ASM           __asm                                       /*!< asm keyword for IAR Comp
+ 296:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   #define __INLINE        inline                                      /*!< inline keyword for IAR C
+ 297:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   #define __NOP           __no_operation                              /*!< no operation intrinsic i
+ 298:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 299:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #elif defined   (  __GNUC__  )
+ 300:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   #define __ASM            __asm                                        /*!< asm keyword for GNU Co
+ 301:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   #define __INLINE         inline                                     /*!< inline keyword for GNU C
+ 302:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 303:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #endif
+ 304:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 305:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 306:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /* ###################  Compiler specific Intrinsics  ########################### */
+ 307:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 308:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #if defined ( __CC_ARM   ) /*------------------RealView Compiler -----------------*/
+ 309:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /* ARM armcc specific functions */
+ 310:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 311:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define __enable_fault_irq                __enable_fiq
+ 312:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define __disable_fault_irq               __disable_fiq
+ 313:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 314:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define __NOP                             __nop
+ 315:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define __WFI                             __wfi
+ 316:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define __WFE                             __wfe
+ 317:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define __SEV                             __sev
+ 318:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define __ISB()                           __isb(0)
+ 319:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define __DSB()                           __dsb(0)
+ 320:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define __DMB()                           __dmb(0)
+ 321:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define __REV                             __rev
+ 322:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define __RBIT                            __rbit
+ 323:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define __LDREXB(ptr)                     ((unsigned char ) __ldrex(ptr))
+ 324:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define __LDREXH(ptr)                     ((unsigned short) __ldrex(ptr))
+ 325:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define __LDREXW(ptr)                     ((unsigned int  ) __ldrex(ptr))
+ 326:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define __STREXB(value, ptr)              __strex(value, ptr)
+ 327:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define __STREXH(value, ptr)              __strex(value, ptr)
+ 328:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define __STREXW(value, ptr)              __strex(value, ptr)
+ 329:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 330:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 331:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   /* intrinsic unsigned long long __ldrexd(volatile void *ptr) */
+ 332:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   /* intrinsic int __strexd(unsigned long long val, volatile void *ptr) */
+ 333:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   /* intrinsic void __enable_irq();     */
+ 334:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   /* intrinsic void __disable_irq();    */
+ 335:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 336:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 337:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /**
+ 338:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @brief  Return the Process Stack Pointer
+ 339:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 340:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  none
+ 341:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @return uint32_t ProcessStackPointer
+ 342:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 343:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Return the actual process stack pointer
+ 344:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  */
+ 345:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** extern uint32_t __get_PSP(void);
+ 346:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 347:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /**
+ 348:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @brief  Set the Process Stack Pointer
+ 349:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 350:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  uint32_t Process Stack Pointer
+ 351:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @return none
+ 352:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 353:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Assign the value ProcessStackPointer to the MSP 
+ 354:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * (process stack pointer) Cortex processor register
+ 355:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  */
+ 356:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** extern void __set_PSP(uint32_t topOfProcStack);
+ 357:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 358:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /**
+ 359:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @brief  Return the Main Stack Pointer
+ 360:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 361:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  none
+ 362:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @return uint32_t Main Stack Pointer
+ 363:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 364:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Return the current value of the MSP (main stack pointer)
+ 365:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Cortex processor register
+ 366:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  */
+ 367:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** extern uint32_t __get_MSP(void);
+ 368:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 369:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /**
+ 370:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @brief  Set the Main Stack Pointer
+ 371:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 372:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  uint32_t Main Stack Pointer
+ 373:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @return none
+ 374:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 375:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Assign the value mainStackPointer to the MSP 
+ 376:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * (main stack pointer) Cortex processor register
+ 377:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  */
+ 378:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** extern void __set_MSP(uint32_t topOfMainStack);
+ 379:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 380:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /**
+ 381:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @brief  Reverse byte order in unsigned short value
+ 382:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 383:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  uint16_t value to reverse
+ 384:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @return uint32_t reversed value
+ 385:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 386:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Reverse byte order in unsigned short value
+ 387:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  */
+ 388:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** extern uint32_t __REV16(uint16_t value);
+ 389:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 390:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /*
+ 391:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @brief  Reverse byte order in signed short value with sign extension to integer
+ 392:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 393:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  int16_t value to reverse
+ 394:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @return int32_t reversed value
+ 395:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 396:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Reverse byte order in signed short value with sign extension to integer
+ 397:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  */
+ 398:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** extern int32_t __REVSH(int16_t value);
+ 399:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 400:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 401:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #if (__ARMCC_VERSION < 400000)
+ 402:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 403:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /**
+ 404:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @brief  Remove the exclusive lock created by ldrex
+ 405:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 406:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  none
+ 407:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @return none
+ 408:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 409:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Removes the exclusive lock which is created by ldrex.
+ 410:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  */
+ 411:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** extern void __CLREX(void);
+ 412:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 413:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /**
+ 414:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @brief  Return the Base Priority value
+ 415:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 416:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  none
+ 417:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @return uint32_t BasePriority
+ 418:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 419:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Return the content of the base priority register
+ 420:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  */
+ 421:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** extern uint32_t __get_BASEPRI(void);
+ 422:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 423:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /**
+ 424:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @brief  Set the Base Priority value
+ 425:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 426:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  uint32_t BasePriority
+ 427:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @return none
+ 428:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 429:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Set the base priority register
+ 430:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  */
+ 431:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** extern void __set_BASEPRI(uint32_t basePri);
+ 432:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 433:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /**
+ 434:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @brief  Return the Priority Mask value
+ 435:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 436:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  none
+ 437:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @return uint32_t PriMask
+ 438:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 439:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Return the state of the priority mask bit from the priority mask
+ 440:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * register
+ 441:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  */
+ 442:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** extern uint32_t __get_PRIMASK(void);
+ 443:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 444:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /**
+ 445:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @brief  Set the Priority Mask value
+ 446:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 447:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  uint32_t PriMask
+ 448:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @return none
+ 449:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 450:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Set the priority mask bit in the priority mask register
+ 451:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  */
+ 452:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** extern void __set_PRIMASK(uint32_t priMask);
+ 453:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 454:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /**
+ 455:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @brief  Return the Fault Mask value
+ 456:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 457:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  none
+ 458:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @return uint32_t FaultMask
+ 459:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 460:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Return the content of the fault mask register
+ 461:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  */
+ 462:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** extern uint32_t __get_FAULTMASK(void);
+ 463:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 464:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /**
+ 465:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @brief  Set the Fault Mask value
+ 466:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 467:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  uint32_t faultMask value
+ 468:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @return none
+ 469:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 470:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Set the fault mask register
+ 471:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  */
+ 472:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** extern void __set_FAULTMASK(uint32_t faultMask);
+ 473:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 474:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /**
+ 475:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @brief  Return the Control Register value
+ 476:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * 
+ 477:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  none
+ 478:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @return uint32_t Control value
+ 479:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 480:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Return the content of the control register
+ 481:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  */
+ 482:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** extern uint32_t __get_CONTROL(void);
+ 483:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 484:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /**
+ 485:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @brief  Set the Control Register value
+ 486:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 487:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  uint32_t Control value
+ 488:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @return none
+ 489:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 490:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Set the control register
+ 491:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  */
+ 492:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** extern void __set_CONTROL(uint32_t control);
+ 493:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 494:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #else  /* (__ARMCC_VERSION >= 400000)  */
+ 495:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 496:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 497:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /**
+ 498:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @brief  Remove the exclusive lock created by ldrex
+ 499:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 500:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  none
+ 501:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @return none
+ 502:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 503:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Removes the exclusive lock which is created by ldrex.
+ 504:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  */
+ 505:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define __CLREX                           __clrex
+ 506:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 507:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /**
+ 508:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @brief  Return the Base Priority value
+ 509:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 510:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  none
+ 511:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @return uint32_t BasePriority
+ 512:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 513:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Return the content of the base priority register
+ 514:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  */
+ 515:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** static __INLINE uint32_t  __get_BASEPRI(void)
+ 516:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** {
+ 517:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   register uint32_t __regBasePri         __ASM("basepri");
+ 518:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   return(__regBasePri);
+ 519:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** }
+ 520:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 521:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /**
+ 522:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @brief  Set the Base Priority value
+ 523:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 524:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  uint32_t BasePriority
+ 525:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @return none
+ 526:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 527:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Set the base priority register
+ 528:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  */
+ 529:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** static __INLINE void __set_BASEPRI(uint32_t basePri)
+ 530:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** {
+ 531:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   register uint32_t __regBasePri         __ASM("basepri");
+ 532:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __regBasePri = (basePri & 0x1ff);
+ 533:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** }
+ 534:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 535:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /**
+ 536:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @brief  Return the Priority Mask value
+ 537:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 538:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  none
+ 539:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @return uint32_t PriMask
+ 540:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 541:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Return the state of the priority mask bit from the priority mask
+ 542:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * register
+ 543:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  */
+ 544:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** static __INLINE uint32_t __get_PRIMASK(void)
+ 545:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** {
+ 546:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   register uint32_t __regPriMask         __ASM("primask");
+ 547:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   return(__regPriMask);
+ 548:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** }
+ 549:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 550:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /**
+ 551:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @brief  Set the Priority Mask value
+ 552:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 553:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  uint32_t PriMask
+ 554:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @return none
+ 555:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 556:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Set the priority mask bit in the priority mask register
+ 557:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  */
+ 558:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** static __INLINE void __set_PRIMASK(uint32_t priMask)
+ 559:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** {
+ 560:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   register uint32_t __regPriMask         __ASM("primask");
+ 561:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __regPriMask = (priMask);
+ 562:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** }
+ 563:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 564:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /**
+ 565:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @brief  Return the Fault Mask value
+ 566:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 567:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  none
+ 568:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @return uint32_t FaultMask
+ 569:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 570:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Return the content of the fault mask register
+ 571:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  */
+ 572:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** static __INLINE uint32_t __get_FAULTMASK(void)
+ 573:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** {
+ 574:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   register uint32_t __regFaultMask       __ASM("faultmask");
+ 575:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   return(__regFaultMask);
+ 576:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** }
+ 577:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 578:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /**
+ 579:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @brief  Set the Fault Mask value
+ 580:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 581:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  uint32_t faultMask value
+ 582:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @return none
+ 583:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 584:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Set the fault mask register
+ 585:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  */
+ 586:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** static __INLINE void __set_FAULTMASK(uint32_t faultMask)
+ 587:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** {
+ 588:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   register uint32_t __regFaultMask       __ASM("faultmask");
+ 589:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __regFaultMask = (faultMask & 1);
+ 590:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** }
+ 591:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 592:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /**
+ 593:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @brief  Return the Control Register value
+ 594:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * 
+ 595:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  none
+ 596:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @return uint32_t Control value
+ 597:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 598:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Return the content of the control register
+ 599:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  */
+ 600:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** static __INLINE uint32_t __get_CONTROL(void)
+ 601:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** {
+ 602:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   register uint32_t __regControl         __ASM("control");
+ 603:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   return(__regControl);
+ 604:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** }
+ 605:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 606:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /**
+ 607:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @brief  Set the Control Register value
+ 608:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 609:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  uint32_t Control value
+ 610:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @return none
+ 611:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 612:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Set the control register
+ 613:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  */
+ 614:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** static __INLINE void __set_CONTROL(uint32_t control)
+ 615:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** {
+ 616:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   register uint32_t __regControl         __ASM("control");
+ 617:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****   __regControl = control;
+ 618:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** }
+ 619:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 620:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #endif /* __ARMCC_VERSION  */ 
+ 621:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 622:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 623:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 624:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #elif (defined (__ICCARM__)) /*------------------ ICC Compiler -------------------*/
+ 625:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /* IAR iccarm specific functions */
+ 626:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 627:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define __enable_irq                              __enable_interrupt        /*!< global Interrupt e
+ 628:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #define __disable_irq                             __disable_interrupt       /*!< global Interrupt d
+ 629:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 630:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** static __INLINE void __enable_fault_irq()         { __ASM ("cpsie f"); }
+ 631:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** static __INLINE void __disable_fault_irq()        { __ASM ("cpsid f"); }
+ 632:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 633:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** static __INLINE  void __WFI()                     { __ASM ("wfi"); }
+ 634:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** static __INLINE  void __WFE()                     { __ASM ("wfe"); }
+ 635:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** static __INLINE  void __SEV()                     { __ASM ("sev"); }
+ 636:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** static __INLINE  void __CLREX()                   { __ASM ("clrex"); }
+ 637:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 638:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /**
+ 639:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @brief  Return the Process Stack Pointer
+ 640:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 641:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  none
+ 642:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @return uint32_t ProcessStackPointer
+ 643:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 644:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Return the actual process stack pointer
+ 645:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  */
+ 646:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** extern uint32_t __get_PSP(void);
+ 647:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 648:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /**
+ 649:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @brief  Set the Process Stack Pointer
+ 650:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 651:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  uint32_t Process Stack Pointer
+ 652:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @return none
+ 653:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 654:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Assign the value ProcessStackPointer to the MSP 
+ 655:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * (process stack pointer) Cortex processor register
+ 656:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  */
+ 657:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** extern void __set_PSP(uint32_t topOfProcStack);
+ 658:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 659:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /**
+ 660:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @brief  Return the Main Stack Pointer
+ 661:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 662:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  none
+ 663:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @return uint32_t Main Stack Pointer
+ 664:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 665:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Return the current value of the MSP (main stack pointer)
+ 666:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Cortex processor register
+ 667:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  */
+ 668:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** extern uint32_t __get_MSP(void);
+ 669:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 670:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /**
+ 671:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @brief  Set the Main Stack Pointer
+ 672:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 673:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  uint32_t Main Stack Pointer
+ 674:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @return none
+ 675:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 676:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Assign the value mainStackPointer to the MSP 
+ 677:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * (main stack pointer) Cortex processor register
+ 678:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  */
+ 679:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** extern void __set_MSP(uint32_t topOfMainStack);
+ 680:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 681:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /**
+ 682:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @brief  Reverse byte order in unsigned short value
+ 683:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 684:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  uint16_t value to reverse
+ 685:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @return uint32_t reversed value
+ 686:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 687:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Reverse byte order in unsigned short value
+ 688:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  */
+ 689:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** extern uint32_t __REV16(uint16_t value);
+ 690:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 691:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /**
+ 692:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @brief  Reverse bit order of value
+ 693:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 694:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  uint32_t value to reverse
+ 695:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @return uint32_t reversed value
+ 696:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 697:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Reverse bit order of value
+ 698:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  */
+ 699:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** extern uint32_t __RBIT(uint32_t value);
+ 700:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 701:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /**
+ 702:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @brief  LDR Exclusive
+ 703:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 704:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  uint8_t* address
+ 705:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @return uint8_t value of (*address)
+ 706:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 707:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Exclusive LDR command
+ 708:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  */
+ 709:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** extern uint8_t __LDREXB(uint8_t *addr);
+ 710:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 711:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /**
+ 712:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @brief  LDR Exclusive
+ 713:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 714:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  uint16_t* address
+ 715:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @return uint16_t value of (*address)
+ 716:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 717:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Exclusive LDR command
+ 718:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  */
+ 719:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** extern uint16_t __LDREXH(uint16_t *addr);
+ 720:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 721:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /**
+ 722:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @brief  LDR Exclusive
+ 723:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 724:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  uint32_t* address
+ 725:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @return uint32_t value of (*address)
+ 726:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 727:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Exclusive LDR command
+ 728:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  */
+ 729:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** extern uint32_t __LDREXW(uint32_t *addr);
+ 730:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 731:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /**
+ 732:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @brief  STR Exclusive
+ 733:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 734:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  uint8_t *address
+ 735:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  uint8_t value to store
+ 736:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @return uint32_t successful / failed
+ 737:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 738:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Exclusive STR command
+ 739:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  */
+ 740:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** extern uint32_t __STREXB(uint8_t value, uint8_t *addr);
+ 741:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 742:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /**
+ 743:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @brief  STR Exclusive
+ 744:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 745:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  uint16_t *address
+ 746:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  uint16_t value to store
+ 747:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @return uint32_t successful / failed
+ 748:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 749:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Exclusive STR command
+ 750:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  */
+ 751:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** extern uint32_t __STREXH(uint16_t value, uint16_t *addr);
+ 752:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 753:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /**
+ 754:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @brief  STR Exclusive
+ 755:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 756:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  uint32_t *address
+ 757:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @param  uint32_t value to store
+ 758:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * @return uint32_t successful / failed
+ 759:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  *
+ 760:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  * Exclusive STR command
+ 761:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h ****  */
+ 762:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** extern uint32_t __STREXW(uint32_t value, uint32_t *addr);
+ 763:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 764:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 765:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /* intrinsic void __set_PRIMASK();                                    */
+ 766:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /* intrinsic void __get_PRIMASK();                                    */
+ 767:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /* intrinsic void __set_FAULTMASK();                                  */
+ 768:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /* intrinsic void __get_FAULTMASK();                                  */
+ 769:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /* intrinsic uint32_t __REV(uint32_t value);                          */
+ 770:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /* intrinsic uint32_t __REVSH(uint32_t value);                        */
+ 771:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /* intrinsic unsigned long __STREX(unsigned long, unsigned long);     */
+ 772:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /* intrinsic unsigned long __LDREX(unsigned long *);                  */
+ 773:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 774:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 775:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 776:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** #elif (defined (__GNUC__)) /*------------------ GNU Compiler ---------------------*/
+ 777:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** /* GNU gcc specific functions */
+ 778:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** 
+ 779:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** static __INLINE void __NOP()                      { __ASM volatile ("nop"); }
+ 780:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** static __INLINE void __enable_irq()               { __ASM volatile ("cpsie i"); }
+ 781:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** static __INLINE void __disable_irq()              { __ASM volatile ("cpsid i"); }
+ 113              		.loc 2 781 0
+ 114              	@ 781 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cm
+ 115 0022 72B6     		cpsid i
+ 116              	@ 0 "" 2
+ 117              		.thumb
+ 118              	.LBE9:
+ 119              	.LBE8:
+ 617:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 618:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 619:arch/stm32/mcu_periph/i2c_arch.c ****   __disable_irq();
+ 620:arch/stm32/mcu_periph/i2c_arch.c ****   /* put transacation in queue */
+ 621:arch/stm32/mcu_periph/i2c_arch.c ****   p->trans[p->trans_insert_idx] = t;
+ 120              		.loc 1 621 0
+ 121 0024 94F82020 		ldrb	r2, [r4, #32]	@ zero_extendqisi2
+ 622:arch/stm32/mcu_periph/i2c_arch.c ****   p->trans_insert_idx = temp;
+ 122              		.loc 1 622 0
+ 123 0028 84F82030 		strb	r3, [r4, #32]
+ 623:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 624:arch/stm32/mcu_periph/i2c_arch.c ****   /* if peripheral is idle, start the transaction */
+ 625:arch/stm32/mcu_periph/i2c_arch.c ****   if (p->status == I2CIdle)
+ 124              		.loc 1 625 0
+ 125 002c 94F82230 		ldrb	r3, [r4, #34]	@ zero_extendqisi2
+ 126              	.LVL6:
+ 621:arch/stm32/mcu_periph/i2c_arch.c ****   p->trans[p->trans_insert_idx] = t;
+ 127              		.loc 1 621 0
+ 128 0030 44F82210 		str	r1, [r4, r2, lsl #2]
+ 129              		.loc 1 625 0
+ 130 0034 73B9     		cbnz	r3, .L6
+ 131              	.LVL7:
+ 132              	.LBB10:
+ 133              	.LBB11:
+ 626:arch/stm32/mcu_periph/i2c_arch.c ****     start_transaction(p);
+ 627:arch/stm32/mcu_periph/i2c_arch.c ****   /* else it will be started by the interrupt handler when the previous transactions completes */
+ 628:arch/stm32/mcu_periph/i2c_arch.c ****   __enable_irq();
+ 629:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 630:arch/stm32/mcu_periph/i2c_arch.c ****   return TRUE;
+ 631:arch/stm32/mcu_periph/i2c_arch.c **** }
+ 632:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 633:arch/stm32/mcu_periph/i2c_arch.c **** 
+ 634:arch/stm32/mcu_periph/i2c_arch.c **** static void start_transaction(struct i2c_periph* p) {
+ 635:arch/stm32/mcu_periph/i2c_arch.c ****   p->idx_buf = 0;
+ 636:arch/stm32/mcu_periph/i2c_arch.c ****   p->status = I2CStartRequested;
+ 134              		.loc 1 636 0
+ 135 0036 0125     		movs	r5, #1
+ 635:arch/stm32/mcu_periph/i2c_arch.c ****   p->idx_buf = 0;
+ 136              		.loc 1 635 0
+ 137 0038 84F82330 		strb	r3, [r4, #35]
+ 637:arch/stm32/mcu_periph/i2c_arch.c ****   I2C_ITConfig(p->reg_addr, I2C_IT_EVT, ENABLE);
+ 138              		.loc 1 637 0
+ 139 003c 606A     		ldr	r0, [r4, #36]
+ 140 003e 4FF40071 		mov	r1, #512
+ 141              	.LVL8:
+ 636:arch/stm32/mcu_periph/i2c_arch.c ****   p->status = I2CStartRequested;
+ 142              		.loc 1 636 0
+ 143 0042 84F82250 		strb	r5, [r4, #34]
+ 144              		.loc 1 637 0
+ 145 0046 2A46     		mov	r2, r5
+ 146              	.LVL9:
+ 147 0048 FFF7FEFF 		bl	I2C_ITConfig
+ 638:arch/stm32/mcu_periph/i2c_arch.c ****   I2C_GenerateSTART(p->reg_addr, ENABLE);
+ 148              		.loc 1 638 0
+ 149 004c 606A     		ldr	r0, [r4, #36]
+ 150 004e 2946     		mov	r1, r5
+ 151 0050 FFF7FEFF 		bl	I2C_GenerateSTART
+ 152              	.LVL10:
+ 153              	.L6:
+ 154              	.LBE11:
+ 155              	.LBE10:
+ 156              	.LBB12:
+ 157              	.LBB13:
+ 780:/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cmsis/core_cm3.h **** static __INLINE void __enable_irq()               { __ASM volatile ("cpsie i"); }
+ 158              		.loc 2 780 0
+ 159              	@ 780 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include/cm
+ 160 0054 62B6     		cpsie i
+ 161              	@ 0 "" 2
+ 162              		.thumb
+ 163              	.LBE13:
+ 164              	.LBE12:
+ 630:arch/stm32/mcu_periph/i2c_arch.c ****   return TRUE;
+ 165              		.loc 1 630 0
+ 166 0056 0120     		movs	r0, #1
+ 167              	.L5:
+ 631:arch/stm32/mcu_periph/i2c_arch.c **** }
+ 168              		.loc 1 631 0
+ 169 0058 38BD     		pop	{r3, r4, r5, pc}
+ 170              		.cfi_endproc
+ 171              	.LFE42:
+ 173              		.text
+ 174              	.Letext0:
+ 175              		.file 3 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+ 176              		.file 4 "/home/mav/paparazzi/sw/include/std.h"
+ 177              		.file 5 "./mcu_periph/i2c.h"
+ 178              		.file 6 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+DEFINED SYMBOLS
+                            *ABS*:00000000 i2c_arch.c
+     /tmp/ccAPTnTu.s:18     .text.i2c_event:00000000 $t
+     /tmp/ccAPTnTu.s:23     .text.i2c_event:00000000 i2c_event
+     /tmp/ccAPTnTu.s:37     .text.i2c_idle:00000000 $t
+     /tmp/ccAPTnTu.s:42     .text.i2c_idle:00000000 i2c_idle
+     /tmp/ccAPTnTu.s:68     .text.i2c_submit:00000000 $t
+     /tmp/ccAPTnTu.s:73     .text.i2c_submit:00000000 i2c_submit
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+I2C_GetFlagStatus
+I2C_ITConfig
+I2C_GenerateSTART

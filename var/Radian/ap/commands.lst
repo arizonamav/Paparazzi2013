@@ -1,0 +1,55 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 18, 4
+  12              		.thumb
+  13              		.file	"commands.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.global	commands_failsafe
+  18              		.global	commands
+  19              		.global	command_pitch_trim
+  20              		.global	command_roll_trim
+  21              		.section	.bss.commands,"aw",%nobits
+  22              		.align	1
+  25              	commands:
+  26 0000 00000000 		.space	6
+  26      0000
+  27              		.section	.bss.command_roll_trim,"aw",%nobits
+  28              		.align	1
+  31              	command_roll_trim:
+  32 0000 0000     		.space	2
+  33              		.section	.rodata.commands_failsafe,"a",%progbits
+  34              		.align	1
+  37              	commands_failsafe:
+  38 0000 00000000 		.space	6
+  38      0000
+  39              		.section	.bss.command_pitch_trim,"aw",%nobits
+  40              		.align	1
+  43              	command_pitch_trim:
+  44 0000 0000     		.space	2
+  45              		.text
+  46              	.Letext0:
+  47              		.file 1 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+  48              		.file 2 "paparazzi.h"
+  49              		.file 3 "commands.c"
+DEFINED SYMBOLS
+                            *ABS*:00000000 commands.c
+     /tmp/cch40N5Z.s:37     .rodata.commands_failsafe:00000000 commands_failsafe
+     /tmp/cch40N5Z.s:25     .bss.commands:00000000 commands
+     /tmp/cch40N5Z.s:43     .bss.command_pitch_trim:00000000 command_pitch_trim
+     /tmp/cch40N5Z.s:31     .bss.command_roll_trim:00000000 command_roll_trim
+     /tmp/cch40N5Z.s:22     .bss.commands:00000000 $d
+     /tmp/cch40N5Z.s:28     .bss.command_roll_trim:00000000 $d
+     /tmp/cch40N5Z.s:34     .rodata.commands_failsafe:00000000 $d
+     /tmp/cch40N5Z.s:40     .bss.command_pitch_trim:00000000 $d
+
+NO UNDEFINED SYMBOLS

@@ -1,0 +1,94 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 18, 4
+  12              		.thumb
+  13              		.file	"i2c.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.i2c_init,"ax",%progbits
+  18              		.align	1
+  19              		.global	i2c_init
+  20              		.thumb
+  21              		.thumb_func
+  23              	i2c_init:
+  24              	.LFB24:
+  25              		.file 1 "mcu_periph/i2c.c"
+   1:mcu_periph/i2c.c **** #include "mcu_periph/i2c.h"
+   2:mcu_periph/i2c.c **** 
+   3:mcu_periph/i2c.c **** #ifdef USE_I2C0
+   4:mcu_periph/i2c.c **** 
+   5:mcu_periph/i2c.c **** struct i2c_periph i2c0;
+   6:mcu_periph/i2c.c **** 
+   7:mcu_periph/i2c.c **** void i2c0_init(void) {
+   8:mcu_periph/i2c.c ****   i2c_init(&i2c0);
+   9:mcu_periph/i2c.c ****   i2c0_hw_init();
+  10:mcu_periph/i2c.c **** }
+  11:mcu_periph/i2c.c **** 
+  12:mcu_periph/i2c.c **** #endif /* USE_I2C0 */
+  13:mcu_periph/i2c.c **** 
+  14:mcu_periph/i2c.c **** 
+  15:mcu_periph/i2c.c **** #ifdef USE_I2C1
+  16:mcu_periph/i2c.c **** 
+  17:mcu_periph/i2c.c **** struct i2c_periph i2c1;
+  18:mcu_periph/i2c.c **** 
+  19:mcu_periph/i2c.c **** void i2c1_init(void) {
+  20:mcu_periph/i2c.c ****   i2c_init(&i2c1);
+  21:mcu_periph/i2c.c ****   i2c1_hw_init();
+  22:mcu_periph/i2c.c **** }
+  23:mcu_periph/i2c.c **** 
+  24:mcu_periph/i2c.c **** #endif /* USE_I2C1 */
+  25:mcu_periph/i2c.c **** 
+  26:mcu_periph/i2c.c **** 
+  27:mcu_periph/i2c.c **** #ifdef USE_I2C2
+  28:mcu_periph/i2c.c **** 
+  29:mcu_periph/i2c.c **** struct i2c_periph i2c2;
+  30:mcu_periph/i2c.c **** 
+  31:mcu_periph/i2c.c **** void i2c2_init(void) {
+  32:mcu_periph/i2c.c ****   i2c_init(&i2c2);
+  33:mcu_periph/i2c.c ****   i2c2_hw_init();
+  34:mcu_periph/i2c.c **** }
+  35:mcu_periph/i2c.c **** 
+  36:mcu_periph/i2c.c **** #endif /* USE_I2C2 */
+  37:mcu_periph/i2c.c **** 
+  38:mcu_periph/i2c.c **** void   i2c_init(struct i2c_periph* p) {
+  26              		.loc 1 38 0
+  27              		.cfi_startproc
+  28              		@ args = 0, pretend = 0, frame = 0
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  30              		@ link register save eliminated.
+  31              	.LVL0:
+  39:mcu_periph/i2c.c ****   p->trans_insert_idx = 0;
+  32              		.loc 1 39 0
+  33 0000 0023     		movs	r3, #0
+  34 0002 80F82030 		strb	r3, [r0, #32]
+  40:mcu_periph/i2c.c ****   p->trans_extract_idx = 0;
+  35              		.loc 1 40 0
+  36 0006 80F82130 		strb	r3, [r0, #33]
+  41:mcu_periph/i2c.c ****   p->status = I2CIdle;
+  37              		.loc 1 41 0
+  38 000a 80F82230 		strb	r3, [r0, #34]
+  42:mcu_periph/i2c.c **** }
+  39              		.loc 1 42 0
+  40 000e 7047     		bx	lr
+  41              		.cfi_endproc
+  42              	.LFE24:
+  44              		.text
+  45              	.Letext0:
+  46              		.file 2 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+  47              		.file 3 "./mcu_periph/i2c.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 i2c.c
+     /tmp/ccawlPTp.s:18     .text.i2c_init:00000000 $t
+     /tmp/ccawlPTp.s:23     .text.i2c_init:00000000 i2c_init
+                     .debug_frame:00000010 $d
+
+NO UNDEFINED SYMBOLS

@@ -1,0 +1,11 @@
+<!-- This file has been generated from /home/mav/paparazzi/conf/airframes/microjet_example.xml -->
+<!-- Please DO NOT EDIT -->
+
+<settings>
+ <dl_settings>
+   <dl_settings name="Modules">
+      <dl_setting min="2" max="3" step="1" var="openlog_periodic_2Hz_openlog_status" shortname="periodic_2Hz_openlog" values="START|STOP"/>
+      <dl_setting min="2" max="3" step="1" var="digital_cam_servo_servo_cam_ctrl_periodic_status" shortname="servo_cam_ctrl_periodic" values="START|STOP"/>
+   </dl_settings>
+ </dl_settings>
+</settings>

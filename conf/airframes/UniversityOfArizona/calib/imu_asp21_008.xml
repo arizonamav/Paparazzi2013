@@ -1,0 +1,28 @@
+<airframe>
+	<section name="IMU" prefix="IMU_">
+		<!-- Gyro Calibration info taken from https://github.com/psinha/paparazzi/blob/toytronics/conf/airframes/esden/calib/asp21-default.xml -->
+		<!-- Calibration Neutral extrapolated from datasheet-->
+		<define name="GYRO_P_NEUTRAL" value="0"/>
+		<define name="GYRO_Q_NEUTRAL" value="0"/>
+		<define name="GYRO_R_NEUTRAL" value="-7"/>
+
+		<!-- SENS = 16.4 LSB/(deg/sec) * 57.6 deg/rad = 939.650 LSB/rad/sec / 12bit FRAC: 4096 / 939.65 -->
+		<define name="GYRO_P_SENS" value="4.359" integer="16"/>
+		<define name="GYRO_Q_SENS" value="4.359" integer="16"/>
+		<define name="GYRO_R_SENS" value="4.359" integer="16"/>
+		
+		<define name="ACCEL_X_NEUTRAL" value="65"/>
+		<define name="ACCEL_Y_NEUTRAL" value="20"/>
+		<define name="ACCEL_Z_NEUTRAL" value="-79"/>
+		<define name="ACCEL_X_SENS" value="4.91952821789" integer="16"/>
+		<define name="ACCEL_Y_SENS" value="4.91495258089" integer="16"/>
+		<define name="ACCEL_Z_SENS" value="4.86349876552" integer="16"/>
+
+		<define name="MAG_X_NEUTRAL" value="97"/>
+		<define name="MAG_Y_NEUTRAL" value="85"/>
+		<define name="MAG_Z_NEUTRAL" value="-271"/>
+		<define name="MAG_X_SENS" value="5.01574100906" integer="16"/>
+		<define name="MAG_Y_SENS" value="5.92770654371" integer="16"/>
+		<define name="MAG_Z_SENS" value="5.89336515457" integer="16"/>
+	</section>
+</airframe>

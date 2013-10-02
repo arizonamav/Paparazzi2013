@@ -1,0 +1,50 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 18, 4
+  12              		.thumb
+  13              		.file	"pprz_transport.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.global	pprz_tp
+  18              		.global	ck_b
+  19              		.global	ck_a
+  20              		.section	.bss.pprz_tp,"aw",%nobits
+  23              	pprz_tp:
+  24 0000 00000000 		.space	264
+  24      00000000 
+  24      00000000 
+  24      00000000 
+  24      00000000 
+  25              		.section	.bss.ck_a,"aw",%nobits
+  28              	ck_a:
+  29 0000 00       		.space	1
+  30              		.section	.bss.ck_b,"aw",%nobits
+  33              	ck_b:
+  34 0000 00       		.space	1
+  35              		.text
+  36              	.Letext0:
+  37              		.file 1 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+  38              		.file 2 "/home/mav/paparazzi/sw/include/std.h"
+  39              		.file 3 "./subsystems/datalink/transport.h"
+  40              		.file 4 "./subsystems/datalink/pprz_transport.h"
+  41              		.file 5 "./subsystems/datalink/datalink.h"
+  42              		.file 6 "subsystems/datalink/pprz_transport.c"
+DEFINED SYMBOLS
+                            *ABS*:00000000 pprz_transport.c
+     /tmp/cc4sLMAl.s:23     .bss.pprz_tp:00000000 pprz_tp
+     /tmp/cc4sLMAl.s:33     .bss.ck_b:00000000 ck_b
+     /tmp/cc4sLMAl.s:28     .bss.ck_a:00000000 ck_a
+     /tmp/cc4sLMAl.s:24     .bss.pprz_tp:00000000 $d
+     /tmp/cc4sLMAl.s:29     .bss.ck_a:00000000 $d
+     /tmp/cc4sLMAl.s:34     .bss.ck_b:00000000 $d
+
+NO UNDEFINED SYMBOLS

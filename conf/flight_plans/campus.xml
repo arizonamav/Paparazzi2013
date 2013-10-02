@@ -1,0 +1,32 @@
+<!DOCTYPE flight_plan SYSTEM "flight_plan.dtd">
+
+<flight_plan alt="730" ground_alt="728" lat0="32.231908" lon0="-110.950021" max_dist_from_home="1000" name="Campus Tour" security_height="0">
+  <waypoints>
+    <waypoint name="HOME" x="0" y="0" height="10"/>
+    <waypoint name="AME" lat="32.236657" lon="-110.951966" height="60"/>
+    <waypoint name="CE" lat="32.234066" lon="-110.953133" height="40"/>
+    <waypoint name="ECE" lat="32.235255" lon="-110.953235" height="70"/>
+    <waypoint name="ENGR" lat="32.232757" lon="-110.953833" height="20"/>
+    <waypoint name="GS" lat="32.229832" lon="-110.954863" height="100"/>
+    <waypoint name="HARSH" lat="32.233423" lon="-110.953556" height="30"/>
+    <waypoint name="OLD_MAIN" lat="32.231864" lon="-110.953383" height="30"/>
+    <waypoint name="KOFFLER" lat="32.231337" lon="-110.951394" height="80"/>
+    <waypoint name="OSE" lat="32.231488" lon="-110.947613" height="70"/>
+  </waypoints>
+  <blocks>
+    <block name="corners">
+      <while cond="TRUE">
+        <go wp="AME"/>
+        <go wp="ECE"/>
+	<go wp="CE"/>
+	<go wp="HARSH"/>
+        <go wp="ENGR"/>
+	<go wp="OLD_MAIN"/>
+	<go wp="GS"/>
+	<go wp="KOFFLER"/>
+	<go wp="OSE"/>
+	<go wp="HOME"/>
+      </while>
+    </block>
+  </blocks>
+</flight_plan>

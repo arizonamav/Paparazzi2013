@@ -1,0 +1,60 @@
+<!DOCTYPE flight_plan SYSTEM "flight_plan.dtd">
+
+<flight_plan alt="765" ground_alt="735" lat0="32.247670" lon0="-110.966180" max_dist_from_home="200" name="SDplan" security_height="1.2">
+  <waypoints>
+    <waypoint name="HOME" x="0" y="0"/>
+    <waypoint name="STDBY" x="49.5" y="20"/>
+    <waypoint name="1" x="10.1" y="38"/>
+    <waypoint name="2" x="132.3" y="28"/>
+    <waypoint name="S1" x="-119.2" y="14"/>
+    <waypoint name="S2" x="150" y="41"/>
+    <waypoint name="CLIMB" x="-114.5" y="32"/>
+    <waypoint name="_BASELEG" x="168.8" y="-13.8"/>
+    <waypoint alt="0.0" name="TD" x="28.8" y="50"/>
+    <waypoint alt="30.0" name="AF" x="177.4" y="45.1"/>
+  </waypoints>
+  <blocks>
+    <block name="Wait GPS">
+      <set value="1" var="kill_throttle"/>
+      <while cond="!GpsFixValid()"/>
+    </block>
+    <block name="Geo init">
+      <while cond="LessThan(NavBlockTime(), 10)"/>
+      <call fun="NavSetGroundReferenceHere()"/>
+    </block>
+    <block name="Holding point">
+      <set value="1" var="kill_throttle"/>
+      <attitude roll="0" throttle="0" vmode="throttle"/>
+    </block>
+    <block key="t" name="Takeoff" strip_button="Takeoff (wp CLIMB)" strip_icon="takeoff.png" group="home">
+      <exception cond="estimator_z > ground_alt+25" deroute="Standby"/>
+      <set value="0" var="kill_throttle"/>
+      <set value="0" var="estimator_flight_time"/>
+      <go from="HOME" throttle="1.0" vmode="throttle" wp="CLIMB" pitch="15"/>
+    </block>
+    <block key="<Control>a" name="Standby" strip_button="Standby" strip_icon="home.png" group="home">
+      <circle radius="nav_radius" wp="STDBY"/>
+    </block>
+    <block name="Line 1-2" strip_button="Line (wp 1-2)" strip_icon="line.png" group="extra_pattern">
+      <call fun="nav_line_init()"/>
+      <call fun="nav_line(WP_1, WP_2, nav_radius)"/>
+    </block>
+    <block name="Land Right AF-TD" strip_button="Land right (wp AF-TD)" strip_icon="land-right.png" group="land">
+      <set value="DEFAULT_CIRCLE_RADIUS" var="nav_radius"/>
+      <deroute block="land"/>
+    </block>
+    <block name="land">
+      <call fun="nav_compute_baseleg(WP_AF, WP_TD, WP__BASELEG, nav_radius)"/>
+      <circle radius="nav_radius" until="NavCircleCount() > 0.5" wp="_BASELEG"/>
+      <circle radius="nav_radius" until="And(NavQdrCloseTo(DegOfRad(baseleg_out_qdr)-(nav_radius/fabs(nav_radius))*10), 10 > fabs(estimator_z - WaypointAlt(WP__BASELEG)))" wp="_BASELEG"/>
+    </block>
+    <block name="final">
+      <exception cond="ground_alt + 10 > estimator_z" deroute="flare"/>
+      <go from="AF" hmode="route" vmode="glide" wp="TD"/>
+    </block>
+    <block name="flare">
+      <go approaching_time="0" from="AF" hmode="route" throttle="0.0" vmode="throttle" wp="TD"/>
+      <attitude roll="0.0" throttle="0.0" until="FALSE" vmode="throttle"/>
+    </block>
+  </blocks>
+</flight_plan>

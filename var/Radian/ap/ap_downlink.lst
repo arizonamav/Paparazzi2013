@@ -1,0 +1,30 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 18, 4
+  12              		.thumb
+  13              		.file	"ap_downlink.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.global	telemetry_mode_Ap
+  18              		.section	.bss.telemetry_mode_Ap,"aw",%nobits
+  21              	telemetry_mode_Ap:
+  22 0000 00       		.space	1
+  23              		.text
+  24              	.Letext0:
+  25              		.file 1 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+  26              		.file 2 "/home/mav/paparazzi/var/Radian/generated/periodic_telemetry.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 ap_downlink.c
+     /tmp/cc74BOr3.s:21     .bss.telemetry_mode_Ap:00000000 telemetry_mode_Ap
+     /tmp/cc74BOr3.s:22     .bss.telemetry_mode_Ap:00000000 $d
+
+NO UNDEFINED SYMBOLS

@@ -1,0 +1,15 @@
+<!-- This file has been generated from /home/mav/paparazzi/conf/telemetry/default_rotorcraft.xml -->
+<!-- Please DO NOT EDIT -->
+
+<settings>
+ <dl_settings>
+  <dl_settings name="Telemetry">
+   <dl_setting min="0" step="1" max="11" var="telemetry_mode_Main" shortname="Main" values="default|ppm|raw_sensors|scaled_sensors|ahrs|rate_loop|attitude_loop|vert_loop|h_loop|aligner|hs_att_roll|tune_hover">
+    <key_press key="d" value="0"/>
+    <key_press key="a" value="6"/>
+    <key_press key="v" value="7"/>
+    <key_press key="h" value="8"/>
+   </dl_setting>
+  </dl_settings>
+ </dl_settings>
+</settings>

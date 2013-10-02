@@ -1,0 +1,44 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 18, 4
+  12              		.thumb
+  13              		.file	"downlink.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.global	downlink_nb_msgs
+  18              		.global	downlink_nb_bytes
+  19              		.global	downlink_nb_ovrn
+  20              		.section	.bss.downlink_nb_msgs,"aw",%nobits
+  21              		.align	1
+  24              	downlink_nb_msgs:
+  25 0000 0000     		.space	2
+  26              		.section	.bss.downlink_nb_ovrn,"aw",%nobits
+  29              	downlink_nb_ovrn:
+  30 0000 00       		.space	1
+  31              		.section	.bss.downlink_nb_bytes,"aw",%nobits
+  32              		.align	1
+  35              	downlink_nb_bytes:
+  36 0000 0000     		.space	2
+  37              		.text
+  38              	.Letext0:
+  39              		.file 1 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+  40              		.file 2 "subsystems/datalink/downlink.c"
+DEFINED SYMBOLS
+                            *ABS*:00000000 downlink.c
+     /tmp/cc2vYt3i.s:24     .bss.downlink_nb_msgs:00000000 downlink_nb_msgs
+     /tmp/cc2vYt3i.s:35     .bss.downlink_nb_bytes:00000000 downlink_nb_bytes
+     /tmp/cc2vYt3i.s:29     .bss.downlink_nb_ovrn:00000000 downlink_nb_ovrn
+     /tmp/cc2vYt3i.s:21     .bss.downlink_nb_msgs:00000000 $d
+     /tmp/cc2vYt3i.s:30     .bss.downlink_nb_ovrn:00000000 $d
+     /tmp/cc2vYt3i.s:32     .bss.downlink_nb_bytes:00000000 $d
+
+NO UNDEFINED SYMBOLS

@@ -1,0 +1,30 @@
+<!DOCTYPE flight_plan SYSTEM "flight_plan.dtd">
+
+<flight_plan alt="900" ground_alt="755" lat0="32.236394" lon0="-110.956908" max_dist_from_home="350" name="Himmel Circuit 2" security_height="0">
+  <waypoints>
+    <waypoint name="HOME" x="0" y="0" height="10"/>
+    <waypoint name="A1" lat="32.232939" lon="-110.933616" height="60"/>
+    <waypoint name="T1" lat="32.232935" lon="-110.932600" height="50"/>
+    <waypoint name="B1" lat="32.233664" lon="-110.932346" height="50"/>
+    <waypoint name="T2" lat="32.233893" lon="-110.932049"height="65"/>
+    <waypoint name="B2" lat="32.233664" lon="-110.932346" height="65"/>
+    <waypoint name="T3" lat="32.233059" lon="-110.932600" height="50"/>
+    <waypoint name="A2" lat="32.232939" lon="-110.933616" height="60"/>
+    <waypoint name="T4" lat="32.233210" lon="-110.934050" height="60"/>
+
+  </waypoints>
+  <blocks>
+    <block name="corners">
+      <while cond="TRUE">
+        <go wp="A1"/>
+        <go wp="T1"/>
+	<go wp="B1"/>
+	<go wp="T2"/>
+        <go wp="B2"/>
+        <go wp="T3"/>
+        <go wp="A2"/>
+        <go wp="T4"/>
+      </while>
+    </block>
+  </blocks>
+</flight_plan>

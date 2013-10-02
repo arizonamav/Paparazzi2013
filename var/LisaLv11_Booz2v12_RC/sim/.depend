@@ -1,0 +1,1821 @@
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/nps_main.o: /home/mav/paparazzi/sw/simulator/nps/nps_main.c \
+ /usr/include/glib-2.0/glib.h /usr/include/glib-2.0/glib/galloca.h \
+ /usr/include/glib-2.0/glib/gtypes.h \
+ /usr/lib/i386-linux-gnu/glib-2.0/include/glibconfig.h \
+ /usr/include/glib-2.0/glib/gmacros.h /usr/include/glib-2.0/glib/garray.h \
+ /usr/include/glib-2.0/glib/gasyncqueue.h \
+ /usr/include/glib-2.0/glib/gthread.h /usr/include/glib-2.0/glib/gerror.h \
+ /usr/include/glib-2.0/glib/gquark.h /usr/include/glib-2.0/glib/gutils.h \
+ /usr/include/glib-2.0/glib/gatomic.h \
+ /usr/include/glib-2.0/glib/gbacktrace.h \
+ /usr/include/glib-2.0/glib/gbase64.h \
+ /usr/include/glib-2.0/glib/gbitlock.h \
+ /usr/include/glib-2.0/glib/gbookmarkfile.h \
+ /usr/include/glib-2.0/glib/gcache.h /usr/include/glib-2.0/glib/glist.h \
+ /usr/include/glib-2.0/glib/gmem.h /usr/include/glib-2.0/glib/gslice.h \
+ /usr/include/glib-2.0/glib/gchecksum.h \
+ /usr/include/glib-2.0/glib/gcompletion.h \
+ /usr/include/glib-2.0/glib/gconvert.h \
+ /usr/include/glib-2.0/glib/gdataset.h /usr/include/glib-2.0/glib/gdate.h \
+ /usr/include/glib-2.0/glib/gdatetime.h \
+ /usr/include/glib-2.0/glib/gtimezone.h /usr/include/glib-2.0/glib/gdir.h \
+ /usr/include/glib-2.0/glib/gfileutils.h \
+ /usr/include/glib-2.0/glib/ghash.h /usr/include/glib-2.0/glib/ghmac.h \
+ /usr/include/glib-2.0/glib/gchecksum.h \
+ /usr/include/glib-2.0/glib/ghook.h \
+ /usr/include/glib-2.0/glib/ghostutils.h \
+ /usr/include/glib-2.0/glib/giochannel.h \
+ /usr/include/glib-2.0/glib/gmain.h /usr/include/glib-2.0/glib/gpoll.h \
+ /usr/include/glib-2.0/glib/gslist.h /usr/include/glib-2.0/glib/gstring.h \
+ /usr/include/glib-2.0/glib/gunicode.h \
+ /usr/include/glib-2.0/glib/gkeyfile.h \
+ /usr/include/glib-2.0/glib/gmappedfile.h \
+ /usr/include/glib-2.0/glib/gmarkup.h \
+ /usr/include/glib-2.0/glib/gmessages.h \
+ /usr/include/glib-2.0/glib/gnode.h /usr/include/glib-2.0/glib/goption.h \
+ /usr/include/glib-2.0/glib/gpattern.h \
+ /usr/include/glib-2.0/glib/gprimes.h /usr/include/glib-2.0/glib/gqsort.h \
+ /usr/include/glib-2.0/glib/gqueue.h /usr/include/glib-2.0/glib/grand.h \
+ /usr/include/glib-2.0/glib/grel.h /usr/include/glib-2.0/glib/gregex.h \
+ /usr/include/glib-2.0/glib/gscanner.h \
+ /usr/include/glib-2.0/glib/gsequence.h \
+ /usr/include/glib-2.0/glib/gshell.h /usr/include/glib-2.0/glib/gspawn.h \
+ /usr/include/glib-2.0/glib/gstrfuncs.h \
+ /usr/include/glib-2.0/glib/gtestutils.h \
+ /usr/include/glib-2.0/glib/gthreadpool.h \
+ /usr/include/glib-2.0/glib/gtimer.h /usr/include/glib-2.0/glib/gtree.h \
+ /usr/include/glib-2.0/glib/gurifuncs.h \
+ /usr/include/glib-2.0/glib/gvarianttype.h \
+ /usr/include/glib-2.0/glib/gvariant.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_fdm.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_double.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensors.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_gyro.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_accel.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_mag.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_baro.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_gps.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_atmosphere.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_autopilot.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/airframe.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_radio_control.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_ivy.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_flightgear.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/nps_fdm_jsbsim.o: /home/mav/paparazzi/sw/simulator/nps/nps_fdm_jsbsim.c \
+ /home/mav/paparazzi/sw/simulator/nps/nps_fdm.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_double.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/nps_random.o: /home/mav/paparazzi/sw/simulator/nps/nps_random.c \
+ /home/mav/paparazzi/sw/simulator/nps/nps_random.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/nps_sensors.o: /home/mav/paparazzi/sw/simulator/nps/nps_sensors.c \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensors.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_gyro.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_accel.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_mag.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_baro.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_gps.h \
+ /usr/include/glib-2.0/glib.h /usr/include/glib-2.0/glib/galloca.h \
+ /usr/include/glib-2.0/glib/gtypes.h \
+ /usr/lib/i386-linux-gnu/glib-2.0/include/glibconfig.h \
+ /usr/include/glib-2.0/glib/gmacros.h /usr/include/glib-2.0/glib/garray.h \
+ /usr/include/glib-2.0/glib/gasyncqueue.h \
+ /usr/include/glib-2.0/glib/gthread.h /usr/include/glib-2.0/glib/gerror.h \
+ /usr/include/glib-2.0/glib/gquark.h /usr/include/glib-2.0/glib/gutils.h \
+ /usr/include/glib-2.0/glib/gatomic.h \
+ /usr/include/glib-2.0/glib/gbacktrace.h \
+ /usr/include/glib-2.0/glib/gbase64.h \
+ /usr/include/glib-2.0/glib/gbitlock.h \
+ /usr/include/glib-2.0/glib/gbookmarkfile.h \
+ /usr/include/glib-2.0/glib/gcache.h /usr/include/glib-2.0/glib/glist.h \
+ /usr/include/glib-2.0/glib/gmem.h /usr/include/glib-2.0/glib/gslice.h \
+ /usr/include/glib-2.0/glib/gchecksum.h \
+ /usr/include/glib-2.0/glib/gcompletion.h \
+ /usr/include/glib-2.0/glib/gconvert.h \
+ /usr/include/glib-2.0/glib/gdataset.h /usr/include/glib-2.0/glib/gdate.h \
+ /usr/include/glib-2.0/glib/gdatetime.h \
+ /usr/include/glib-2.0/glib/gtimezone.h /usr/include/glib-2.0/glib/gdir.h \
+ /usr/include/glib-2.0/glib/gfileutils.h \
+ /usr/include/glib-2.0/glib/ghash.h /usr/include/glib-2.0/glib/ghmac.h \
+ /usr/include/glib-2.0/glib/gchecksum.h \
+ /usr/include/glib-2.0/glib/ghook.h \
+ /usr/include/glib-2.0/glib/ghostutils.h \
+ /usr/include/glib-2.0/glib/giochannel.h \
+ /usr/include/glib-2.0/glib/gmain.h /usr/include/glib-2.0/glib/gpoll.h \
+ /usr/include/glib-2.0/glib/gslist.h /usr/include/glib-2.0/glib/gstring.h \
+ /usr/include/glib-2.0/glib/gunicode.h \
+ /usr/include/glib-2.0/glib/gkeyfile.h \
+ /usr/include/glib-2.0/glib/gmappedfile.h \
+ /usr/include/glib-2.0/glib/gmarkup.h \
+ /usr/include/glib-2.0/glib/gmessages.h \
+ /usr/include/glib-2.0/glib/gnode.h /usr/include/glib-2.0/glib/goption.h \
+ /usr/include/glib-2.0/glib/gpattern.h \
+ /usr/include/glib-2.0/glib/gprimes.h /usr/include/glib-2.0/glib/gqsort.h \
+ /usr/include/glib-2.0/glib/gqueue.h /usr/include/glib-2.0/glib/grand.h \
+ /usr/include/glib-2.0/glib/grel.h /usr/include/glib-2.0/glib/gregex.h \
+ /usr/include/glib-2.0/glib/gscanner.h \
+ /usr/include/glib-2.0/glib/gsequence.h \
+ /usr/include/glib-2.0/glib/gshell.h /usr/include/glib-2.0/glib/gspawn.h \
+ /usr/include/glib-2.0/glib/gstrfuncs.h \
+ /usr/include/glib-2.0/glib/gtestutils.h \
+ /usr/include/glib-2.0/glib/gthreadpool.h \
+ /usr/include/glib-2.0/glib/gtimer.h /usr/include/glib-2.0/glib/gtree.h \
+ /usr/include/glib-2.0/glib/gurifuncs.h \
+ /usr/include/glib-2.0/glib/gvarianttype.h \
+ /usr/include/glib-2.0/glib/gvariant.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_double.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/airframe.h \
+ /home/mav/paparazzi/conf/simulator/nps/nps_sensors_params_booz2_a1.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/nps_sensors_utils.o: \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensors_utils.c \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensors_utils.h \
+ /usr/include/glib-2.0/glib.h /usr/include/glib-2.0/glib/galloca.h \
+ /usr/include/glib-2.0/glib/gtypes.h \
+ /usr/lib/i386-linux-gnu/glib-2.0/include/glibconfig.h \
+ /usr/include/glib-2.0/glib/gmacros.h /usr/include/glib-2.0/glib/garray.h \
+ /usr/include/glib-2.0/glib/gasyncqueue.h \
+ /usr/include/glib-2.0/glib/gthread.h /usr/include/glib-2.0/glib/gerror.h \
+ /usr/include/glib-2.0/glib/gquark.h /usr/include/glib-2.0/glib/gutils.h \
+ /usr/include/glib-2.0/glib/gatomic.h \
+ /usr/include/glib-2.0/glib/gbacktrace.h \
+ /usr/include/glib-2.0/glib/gbase64.h \
+ /usr/include/glib-2.0/glib/gbitlock.h \
+ /usr/include/glib-2.0/glib/gbookmarkfile.h \
+ /usr/include/glib-2.0/glib/gcache.h /usr/include/glib-2.0/glib/glist.h \
+ /usr/include/glib-2.0/glib/gmem.h /usr/include/glib-2.0/glib/gslice.h \
+ /usr/include/glib-2.0/glib/gchecksum.h \
+ /usr/include/glib-2.0/glib/gcompletion.h \
+ /usr/include/glib-2.0/glib/gconvert.h \
+ /usr/include/glib-2.0/glib/gdataset.h /usr/include/glib-2.0/glib/gdate.h \
+ /usr/include/glib-2.0/glib/gdatetime.h \
+ /usr/include/glib-2.0/glib/gtimezone.h /usr/include/glib-2.0/glib/gdir.h \
+ /usr/include/glib-2.0/glib/gfileutils.h \
+ /usr/include/glib-2.0/glib/ghash.h /usr/include/glib-2.0/glib/ghmac.h \
+ /usr/include/glib-2.0/glib/gchecksum.h \
+ /usr/include/glib-2.0/glib/ghook.h \
+ /usr/include/glib-2.0/glib/ghostutils.h \
+ /usr/include/glib-2.0/glib/giochannel.h \
+ /usr/include/glib-2.0/glib/gmain.h /usr/include/glib-2.0/glib/gpoll.h \
+ /usr/include/glib-2.0/glib/gslist.h /usr/include/glib-2.0/glib/gstring.h \
+ /usr/include/glib-2.0/glib/gunicode.h \
+ /usr/include/glib-2.0/glib/gkeyfile.h \
+ /usr/include/glib-2.0/glib/gmappedfile.h \
+ /usr/include/glib-2.0/glib/gmarkup.h \
+ /usr/include/glib-2.0/glib/gmessages.h \
+ /usr/include/glib-2.0/glib/gnode.h /usr/include/glib-2.0/glib/goption.h \
+ /usr/include/glib-2.0/glib/gpattern.h \
+ /usr/include/glib-2.0/glib/gprimes.h /usr/include/glib-2.0/glib/gqsort.h \
+ /usr/include/glib-2.0/glib/gqueue.h /usr/include/glib-2.0/glib/grand.h \
+ /usr/include/glib-2.0/glib/grel.h /usr/include/glib-2.0/glib/gregex.h \
+ /usr/include/glib-2.0/glib/gscanner.h \
+ /usr/include/glib-2.0/glib/gsequence.h \
+ /usr/include/glib-2.0/glib/gshell.h /usr/include/glib-2.0/glib/gspawn.h \
+ /usr/include/glib-2.0/glib/gstrfuncs.h \
+ /usr/include/glib-2.0/glib/gtestutils.h \
+ /usr/include/glib-2.0/glib/gthreadpool.h \
+ /usr/include/glib-2.0/glib/gtimer.h /usr/include/glib-2.0/glib/gtree.h \
+ /usr/include/glib-2.0/glib/gurifuncs.h \
+ /usr/include/glib-2.0/glib/gvarianttype.h \
+ /usr/include/glib-2.0/glib/gvariant.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/nps_sensor_gyro.o: /home/mav/paparazzi/sw/simulator/nps/nps_sensor_gyro.c \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_gyro.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/airframe.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_fdm.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_double.h \
+ /home/mav/paparazzi/conf/simulator/nps/nps_sensors_params_booz2_a1.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_random.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/nps_sensor_accel.o: \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_accel.c \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_accel.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/airframe.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_fdm.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_double.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_random.h \
+ /home/mav/paparazzi/conf/simulator/nps/nps_sensors_params_booz2_a1.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/nps_sensor_mag.o: /home/mav/paparazzi/sw/simulator/nps/nps_sensor_mag.c \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_mag.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/airframe.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_fdm.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_double.h \
+ /home/mav/paparazzi/conf/simulator/nps/nps_sensors_params_booz2_a1.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/nps_sensor_baro.o: /home/mav/paparazzi/sw/simulator/nps/nps_sensor_baro.c \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_baro.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/airframe.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_fdm.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_double.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_random.h \
+ /home/mav/paparazzi/conf/simulator/nps/nps_sensors_params_booz2_a1.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/nps_sensor_gps.o: /home/mav/paparazzi/sw/simulator/nps/nps_sensor_gps.c \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_gps.h \
+ /usr/include/glib-2.0/glib.h /usr/include/glib-2.0/glib/galloca.h \
+ /usr/include/glib-2.0/glib/gtypes.h \
+ /usr/lib/i386-linux-gnu/glib-2.0/include/glibconfig.h \
+ /usr/include/glib-2.0/glib/gmacros.h /usr/include/glib-2.0/glib/garray.h \
+ /usr/include/glib-2.0/glib/gasyncqueue.h \
+ /usr/include/glib-2.0/glib/gthread.h /usr/include/glib-2.0/glib/gerror.h \
+ /usr/include/glib-2.0/glib/gquark.h /usr/include/glib-2.0/glib/gutils.h \
+ /usr/include/glib-2.0/glib/gatomic.h \
+ /usr/include/glib-2.0/glib/gbacktrace.h \
+ /usr/include/glib-2.0/glib/gbase64.h \
+ /usr/include/glib-2.0/glib/gbitlock.h \
+ /usr/include/glib-2.0/glib/gbookmarkfile.h \
+ /usr/include/glib-2.0/glib/gcache.h /usr/include/glib-2.0/glib/glist.h \
+ /usr/include/glib-2.0/glib/gmem.h /usr/include/glib-2.0/glib/gslice.h \
+ /usr/include/glib-2.0/glib/gchecksum.h \
+ /usr/include/glib-2.0/glib/gcompletion.h \
+ /usr/include/glib-2.0/glib/gconvert.h \
+ /usr/include/glib-2.0/glib/gdataset.h /usr/include/glib-2.0/glib/gdate.h \
+ /usr/include/glib-2.0/glib/gdatetime.h \
+ /usr/include/glib-2.0/glib/gtimezone.h /usr/include/glib-2.0/glib/gdir.h \
+ /usr/include/glib-2.0/glib/gfileutils.h \
+ /usr/include/glib-2.0/glib/ghash.h /usr/include/glib-2.0/glib/ghmac.h \
+ /usr/include/glib-2.0/glib/gchecksum.h \
+ /usr/include/glib-2.0/glib/ghook.h \
+ /usr/include/glib-2.0/glib/ghostutils.h \
+ /usr/include/glib-2.0/glib/giochannel.h \
+ /usr/include/glib-2.0/glib/gmain.h /usr/include/glib-2.0/glib/gpoll.h \
+ /usr/include/glib-2.0/glib/gslist.h /usr/include/glib-2.0/glib/gstring.h \
+ /usr/include/glib-2.0/glib/gunicode.h \
+ /usr/include/glib-2.0/glib/gkeyfile.h \
+ /usr/include/glib-2.0/glib/gmappedfile.h \
+ /usr/include/glib-2.0/glib/gmarkup.h \
+ /usr/include/glib-2.0/glib/gmessages.h \
+ /usr/include/glib-2.0/glib/gnode.h /usr/include/glib-2.0/glib/goption.h \
+ /usr/include/glib-2.0/glib/gpattern.h \
+ /usr/include/glib-2.0/glib/gprimes.h /usr/include/glib-2.0/glib/gqsort.h \
+ /usr/include/glib-2.0/glib/gqueue.h /usr/include/glib-2.0/glib/grand.h \
+ /usr/include/glib-2.0/glib/grel.h /usr/include/glib-2.0/glib/gregex.h \
+ /usr/include/glib-2.0/glib/gscanner.h \
+ /usr/include/glib-2.0/glib/gsequence.h \
+ /usr/include/glib-2.0/glib/gshell.h /usr/include/glib-2.0/glib/gspawn.h \
+ /usr/include/glib-2.0/glib/gstrfuncs.h \
+ /usr/include/glib-2.0/glib/gtestutils.h \
+ /usr/include/glib-2.0/glib/gthreadpool.h \
+ /usr/include/glib-2.0/glib/gtimer.h /usr/include/glib-2.0/glib/gtree.h \
+ /usr/include/glib-2.0/glib/gurifuncs.h \
+ /usr/include/glib-2.0/glib/gvarianttype.h \
+ /usr/include/glib-2.0/glib/gvariant.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_double.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/airframe.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_fdm.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_random.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensors_utils.h \
+ /home/mav/paparazzi/conf/simulator/nps/nps_sensors_params_booz2_a1.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/nps_radio_control.o: \
+ /home/mav/paparazzi/sw/simulator/nps/nps_radio_control.c \
+ /home/mav/paparazzi/sw/simulator/nps/nps_radio_control.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_radio_control_spektrum.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_radio_control_joystick.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/nps_radio_control_joystick.o: \
+ /home/mav/paparazzi/sw/simulator/nps/nps_radio_control_joystick.c \
+ /home/mav/paparazzi/sw/simulator/nps/nps_radio_control.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_radio_control_joystick.h \
+ /usr/include/glib-2.0/glib.h /usr/include/glib-2.0/glib/galloca.h \
+ /usr/include/glib-2.0/glib/gtypes.h \
+ /usr/lib/i386-linux-gnu/glib-2.0/include/glibconfig.h \
+ /usr/include/glib-2.0/glib/gmacros.h /usr/include/glib-2.0/glib/garray.h \
+ /usr/include/glib-2.0/glib/gasyncqueue.h \
+ /usr/include/glib-2.0/glib/gthread.h /usr/include/glib-2.0/glib/gerror.h \
+ /usr/include/glib-2.0/glib/gquark.h /usr/include/glib-2.0/glib/gutils.h \
+ /usr/include/glib-2.0/glib/gatomic.h \
+ /usr/include/glib-2.0/glib/gbacktrace.h \
+ /usr/include/glib-2.0/glib/gbase64.h \
+ /usr/include/glib-2.0/glib/gbitlock.h \
+ /usr/include/glib-2.0/glib/gbookmarkfile.h \
+ /usr/include/glib-2.0/glib/gcache.h /usr/include/glib-2.0/glib/glist.h \
+ /usr/include/glib-2.0/glib/gmem.h /usr/include/glib-2.0/glib/gslice.h \
+ /usr/include/glib-2.0/glib/gchecksum.h \
+ /usr/include/glib-2.0/glib/gcompletion.h \
+ /usr/include/glib-2.0/glib/gconvert.h \
+ /usr/include/glib-2.0/glib/gdataset.h /usr/include/glib-2.0/glib/gdate.h \
+ /usr/include/glib-2.0/glib/gdatetime.h \
+ /usr/include/glib-2.0/glib/gtimezone.h /usr/include/glib-2.0/glib/gdir.h \
+ /usr/include/glib-2.0/glib/gfileutils.h \
+ /usr/include/glib-2.0/glib/ghash.h /usr/include/glib-2.0/glib/ghmac.h \
+ /usr/include/glib-2.0/glib/gchecksum.h \
+ /usr/include/glib-2.0/glib/ghook.h \
+ /usr/include/glib-2.0/glib/ghostutils.h \
+ /usr/include/glib-2.0/glib/giochannel.h \
+ /usr/include/glib-2.0/glib/gmain.h /usr/include/glib-2.0/glib/gpoll.h \
+ /usr/include/glib-2.0/glib/gslist.h /usr/include/glib-2.0/glib/gstring.h \
+ /usr/include/glib-2.0/glib/gunicode.h \
+ /usr/include/glib-2.0/glib/gkeyfile.h \
+ /usr/include/glib-2.0/glib/gmappedfile.h \
+ /usr/include/glib-2.0/glib/gmarkup.h \
+ /usr/include/glib-2.0/glib/gmessages.h \
+ /usr/include/glib-2.0/glib/gnode.h /usr/include/glib-2.0/glib/goption.h \
+ /usr/include/glib-2.0/glib/gpattern.h \
+ /usr/include/glib-2.0/glib/gprimes.h /usr/include/glib-2.0/glib/gqsort.h \
+ /usr/include/glib-2.0/glib/gqueue.h /usr/include/glib-2.0/glib/grand.h \
+ /usr/include/glib-2.0/glib/grel.h /usr/include/glib-2.0/glib/gregex.h \
+ /usr/include/glib-2.0/glib/gscanner.h \
+ /usr/include/glib-2.0/glib/gsequence.h \
+ /usr/include/glib-2.0/glib/gshell.h /usr/include/glib-2.0/glib/gspawn.h \
+ /usr/include/glib-2.0/glib/gstrfuncs.h \
+ /usr/include/glib-2.0/glib/gtestutils.h \
+ /usr/include/glib-2.0/glib/gthreadpool.h \
+ /usr/include/glib-2.0/glib/gtimer.h /usr/include/glib-2.0/glib/gtree.h \
+ /usr/include/glib-2.0/glib/gurifuncs.h \
+ /usr/include/glib-2.0/glib/gvarianttype.h \
+ /usr/include/glib-2.0/glib/gvariant.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/nps_radio_control_spektrum.o: \
+ /home/mav/paparazzi/sw/simulator/nps/nps_radio_control_spektrum.c \
+ /home/mav/paparazzi/sw/simulator/nps/nps_radio_control.h \
+ /home/mav/paparazzi/sw/include/std.h /usr/include/glib-2.0/glib.h \
+ /usr/include/glib-2.0/glib/galloca.h /usr/include/glib-2.0/glib/gtypes.h \
+ /usr/lib/i386-linux-gnu/glib-2.0/include/glibconfig.h \
+ /usr/include/glib-2.0/glib/gmacros.h /usr/include/glib-2.0/glib/garray.h \
+ /usr/include/glib-2.0/glib/gasyncqueue.h \
+ /usr/include/glib-2.0/glib/gthread.h /usr/include/glib-2.0/glib/gerror.h \
+ /usr/include/glib-2.0/glib/gquark.h /usr/include/glib-2.0/glib/gutils.h \
+ /usr/include/glib-2.0/glib/gatomic.h \
+ /usr/include/glib-2.0/glib/gbacktrace.h \
+ /usr/include/glib-2.0/glib/gbase64.h \
+ /usr/include/glib-2.0/glib/gbitlock.h \
+ /usr/include/glib-2.0/glib/gbookmarkfile.h \
+ /usr/include/glib-2.0/glib/gcache.h /usr/include/glib-2.0/glib/glist.h \
+ /usr/include/glib-2.0/glib/gmem.h /usr/include/glib-2.0/glib/gslice.h \
+ /usr/include/glib-2.0/glib/gchecksum.h \
+ /usr/include/glib-2.0/glib/gcompletion.h \
+ /usr/include/glib-2.0/glib/gconvert.h \
+ /usr/include/glib-2.0/glib/gdataset.h /usr/include/glib-2.0/glib/gdate.h \
+ /usr/include/glib-2.0/glib/gdatetime.h \
+ /usr/include/glib-2.0/glib/gtimezone.h /usr/include/glib-2.0/glib/gdir.h \
+ /usr/include/glib-2.0/glib/gfileutils.h \
+ /usr/include/glib-2.0/glib/ghash.h /usr/include/glib-2.0/glib/ghmac.h \
+ /usr/include/glib-2.0/glib/gchecksum.h \
+ /usr/include/glib-2.0/glib/ghook.h \
+ /usr/include/glib-2.0/glib/ghostutils.h \
+ /usr/include/glib-2.0/glib/giochannel.h \
+ /usr/include/glib-2.0/glib/gmain.h /usr/include/glib-2.0/glib/gpoll.h \
+ /usr/include/glib-2.0/glib/gslist.h /usr/include/glib-2.0/glib/gstring.h \
+ /usr/include/glib-2.0/glib/gunicode.h \
+ /usr/include/glib-2.0/glib/gkeyfile.h \
+ /usr/include/glib-2.0/glib/gmappedfile.h \
+ /usr/include/glib-2.0/glib/gmarkup.h \
+ /usr/include/glib-2.0/glib/gmessages.h \
+ /usr/include/glib-2.0/glib/gnode.h /usr/include/glib-2.0/glib/goption.h \
+ /usr/include/glib-2.0/glib/gpattern.h \
+ /usr/include/glib-2.0/glib/gprimes.h /usr/include/glib-2.0/glib/gqsort.h \
+ /usr/include/glib-2.0/glib/gqueue.h /usr/include/glib-2.0/glib/grand.h \
+ /usr/include/glib-2.0/glib/grel.h /usr/include/glib-2.0/glib/gregex.h \
+ /usr/include/glib-2.0/glib/gscanner.h \
+ /usr/include/glib-2.0/glib/gsequence.h \
+ /usr/include/glib-2.0/glib/gshell.h /usr/include/glib-2.0/glib/gspawn.h \
+ /usr/include/glib-2.0/glib/gstrfuncs.h \
+ /usr/include/glib-2.0/glib/gtestutils.h \
+ /usr/include/glib-2.0/glib/gthreadpool.h \
+ /usr/include/glib-2.0/glib/gtimer.h /usr/include/glib-2.0/glib/gtree.h \
+ /usr/include/glib-2.0/glib/gurifuncs.h \
+ /usr/include/glib-2.0/glib/gvarianttype.h \
+ /usr/include/glib-2.0/glib/gvariant.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/nps_autopilot_rotorcraft.o: \
+ /home/mav/paparazzi/sw/simulator/nps/nps_autopilot_rotorcraft.c \
+ /home/mav/paparazzi/sw/simulator/nps/nps_autopilot_rotorcraft.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_autopilot.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/airframe.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_radio_control.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/main.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensors.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_gyro.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_accel.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_mag.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_baro.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_gps.h \
+ /usr/include/glib-2.0/glib.h /usr/include/glib-2.0/glib/galloca.h \
+ /usr/include/glib-2.0/glib/gtypes.h \
+ /usr/lib/i386-linux-gnu/glib-2.0/include/glibconfig.h \
+ /usr/include/glib-2.0/glib/gmacros.h /usr/include/glib-2.0/glib/garray.h \
+ /usr/include/glib-2.0/glib/gasyncqueue.h \
+ /usr/include/glib-2.0/glib/gthread.h /usr/include/glib-2.0/glib/gerror.h \
+ /usr/include/glib-2.0/glib/gquark.h /usr/include/glib-2.0/glib/gutils.h \
+ /usr/include/glib-2.0/glib/gatomic.h \
+ /usr/include/glib-2.0/glib/gbacktrace.h \
+ /usr/include/glib-2.0/glib/gbase64.h \
+ /usr/include/glib-2.0/glib/gbitlock.h \
+ /usr/include/glib-2.0/glib/gbookmarkfile.h \
+ /usr/include/glib-2.0/glib/gcache.h /usr/include/glib-2.0/glib/glist.h \
+ /usr/include/glib-2.0/glib/gmem.h /usr/include/glib-2.0/glib/gslice.h \
+ /usr/include/glib-2.0/glib/gchecksum.h \
+ /usr/include/glib-2.0/glib/gcompletion.h \
+ /usr/include/glib-2.0/glib/gconvert.h \
+ /usr/include/glib-2.0/glib/gdataset.h /usr/include/glib-2.0/glib/gdate.h \
+ /usr/include/glib-2.0/glib/gdatetime.h \
+ /usr/include/glib-2.0/glib/gtimezone.h /usr/include/glib-2.0/glib/gdir.h \
+ /usr/include/glib-2.0/glib/gfileutils.h \
+ /usr/include/glib-2.0/glib/ghash.h /usr/include/glib-2.0/glib/ghmac.h \
+ /usr/include/glib-2.0/glib/gchecksum.h \
+ /usr/include/glib-2.0/glib/ghook.h \
+ /usr/include/glib-2.0/glib/ghostutils.h \
+ /usr/include/glib-2.0/glib/giochannel.h \
+ /usr/include/glib-2.0/glib/gmain.h /usr/include/glib-2.0/glib/gpoll.h \
+ /usr/include/glib-2.0/glib/gslist.h /usr/include/glib-2.0/glib/gstring.h \
+ /usr/include/glib-2.0/glib/gunicode.h \
+ /usr/include/glib-2.0/glib/gkeyfile.h \
+ /usr/include/glib-2.0/glib/gmappedfile.h \
+ /usr/include/glib-2.0/glib/gmarkup.h \
+ /usr/include/glib-2.0/glib/gmessages.h \
+ /usr/include/glib-2.0/glib/gnode.h /usr/include/glib-2.0/glib/goption.h \
+ /usr/include/glib-2.0/glib/gpattern.h \
+ /usr/include/glib-2.0/glib/gprimes.h /usr/include/glib-2.0/glib/gqsort.h \
+ /usr/include/glib-2.0/glib/gqueue.h /usr/include/glib-2.0/glib/grand.h \
+ /usr/include/glib-2.0/glib/grel.h /usr/include/glib-2.0/glib/gregex.h \
+ /usr/include/glib-2.0/glib/gscanner.h \
+ /usr/include/glib-2.0/glib/gsequence.h \
+ /usr/include/glib-2.0/glib/gshell.h /usr/include/glib-2.0/glib/gspawn.h \
+ /usr/include/glib-2.0/glib/gstrfuncs.h \
+ /usr/include/glib-2.0/glib/gtestutils.h \
+ /usr/include/glib-2.0/glib/gthreadpool.h \
+ /usr/include/glib-2.0/glib/gtimer.h /usr/include/glib-2.0/glib/gtree.h \
+ /usr/include/glib-2.0/glib/gurifuncs.h \
+ /usr/include/glib-2.0/glib/gvarianttype.h \
+ /usr/include/glib-2.0/glib/gvariant.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_double.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control.h \
+ /home/mav/paparazzi/sw/airborne/led.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control/ppm.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/subsystems/radio_control/ppm_arch.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/radio.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/imu.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/imu/imu_b2.h \
+ /home/mav/paparazzi/sw/airborne/peripherals/max1168.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/peripherals/max1168_arch.h \
+ /home/mav/paparazzi/sw/airborne/peripherals/ami601.h \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/i2c.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/i2c_arch.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/subsystems/imu/imu_b2_arch.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/sensors/baro.h \
+ /home/mav/paparazzi/sw/airborne/boards/tiny_sim.h boards/pc/baro_board.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/electrical.h \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/sys_time.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/sys_time_arch.h \
+ firmwares/rotorcraft/actuators/supervision.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps/gps_sim_nps.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensors.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_fdm.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs/ahrs_int_cmpl_quat.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/nps_ivy.o: /home/mav/paparazzi/sw/simulator/nps/nps_ivy.c \
+ /home/mav/paparazzi/sw/simulator/nps/nps_ivy.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_autopilot.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_radio_control.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_fdm.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_double.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensors.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_gyro.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_accel.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_mag.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_baro.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_gps.h \
+ /usr/include/glib-2.0/glib.h /usr/include/glib-2.0/glib/galloca.h \
+ /usr/include/glib-2.0/glib/gtypes.h \
+ /usr/lib/i386-linux-gnu/glib-2.0/include/glibconfig.h \
+ /usr/include/glib-2.0/glib/gmacros.h /usr/include/glib-2.0/glib/garray.h \
+ /usr/include/glib-2.0/glib/gasyncqueue.h \
+ /usr/include/glib-2.0/glib/gthread.h /usr/include/glib-2.0/glib/gerror.h \
+ /usr/include/glib-2.0/glib/gquark.h /usr/include/glib-2.0/glib/gutils.h \
+ /usr/include/glib-2.0/glib/gatomic.h \
+ /usr/include/glib-2.0/glib/gbacktrace.h \
+ /usr/include/glib-2.0/glib/gbase64.h \
+ /usr/include/glib-2.0/glib/gbitlock.h \
+ /usr/include/glib-2.0/glib/gbookmarkfile.h \
+ /usr/include/glib-2.0/glib/gcache.h /usr/include/glib-2.0/glib/glist.h \
+ /usr/include/glib-2.0/glib/gmem.h /usr/include/glib-2.0/glib/gslice.h \
+ /usr/include/glib-2.0/glib/gchecksum.h \
+ /usr/include/glib-2.0/glib/gcompletion.h \
+ /usr/include/glib-2.0/glib/gconvert.h \
+ /usr/include/glib-2.0/glib/gdataset.h /usr/include/glib-2.0/glib/gdate.h \
+ /usr/include/glib-2.0/glib/gdatetime.h \
+ /usr/include/glib-2.0/glib/gtimezone.h /usr/include/glib-2.0/glib/gdir.h \
+ /usr/include/glib-2.0/glib/gfileutils.h \
+ /usr/include/glib-2.0/glib/ghash.h /usr/include/glib-2.0/glib/ghmac.h \
+ /usr/include/glib-2.0/glib/gchecksum.h \
+ /usr/include/glib-2.0/glib/ghook.h \
+ /usr/include/glib-2.0/glib/ghostutils.h \
+ /usr/include/glib-2.0/glib/giochannel.h \
+ /usr/include/glib-2.0/glib/gmain.h /usr/include/glib-2.0/glib/gpoll.h \
+ /usr/include/glib-2.0/glib/gslist.h /usr/include/glib-2.0/glib/gstring.h \
+ /usr/include/glib-2.0/glib/gunicode.h \
+ /usr/include/glib-2.0/glib/gkeyfile.h \
+ /usr/include/glib-2.0/glib/gmappedfile.h \
+ /usr/include/glib-2.0/glib/gmarkup.h \
+ /usr/include/glib-2.0/glib/gmessages.h \
+ /usr/include/glib-2.0/glib/gnode.h /usr/include/glib-2.0/glib/goption.h \
+ /usr/include/glib-2.0/glib/gpattern.h \
+ /usr/include/glib-2.0/glib/gprimes.h /usr/include/glib-2.0/glib/gqsort.h \
+ /usr/include/glib-2.0/glib/gqueue.h /usr/include/glib-2.0/glib/grand.h \
+ /usr/include/glib-2.0/glib/grel.h /usr/include/glib-2.0/glib/gregex.h \
+ /usr/include/glib-2.0/glib/gscanner.h \
+ /usr/include/glib-2.0/glib/gsequence.h \
+ /usr/include/glib-2.0/glib/gshell.h /usr/include/glib-2.0/glib/gspawn.h \
+ /usr/include/glib-2.0/glib/gstrfuncs.h \
+ /usr/include/glib-2.0/glib/gtestutils.h \
+ /usr/include/glib-2.0/glib/gthreadpool.h \
+ /usr/include/glib-2.0/glib/gtimer.h /usr/include/glib-2.0/glib/gtree.h \
+ /usr/include/glib-2.0/glib/gurifuncs.h \
+ /usr/include/glib-2.0/glib/gvarianttype.h \
+ /usr/include/glib-2.0/glib/gvariant.h \
+ /home/mav/paparazzi/conf/simulator/nps/nps_sensors_params_booz2_a1.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/settings.h \
+ firmwares/rotorcraft/autopilot.h /home/mav/paparazzi/sw/airborne/led.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ins.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ firmwares/rotorcraft/guidance/guidance_h.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/guidance/guidance_h_ref.h \
+ firmwares/rotorcraft/guidance/guidance_v.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/guidance/guidance_v_ref.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/guidance/guidance_v_adpt.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ firmwares/rotorcraft/navigation.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_float.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_flight_plan.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_int.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_attitude_ref.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_ref_euler_int.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_ref_int.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs/ahrs_int_cmpl_quat.h \
+ firmwares/rotorcraft/stabilization/stabilization_rate.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/modules.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/periodic_telemetry.h \
+ /home/mav/paparazzi/var/include/dl_protocol.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/datalink/downlink.h \
+ /home/mav/paparazzi/var/include/messages.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/ivy_transport.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/nps_flightgear.o: /home/mav/paparazzi/sw/simulator/nps/nps_flightgear.c \
+ /home/mav/paparazzi/sw/simulator/nps/nps_flightgear.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/simulator/nps/../flight_gear.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_fdm.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_double.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/main.o: firmwares/rotorcraft/main.c /home/mav/paparazzi/sw/airborne/mcu.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_arch.h \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/sys_time.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/boards/tiny_sim.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/sys_time_arch.h \
+ /home/mav/paparazzi/sw/airborne/led.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/datalink/downlink.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/modules.h \
+ /home/mav/paparazzi/var/include/messages.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/ivy_transport.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/telemetry.h \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/uart.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/uart_arch.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/periodic_telemetry.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control/ppm.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/subsystems/radio_control/ppm_arch.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/radio.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/autopilot.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ins.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/guidance.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/guidance/guidance_h.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/guidance/guidance_h_ref.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/guidance/guidance_v.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/guidance/guidance_v_ref.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/guidance/guidance_v_adpt.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/actuators.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/electrical.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/imu.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/imu/imu_b2.h \
+ /home/mav/paparazzi/sw/airborne/peripherals/max1168.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/peripherals/max1168_arch.h \
+ /home/mav/paparazzi/sw/airborne/peripherals/ami601.h \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/i2c.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/i2c_arch.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/subsystems/imu/imu_b2_arch.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps/gps_sim_nps.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensors.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_gyro.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_accel.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_mag.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_baro.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_gps.h \
+ /usr/include/glib-2.0/glib.h /usr/include/glib-2.0/glib/galloca.h \
+ /usr/include/glib-2.0/glib/gtypes.h \
+ /usr/lib/i386-linux-gnu/glib-2.0/include/glibconfig.h \
+ /usr/include/glib-2.0/glib/gmacros.h /usr/include/glib-2.0/glib/garray.h \
+ /usr/include/glib-2.0/glib/gasyncqueue.h \
+ /usr/include/glib-2.0/glib/gthread.h /usr/include/glib-2.0/glib/gerror.h \
+ /usr/include/glib-2.0/glib/gquark.h /usr/include/glib-2.0/glib/gutils.h \
+ /usr/include/glib-2.0/glib/gatomic.h \
+ /usr/include/glib-2.0/glib/gbacktrace.h \
+ /usr/include/glib-2.0/glib/gbase64.h \
+ /usr/include/glib-2.0/glib/gbitlock.h \
+ /usr/include/glib-2.0/glib/gbookmarkfile.h \
+ /usr/include/glib-2.0/glib/gcache.h /usr/include/glib-2.0/glib/glist.h \
+ /usr/include/glib-2.0/glib/gmem.h /usr/include/glib-2.0/glib/gslice.h \
+ /usr/include/glib-2.0/glib/gchecksum.h \
+ /usr/include/glib-2.0/glib/gcompletion.h \
+ /usr/include/glib-2.0/glib/gconvert.h \
+ /usr/include/glib-2.0/glib/gdataset.h /usr/include/glib-2.0/glib/gdate.h \
+ /usr/include/glib-2.0/glib/gdatetime.h \
+ /usr/include/glib-2.0/glib/gtimezone.h /usr/include/glib-2.0/glib/gdir.h \
+ /usr/include/glib-2.0/glib/gfileutils.h \
+ /usr/include/glib-2.0/glib/ghash.h /usr/include/glib-2.0/glib/ghmac.h \
+ /usr/include/glib-2.0/glib/gchecksum.h \
+ /usr/include/glib-2.0/glib/ghook.h \
+ /usr/include/glib-2.0/glib/ghostutils.h \
+ /usr/include/glib-2.0/glib/giochannel.h \
+ /usr/include/glib-2.0/glib/gmain.h /usr/include/glib-2.0/glib/gpoll.h \
+ /usr/include/glib-2.0/glib/gslist.h /usr/include/glib-2.0/glib/gstring.h \
+ /usr/include/glib-2.0/glib/gunicode.h \
+ /usr/include/glib-2.0/glib/gkeyfile.h \
+ /usr/include/glib-2.0/glib/gmappedfile.h \
+ /usr/include/glib-2.0/glib/gmarkup.h \
+ /usr/include/glib-2.0/glib/gmessages.h \
+ /usr/include/glib-2.0/glib/gnode.h /usr/include/glib-2.0/glib/goption.h \
+ /usr/include/glib-2.0/glib/gpattern.h \
+ /usr/include/glib-2.0/glib/gprimes.h /usr/include/glib-2.0/glib/gqsort.h \
+ /usr/include/glib-2.0/glib/gqueue.h /usr/include/glib-2.0/glib/grand.h \
+ /usr/include/glib-2.0/glib/grel.h /usr/include/glib-2.0/glib/gregex.h \
+ /usr/include/glib-2.0/glib/gscanner.h \
+ /usr/include/glib-2.0/glib/gsequence.h \
+ /usr/include/glib-2.0/glib/gshell.h /usr/include/glib-2.0/glib/gspawn.h \
+ /usr/include/glib-2.0/glib/gstrfuncs.h \
+ /usr/include/glib-2.0/glib/gtestutils.h \
+ /usr/include/glib-2.0/glib/gthreadpool.h \
+ /usr/include/glib-2.0/glib/gtimer.h /usr/include/glib-2.0/glib/gtree.h \
+ /usr/include/glib-2.0/glib/gurifuncs.h \
+ /usr/include/glib-2.0/glib/gvarianttype.h \
+ /usr/include/glib-2.0/glib/gvariant.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_double.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs/ahrs_int_cmpl_quat.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/sensors/baro.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_none.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_rate.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_attitude.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_int.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_attitude_ref.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_ref_euler_int.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_ref_int.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs/ahrs_aligner.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ins/vf_float.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/navigation.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_float.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_flight_plan.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/settings.h \
+ firmwares/rotorcraft/autopilot.h \
+ firmwares/rotorcraft/guidance/guidance_h.h \
+ firmwares/rotorcraft/guidance/guidance_v.h \
+ firmwares/rotorcraft/navigation.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude.h \
+ firmwares/rotorcraft/stabilization/stabilization_rate.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/datalink/datalink.h \
+ /home/mav/paparazzi/var/include/dl_protocol.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/settings.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/datalink/xbee.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/datalink/xbee24.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/datalink/transport.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/commands.h \
+ boards/pc/baro_board.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/main.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_autopilot_rotorcraft.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_autopilot.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_radio_control.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/mcu.o: mcu.c mcu.h /home/mav/paparazzi/sw/airborne/arch/sim/mcu_arch.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/mcu_arch.o: arch/sim/mcu_arch.c
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/i2c.o: mcu_periph/i2c.c /home/mav/paparazzi/sw/airborne/mcu_periph/i2c.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/i2c_arch.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/i2c_arch.o: arch/sim/mcu_periph/i2c_arch.c \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/i2c.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/i2c_arch.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/sys_time.o: mcu_periph/sys_time.c \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/sys_time.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/boards/tiny_sim.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/sys_time_arch.h \
+ /home/mav/paparazzi/sw/airborne/mcu.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_arch.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/sys_time_arch.o: arch/sim/mcu_periph/sys_time_arch.c \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/sys_time.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/boards/tiny_sim.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/sys_time_arch.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/settings.o: subsystems/settings.c \
+ /home/mav/paparazzi/sw/airborne/subsystems/settings.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/settings.h \
+ firmwares/rotorcraft/autopilot.h /home/mav/paparazzi/sw/airborne/led.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ins.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ firmwares/rotorcraft/guidance/guidance_h.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/guidance/guidance_h_ref.h \
+ firmwares/rotorcraft/guidance/guidance_v.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/guidance/guidance_v_ref.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/guidance/guidance_v_adpt.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ firmwares/rotorcraft/navigation.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_flight_plan.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_int.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_attitude_ref.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_ref_euler_int.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_ref_int.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs/ahrs_int_cmpl_quat.h \
+ firmwares/rotorcraft/stabilization/stabilization_rate.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/modules.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/periodic_telemetry.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/settings_arch.o: arch/sim/subsystems/settings_arch.c \
+ /home/mav/paparazzi/sw/airborne/subsystems/settings.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/settings.h \
+ firmwares/rotorcraft/autopilot.h /home/mav/paparazzi/sw/airborne/led.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ins.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ firmwares/rotorcraft/guidance/guidance_h.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/guidance/guidance_h_ref.h \
+ firmwares/rotorcraft/guidance/guidance_v.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/guidance/guidance_v_ref.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/guidance/guidance_v_adpt.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ firmwares/rotorcraft/navigation.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_flight_plan.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_int.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_attitude_ref.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_ref_euler_int.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_ref_int.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs/ahrs_int_cmpl_quat.h \
+ firmwares/rotorcraft/stabilization/stabilization_rate.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/modules.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/periodic_telemetry.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/telemetry.o: firmwares/rotorcraft/telemetry.c \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/periodic_telemetry.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/airframe.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/downlink.o: subsystems/datalink/downlink.c \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/airframe.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/ivy_transport.o: arch/sim/ivy_transport.c
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/commands.o: firmwares/rotorcraft/commands.c \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/commands.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/airframe.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/datalink.o: firmwares/rotorcraft/datalink.c \
+ /home/mav/paparazzi/sw/airborne/subsystems/datalink/datalink.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/var/include/dl_protocol.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/modules.h \
+ /home/mav/paparazzi/var/include/messages.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/airframe.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/settings.h \
+ firmwares/rotorcraft/autopilot.h /home/mav/paparazzi/sw/airborne/led.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ins.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ firmwares/rotorcraft/guidance/guidance_h.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/guidance/guidance_h_ref.h \
+ firmwares/rotorcraft/guidance/guidance_v.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/guidance/guidance_v_ref.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/guidance/guidance_v_adpt.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ firmwares/rotorcraft/navigation.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_flight_plan.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_int.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_attitude_ref.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_ref_euler_int.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_ref_int.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs/ahrs_int_cmpl_quat.h \
+ firmwares/rotorcraft/stabilization/stabilization_rate.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/periodic_telemetry.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/datalink/downlink.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/ivy_transport.h \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/uart.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/uart_arch.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/navigation.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/pprz_geodetic_int.o: math/pprz_geodetic_int.c math/pprz_geodetic_int.h \
+ math/pprz_geodetic.h /home/mav/paparazzi/sw/include/std.h \
+ math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ math/pprz_geodetic_float.h math/pprz_algebra_float.h math/pprz_algebra.h \
+ math/pprz_geodetic_double.h math/pprz_algebra_double.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/pprz_geodetic_float.o: math/pprz_geodetic_float.c \
+ math/pprz_geodetic_float.h math/pprz_geodetic.h \
+ math/pprz_algebra_float.h math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/include/std.h math/pprz_geodetic_double.h \
+ math/pprz_algebra_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_utm.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/pprz_geodetic_double.o: math/pprz_geodetic_double.c \
+ math/pprz_geodetic_double.h math/pprz_geodetic.h \
+ math/pprz_algebra_double.h math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/include/std.h math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_utm.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/pprz_trig_int.o: math/pprz_trig_int.c math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/baro_board.o: boards/pc/baro_board.c \
+ /home/mav/paparazzi/sw/airborne/subsystems/sensors/baro.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/boards/tiny_sim.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/adc_arch.o: arch/sim/mcu_periph/adc_arch.c \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/adc.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/adc_arch.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/electrical.o: subsystems/electrical.c \
+ /home/mav/paparazzi/sw/airborne/subsystems/electrical.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/adc.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/adc_arch.h \
+ /home/mav/paparazzi/sw/airborne/commands.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/boards/tiny_sim.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/autopilot.o: firmwares/rotorcraft/autopilot.c \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/autopilot.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/led.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ins.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control/ppm.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/subsystems/radio_control/ppm_arch.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/radio.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/commands.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/navigation.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_flight_plan.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/guidance.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/guidance/guidance_h.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/guidance/guidance_h_ref.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/guidance/guidance_v.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/guidance/guidance_v_ref.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/guidance/guidance_v_adpt.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_none.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_rate.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_attitude.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_int.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_attitude_ref.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_ref_euler_int.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_ref_int.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs/ahrs_int_cmpl_quat.h \
+ firmwares/rotorcraft/autopilot_arming_yaw.h \
+ firmwares/rotorcraft/autopilot_rc_helpers.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/stabilization.o: firmwares/rotorcraft/stabilization.c \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_none.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_rate.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_attitude.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_int.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_attitude_ref.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_ref_euler_int.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_ref_int.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs/ahrs_int_cmpl_quat.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/stabilization_rate.o: \
+ firmwares/rotorcraft/stabilization/stabilization_rate.c \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_none.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_rate.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_attitude.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_int.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_attitude_ref.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_ref_euler_int.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_ref_int.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs/ahrs_int_cmpl_quat.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/imu.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/imu/imu_b2.h \
+ /home/mav/paparazzi/sw/airborne/peripherals/max1168.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/peripherals/max1168_arch.h \
+ /home/mav/paparazzi/sw/airborne/peripherals/ami601.h \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/i2c.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/i2c_arch.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/subsystems/imu/imu_b2_arch.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control.h \
+ /home/mav/paparazzi/sw/airborne/led.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control/ppm.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/subsystems/radio_control/ppm_arch.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/radio.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/stabilization_none.o: \
+ firmwares/rotorcraft/stabilization/stabilization_none.c \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_none.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_rate.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_attitude.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_int.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_attitude_ref.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_ref_euler_int.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_ref_int.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs/ahrs_int_cmpl_quat.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control.h \
+ /home/mav/paparazzi/sw/airborne/led.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control/ppm.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/subsystems/radio_control/ppm_arch.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/radio.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/stabilization_attitude_ref_euler_int.o: \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_ref_euler_int.c \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_none.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_rate.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_attitude.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_int.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_attitude_ref.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_ref_euler_int.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_ref_int.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs/ahrs_int_cmpl_quat.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/stabilization_attitude_euler_int.o: \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_euler_int.c \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_none.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_rate.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_attitude.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_int.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_attitude_ref.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_ref_euler_int.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_ref_int.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs/ahrs_int_cmpl_quat.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control.h \
+ /home/mav/paparazzi/sw/airborne/led.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control/ppm.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/subsystems/radio_control/ppm_arch.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/radio.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_attitude_rc_setpoint.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/guidance_h.o: firmwares/rotorcraft/guidance/guidance_h.c \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/guidance/guidance_h.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/guidance/guidance_h_ref.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_none.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_rate.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_attitude.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_int.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_attitude_ref.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_ref_euler_int.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_ref_int.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs/ahrs_int_cmpl_quat.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_attitude_rc_setpoint.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control.h \
+ /home/mav/paparazzi/sw/airborne/led.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control/ppm.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/subsystems/radio_control/ppm_arch.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/radio.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ins.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/navigation.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_flight_plan.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/guidance_v.o: firmwares/rotorcraft/guidance/guidance_v.c \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/guidance/guidance_v.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/guidance/guidance_v_ref.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/guidance/guidance_v_adpt.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control.h \
+ /home/mav/paparazzi/sw/airborne/led.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control/ppm.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/subsystems/radio_control/ppm_arch.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/radio.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_none.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_rate.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_attitude.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_int.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/stabilization/stabilization_attitude_ref.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_ref_euler_int.h \
+ firmwares/rotorcraft/stabilization/stabilization_attitude_ref_int.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs/ahrs_int_cmpl_quat.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/navigation.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_flight_plan.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ins.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/ins.o: subsystems/ins.c /home/mav/paparazzi/sw/airborne/subsystems/ins.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/imu.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/imu/imu_b2.h \
+ /home/mav/paparazzi/sw/airborne/peripherals/max1168.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/peripherals/max1168_arch.h \
+ /home/mav/paparazzi/sw/airborne/peripherals/ami601.h \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/i2c.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/i2c_arch.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/subsystems/imu/imu_b2_arch.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/sensors/baro.h \
+ /home/mav/paparazzi/sw/airborne/boards/tiny_sim.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps/gps_sim_nps.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensors.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_gyro.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_accel.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_mag.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_baro.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_gps.h \
+ /usr/include/glib-2.0/glib.h /usr/include/glib-2.0/glib/galloca.h \
+ /usr/include/glib-2.0/glib/gtypes.h \
+ /usr/lib/i386-linux-gnu/glib-2.0/include/glibconfig.h \
+ /usr/include/glib-2.0/glib/gmacros.h /usr/include/glib-2.0/glib/garray.h \
+ /usr/include/glib-2.0/glib/gasyncqueue.h \
+ /usr/include/glib-2.0/glib/gthread.h /usr/include/glib-2.0/glib/gerror.h \
+ /usr/include/glib-2.0/glib/gquark.h /usr/include/glib-2.0/glib/gutils.h \
+ /usr/include/glib-2.0/glib/gatomic.h \
+ /usr/include/glib-2.0/glib/gbacktrace.h \
+ /usr/include/glib-2.0/glib/gbase64.h \
+ /usr/include/glib-2.0/glib/gbitlock.h \
+ /usr/include/glib-2.0/glib/gbookmarkfile.h \
+ /usr/include/glib-2.0/glib/gcache.h /usr/include/glib-2.0/glib/glist.h \
+ /usr/include/glib-2.0/glib/gmem.h /usr/include/glib-2.0/glib/gslice.h \
+ /usr/include/glib-2.0/glib/gchecksum.h \
+ /usr/include/glib-2.0/glib/gcompletion.h \
+ /usr/include/glib-2.0/glib/gconvert.h \
+ /usr/include/glib-2.0/glib/gdataset.h /usr/include/glib-2.0/glib/gdate.h \
+ /usr/include/glib-2.0/glib/gdatetime.h \
+ /usr/include/glib-2.0/glib/gtimezone.h /usr/include/glib-2.0/glib/gdir.h \
+ /usr/include/glib-2.0/glib/gfileutils.h \
+ /usr/include/glib-2.0/glib/ghash.h /usr/include/glib-2.0/glib/ghmac.h \
+ /usr/include/glib-2.0/glib/gchecksum.h \
+ /usr/include/glib-2.0/glib/ghook.h \
+ /usr/include/glib-2.0/glib/ghostutils.h \
+ /usr/include/glib-2.0/glib/giochannel.h \
+ /usr/include/glib-2.0/glib/gmain.h /usr/include/glib-2.0/glib/gpoll.h \
+ /usr/include/glib-2.0/glib/gslist.h /usr/include/glib-2.0/glib/gstring.h \
+ /usr/include/glib-2.0/glib/gunicode.h \
+ /usr/include/glib-2.0/glib/gkeyfile.h \
+ /usr/include/glib-2.0/glib/gmappedfile.h \
+ /usr/include/glib-2.0/glib/gmarkup.h \
+ /usr/include/glib-2.0/glib/gmessages.h \
+ /usr/include/glib-2.0/glib/gnode.h /usr/include/glib-2.0/glib/goption.h \
+ /usr/include/glib-2.0/glib/gpattern.h \
+ /usr/include/glib-2.0/glib/gprimes.h /usr/include/glib-2.0/glib/gqsort.h \
+ /usr/include/glib-2.0/glib/gqueue.h /usr/include/glib-2.0/glib/grand.h \
+ /usr/include/glib-2.0/glib/grel.h /usr/include/glib-2.0/glib/gregex.h \
+ /usr/include/glib-2.0/glib/gscanner.h \
+ /usr/include/glib-2.0/glib/gsequence.h \
+ /usr/include/glib-2.0/glib/gshell.h /usr/include/glib-2.0/glib/gspawn.h \
+ /usr/include/glib-2.0/glib/gstrfuncs.h \
+ /usr/include/glib-2.0/glib/gtestutils.h \
+ /usr/include/glib-2.0/glib/gthreadpool.h \
+ /usr/include/glib-2.0/glib/gtimer.h /usr/include/glib-2.0/glib/gtree.h \
+ /usr/include/glib-2.0/glib/gurifuncs.h \
+ /usr/include/glib-2.0/glib/gvarianttype.h \
+ /usr/include/glib-2.0/glib/gvariant.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_double.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs/ahrs_int_cmpl_quat.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ins/vf_float.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_fdm.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/flight_plan.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/modules.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/vf_float.o: subsystems/ins/vf_float.c \
+ /home/mav/paparazzi/sw/airborne/subsystems/ins/vf_float.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/navigation.o: firmwares/rotorcraft/navigation.c \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/navigation.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_flight_plan.h \
+ /home/mav/paparazzi/sw/airborne/pprz_debug.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps/gps_sim_nps.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensors.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_gyro.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_accel.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_mag.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_baro.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_gps.h \
+ /usr/include/glib-2.0/glib.h /usr/include/glib-2.0/glib/galloca.h \
+ /usr/include/glib-2.0/glib/gtypes.h \
+ /usr/lib/i386-linux-gnu/glib-2.0/include/glibconfig.h \
+ /usr/include/glib-2.0/glib/gmacros.h /usr/include/glib-2.0/glib/garray.h \
+ /usr/include/glib-2.0/glib/gasyncqueue.h \
+ /usr/include/glib-2.0/glib/gthread.h /usr/include/glib-2.0/glib/gerror.h \
+ /usr/include/glib-2.0/glib/gquark.h /usr/include/glib-2.0/glib/gutils.h \
+ /usr/include/glib-2.0/glib/gatomic.h \
+ /usr/include/glib-2.0/glib/gbacktrace.h \
+ /usr/include/glib-2.0/glib/gbase64.h \
+ /usr/include/glib-2.0/glib/gbitlock.h \
+ /usr/include/glib-2.0/glib/gbookmarkfile.h \
+ /usr/include/glib-2.0/glib/gcache.h /usr/include/glib-2.0/glib/glist.h \
+ /usr/include/glib-2.0/glib/gmem.h /usr/include/glib-2.0/glib/gslice.h \
+ /usr/include/glib-2.0/glib/gchecksum.h \
+ /usr/include/glib-2.0/glib/gcompletion.h \
+ /usr/include/glib-2.0/glib/gconvert.h \
+ /usr/include/glib-2.0/glib/gdataset.h /usr/include/glib-2.0/glib/gdate.h \
+ /usr/include/glib-2.0/glib/gdatetime.h \
+ /usr/include/glib-2.0/glib/gtimezone.h /usr/include/glib-2.0/glib/gdir.h \
+ /usr/include/glib-2.0/glib/gfileutils.h \
+ /usr/include/glib-2.0/glib/ghash.h /usr/include/glib-2.0/glib/ghmac.h \
+ /usr/include/glib-2.0/glib/gchecksum.h \
+ /usr/include/glib-2.0/glib/ghook.h \
+ /usr/include/glib-2.0/glib/ghostutils.h \
+ /usr/include/glib-2.0/glib/giochannel.h \
+ /usr/include/glib-2.0/glib/gmain.h /usr/include/glib-2.0/glib/gpoll.h \
+ /usr/include/glib-2.0/glib/gslist.h /usr/include/glib-2.0/glib/gstring.h \
+ /usr/include/glib-2.0/glib/gunicode.h \
+ /usr/include/glib-2.0/glib/gkeyfile.h \
+ /usr/include/glib-2.0/glib/gmappedfile.h \
+ /usr/include/glib-2.0/glib/gmarkup.h \
+ /usr/include/glib-2.0/glib/gmessages.h \
+ /usr/include/glib-2.0/glib/gnode.h /usr/include/glib-2.0/glib/goption.h \
+ /usr/include/glib-2.0/glib/gpattern.h \
+ /usr/include/glib-2.0/glib/gprimes.h /usr/include/glib-2.0/glib/gqsort.h \
+ /usr/include/glib-2.0/glib/gqueue.h /usr/include/glib-2.0/glib/grand.h \
+ /usr/include/glib-2.0/glib/grel.h /usr/include/glib-2.0/glib/gregex.h \
+ /usr/include/glib-2.0/glib/gscanner.h \
+ /usr/include/glib-2.0/glib/gsequence.h \
+ /usr/include/glib-2.0/glib/gshell.h /usr/include/glib-2.0/glib/gspawn.h \
+ /usr/include/glib-2.0/glib/gstrfuncs.h \
+ /usr/include/glib-2.0/glib/gtestutils.h \
+ /usr/include/glib-2.0/glib/gthreadpool.h \
+ /usr/include/glib-2.0/glib/gtimer.h /usr/include/glib-2.0/glib/gtree.h \
+ /usr/include/glib-2.0/glib/gurifuncs.h \
+ /usr/include/glib-2.0/glib/gvarianttype.h \
+ /usr/include/glib-2.0/glib/gvariant.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_double.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ins.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/autopilot.h \
+ /home/mav/paparazzi/sw/airborne/led.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/airframe.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/modules.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/flight_plan.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/datalink/downlink.h \
+ /home/mav/paparazzi/var/include/messages.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/ivy_transport.h \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/uart.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/uart_arch.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/common_flight_plan.o: subsystems/navigation/common_flight_plan.c \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_flight_plan.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/flight_plan.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/modules.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/radio_control.o: subsystems/radio_control.c \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control.h \
+ /home/mav/paparazzi/sw/airborne/led.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control/ppm.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/subsystems/radio_control/ppm_arch.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/radio.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/ppm.o: subsystems/radio_control/ppm.c \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control.h \
+ /home/mav/paparazzi/sw/airborne/led.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control/ppm.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/subsystems/radio_control/ppm_arch.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/radio.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/ppm_arch.o: arch/sim/subsystems/radio_control/ppm_arch.c \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/sys_time.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/boards/tiny_sim.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/sys_time_arch.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control.h \
+ /home/mav/paparazzi/sw/airborne/led.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control/ppm.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/subsystems/radio_control/ppm_arch.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/radio.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_radio_control.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/supervision.o: firmwares/rotorcraft/actuators/supervision.c \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/actuators/supervision.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/actuators_mkk.o: firmwares/rotorcraft/actuators/actuators_mkk.c \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/actuators.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/actuators/actuators_mkk.h \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/i2c.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/i2c_arch.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/actuators/supervision.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/rotorcraft/commands.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/sys_time.h \
+ /home/mav/paparazzi/sw/airborne/boards/tiny_sim.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/sys_time_arch.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/imu.o: subsystems/imu.c /home/mav/paparazzi/sw/airborne/subsystems/imu.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/imu/imu_b2.h \
+ /home/mav/paparazzi/sw/airborne/peripherals/max1168.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/peripherals/max1168_arch.h \
+ /home/mav/paparazzi/sw/airborne/peripherals/ami601.h \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/i2c.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/i2c_arch.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/subsystems/imu/imu_b2_arch.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/imu_b2.o: subsystems/imu/imu_b2.c \
+ /home/mav/paparazzi/sw/airborne/subsystems/imu.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/imu/imu_b2.h \
+ /home/mav/paparazzi/sw/airborne/peripherals/max1168.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/peripherals/max1168_arch.h \
+ /home/mav/paparazzi/sw/airborne/peripherals/ami601.h \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/i2c.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/i2c_arch.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/subsystems/imu/imu_b2_arch.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/imu_b2_arch.o: arch/sim/subsystems/imu/imu_b2_arch.c \
+ /home/mav/paparazzi/sw/airborne/subsystems/imu.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/imu/imu_b2.h \
+ /home/mav/paparazzi/sw/airborne/peripherals/max1168.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/peripherals/max1168_arch.h \
+ /home/mav/paparazzi/sw/airborne/peripherals/ami601.h \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/i2c.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/i2c_arch.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/subsystems/imu/imu_b2_arch.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensors.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_gyro.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_accel.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_mag.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_baro.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_gps.h \
+ /usr/include/glib-2.0/glib.h /usr/include/glib-2.0/glib/galloca.h \
+ /usr/include/glib-2.0/glib/gtypes.h \
+ /usr/lib/i386-linux-gnu/glib-2.0/include/glibconfig.h \
+ /usr/include/glib-2.0/glib/gmacros.h /usr/include/glib-2.0/glib/garray.h \
+ /usr/include/glib-2.0/glib/gasyncqueue.h \
+ /usr/include/glib-2.0/glib/gthread.h /usr/include/glib-2.0/glib/gerror.h \
+ /usr/include/glib-2.0/glib/gquark.h /usr/include/glib-2.0/glib/gutils.h \
+ /usr/include/glib-2.0/glib/gatomic.h \
+ /usr/include/glib-2.0/glib/gbacktrace.h \
+ /usr/include/glib-2.0/glib/gbase64.h \
+ /usr/include/glib-2.0/glib/gbitlock.h \
+ /usr/include/glib-2.0/glib/gbookmarkfile.h \
+ /usr/include/glib-2.0/glib/gcache.h /usr/include/glib-2.0/glib/glist.h \
+ /usr/include/glib-2.0/glib/gmem.h /usr/include/glib-2.0/glib/gslice.h \
+ /usr/include/glib-2.0/glib/gchecksum.h \
+ /usr/include/glib-2.0/glib/gcompletion.h \
+ /usr/include/glib-2.0/glib/gconvert.h \
+ /usr/include/glib-2.0/glib/gdataset.h /usr/include/glib-2.0/glib/gdate.h \
+ /usr/include/glib-2.0/glib/gdatetime.h \
+ /usr/include/glib-2.0/glib/gtimezone.h /usr/include/glib-2.0/glib/gdir.h \
+ /usr/include/glib-2.0/glib/gfileutils.h \
+ /usr/include/glib-2.0/glib/ghash.h /usr/include/glib-2.0/glib/ghmac.h \
+ /usr/include/glib-2.0/glib/gchecksum.h \
+ /usr/include/glib-2.0/glib/ghook.h \
+ /usr/include/glib-2.0/glib/ghostutils.h \
+ /usr/include/glib-2.0/glib/giochannel.h \
+ /usr/include/glib-2.0/glib/gmain.h /usr/include/glib-2.0/glib/gpoll.h \
+ /usr/include/glib-2.0/glib/gslist.h /usr/include/glib-2.0/glib/gstring.h \
+ /usr/include/glib-2.0/glib/gunicode.h \
+ /usr/include/glib-2.0/glib/gkeyfile.h \
+ /usr/include/glib-2.0/glib/gmappedfile.h \
+ /usr/include/glib-2.0/glib/gmarkup.h \
+ /usr/include/glib-2.0/glib/gmessages.h \
+ /usr/include/glib-2.0/glib/gnode.h /usr/include/glib-2.0/glib/goption.h \
+ /usr/include/glib-2.0/glib/gpattern.h \
+ /usr/include/glib-2.0/glib/gprimes.h /usr/include/glib-2.0/glib/gqsort.h \
+ /usr/include/glib-2.0/glib/gqueue.h /usr/include/glib-2.0/glib/grand.h \
+ /usr/include/glib-2.0/glib/grel.h /usr/include/glib-2.0/glib/gregex.h \
+ /usr/include/glib-2.0/glib/gscanner.h \
+ /usr/include/glib-2.0/glib/gsequence.h \
+ /usr/include/glib-2.0/glib/gshell.h /usr/include/glib-2.0/glib/gspawn.h \
+ /usr/include/glib-2.0/glib/gstrfuncs.h \
+ /usr/include/glib-2.0/glib/gtestutils.h \
+ /usr/include/glib-2.0/glib/gthreadpool.h \
+ /usr/include/glib-2.0/glib/gtimer.h /usr/include/glib-2.0/glib/gtree.h \
+ /usr/include/glib-2.0/glib/gurifuncs.h \
+ /usr/include/glib-2.0/glib/gvarianttype.h \
+ /usr/include/glib-2.0/glib/gvariant.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_double.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/max1168.o: peripherals/max1168.c peripherals/max1168.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/peripherals/max1168_arch.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/max1168_arch.o: arch/sim/peripherals/max1168_arch.c \
+ /home/mav/paparazzi/sw/airborne/peripherals/max1168.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/peripherals/max1168_arch.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/ami601.o: peripherals/ami601.c \
+ /home/mav/paparazzi/sw/airborne/peripherals/ami601.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/i2c.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/i2c_arch.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/gps.o: subsystems/gps.c /home/mav/paparazzi/sw/airborne/subsystems/gps.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps/gps_sim_nps.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensors.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_gyro.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_accel.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_mag.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_baro.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_gps.h \
+ /usr/include/glib-2.0/glib.h /usr/include/glib-2.0/glib/galloca.h \
+ /usr/include/glib-2.0/glib/gtypes.h \
+ /usr/lib/i386-linux-gnu/glib-2.0/include/glibconfig.h \
+ /usr/include/glib-2.0/glib/gmacros.h /usr/include/glib-2.0/glib/garray.h \
+ /usr/include/glib-2.0/glib/gasyncqueue.h \
+ /usr/include/glib-2.0/glib/gthread.h /usr/include/glib-2.0/glib/gerror.h \
+ /usr/include/glib-2.0/glib/gquark.h /usr/include/glib-2.0/glib/gutils.h \
+ /usr/include/glib-2.0/glib/gatomic.h \
+ /usr/include/glib-2.0/glib/gbacktrace.h \
+ /usr/include/glib-2.0/glib/gbase64.h \
+ /usr/include/glib-2.0/glib/gbitlock.h \
+ /usr/include/glib-2.0/glib/gbookmarkfile.h \
+ /usr/include/glib-2.0/glib/gcache.h /usr/include/glib-2.0/glib/glist.h \
+ /usr/include/glib-2.0/glib/gmem.h /usr/include/glib-2.0/glib/gslice.h \
+ /usr/include/glib-2.0/glib/gchecksum.h \
+ /usr/include/glib-2.0/glib/gcompletion.h \
+ /usr/include/glib-2.0/glib/gconvert.h \
+ /usr/include/glib-2.0/glib/gdataset.h /usr/include/glib-2.0/glib/gdate.h \
+ /usr/include/glib-2.0/glib/gdatetime.h \
+ /usr/include/glib-2.0/glib/gtimezone.h /usr/include/glib-2.0/glib/gdir.h \
+ /usr/include/glib-2.0/glib/gfileutils.h \
+ /usr/include/glib-2.0/glib/ghash.h /usr/include/glib-2.0/glib/ghmac.h \
+ /usr/include/glib-2.0/glib/gchecksum.h \
+ /usr/include/glib-2.0/glib/ghook.h \
+ /usr/include/glib-2.0/glib/ghostutils.h \
+ /usr/include/glib-2.0/glib/giochannel.h \
+ /usr/include/glib-2.0/glib/gmain.h /usr/include/glib-2.0/glib/gpoll.h \
+ /usr/include/glib-2.0/glib/gslist.h /usr/include/glib-2.0/glib/gstring.h \
+ /usr/include/glib-2.0/glib/gunicode.h \
+ /usr/include/glib-2.0/glib/gkeyfile.h \
+ /usr/include/glib-2.0/glib/gmappedfile.h \
+ /usr/include/glib-2.0/glib/gmarkup.h \
+ /usr/include/glib-2.0/glib/gmessages.h \
+ /usr/include/glib-2.0/glib/gnode.h /usr/include/glib-2.0/glib/goption.h \
+ /usr/include/glib-2.0/glib/gpattern.h \
+ /usr/include/glib-2.0/glib/gprimes.h /usr/include/glib-2.0/glib/gqsort.h \
+ /usr/include/glib-2.0/glib/gqueue.h /usr/include/glib-2.0/glib/grand.h \
+ /usr/include/glib-2.0/glib/grel.h /usr/include/glib-2.0/glib/gregex.h \
+ /usr/include/glib-2.0/glib/gscanner.h \
+ /usr/include/glib-2.0/glib/gsequence.h \
+ /usr/include/glib-2.0/glib/gshell.h /usr/include/glib-2.0/glib/gspawn.h \
+ /usr/include/glib-2.0/glib/gstrfuncs.h \
+ /usr/include/glib-2.0/glib/gtestutils.h \
+ /usr/include/glib-2.0/glib/gthreadpool.h \
+ /usr/include/glib-2.0/glib/gtimer.h /usr/include/glib-2.0/glib/gtree.h \
+ /usr/include/glib-2.0/glib/gurifuncs.h \
+ /usr/include/glib-2.0/glib/gvarianttype.h \
+ /usr/include/glib-2.0/glib/gvariant.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_double.h \
+ /home/mav/paparazzi/sw/airborne/led.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/gps_sim_nps.o: subsystems/gps/gps_sim_nps.c \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps/gps_sim_nps.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensors.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_gyro.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_accel.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_mag.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_baro.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_gps.h \
+ /usr/include/glib-2.0/glib.h /usr/include/glib-2.0/glib/galloca.h \
+ /usr/include/glib-2.0/glib/gtypes.h \
+ /usr/lib/i386-linux-gnu/glib-2.0/include/glibconfig.h \
+ /usr/include/glib-2.0/glib/gmacros.h /usr/include/glib-2.0/glib/garray.h \
+ /usr/include/glib-2.0/glib/gasyncqueue.h \
+ /usr/include/glib-2.0/glib/gthread.h /usr/include/glib-2.0/glib/gerror.h \
+ /usr/include/glib-2.0/glib/gquark.h /usr/include/glib-2.0/glib/gutils.h \
+ /usr/include/glib-2.0/glib/gatomic.h \
+ /usr/include/glib-2.0/glib/gbacktrace.h \
+ /usr/include/glib-2.0/glib/gbase64.h \
+ /usr/include/glib-2.0/glib/gbitlock.h \
+ /usr/include/glib-2.0/glib/gbookmarkfile.h \
+ /usr/include/glib-2.0/glib/gcache.h /usr/include/glib-2.0/glib/glist.h \
+ /usr/include/glib-2.0/glib/gmem.h /usr/include/glib-2.0/glib/gslice.h \
+ /usr/include/glib-2.0/glib/gchecksum.h \
+ /usr/include/glib-2.0/glib/gcompletion.h \
+ /usr/include/glib-2.0/glib/gconvert.h \
+ /usr/include/glib-2.0/glib/gdataset.h /usr/include/glib-2.0/glib/gdate.h \
+ /usr/include/glib-2.0/glib/gdatetime.h \
+ /usr/include/glib-2.0/glib/gtimezone.h /usr/include/glib-2.0/glib/gdir.h \
+ /usr/include/glib-2.0/glib/gfileutils.h \
+ /usr/include/glib-2.0/glib/ghash.h /usr/include/glib-2.0/glib/ghmac.h \
+ /usr/include/glib-2.0/glib/gchecksum.h \
+ /usr/include/glib-2.0/glib/ghook.h \
+ /usr/include/glib-2.0/glib/ghostutils.h \
+ /usr/include/glib-2.0/glib/giochannel.h \
+ /usr/include/glib-2.0/glib/gmain.h /usr/include/glib-2.0/glib/gpoll.h \
+ /usr/include/glib-2.0/glib/gslist.h /usr/include/glib-2.0/glib/gstring.h \
+ /usr/include/glib-2.0/glib/gunicode.h \
+ /usr/include/glib-2.0/glib/gkeyfile.h \
+ /usr/include/glib-2.0/glib/gmappedfile.h \
+ /usr/include/glib-2.0/glib/gmarkup.h \
+ /usr/include/glib-2.0/glib/gmessages.h \
+ /usr/include/glib-2.0/glib/gnode.h /usr/include/glib-2.0/glib/goption.h \
+ /usr/include/glib-2.0/glib/gpattern.h \
+ /usr/include/glib-2.0/glib/gprimes.h /usr/include/glib-2.0/glib/gqsort.h \
+ /usr/include/glib-2.0/glib/gqueue.h /usr/include/glib-2.0/glib/grand.h \
+ /usr/include/glib-2.0/glib/grel.h /usr/include/glib-2.0/glib/gregex.h \
+ /usr/include/glib-2.0/glib/gscanner.h \
+ /usr/include/glib-2.0/glib/gsequence.h \
+ /usr/include/glib-2.0/glib/gshell.h /usr/include/glib-2.0/glib/gspawn.h \
+ /usr/include/glib-2.0/glib/gstrfuncs.h \
+ /usr/include/glib-2.0/glib/gtestutils.h \
+ /usr/include/glib-2.0/glib/gthreadpool.h \
+ /usr/include/glib-2.0/glib/gtimer.h /usr/include/glib-2.0/glib/gtree.h \
+ /usr/include/glib-2.0/glib/gurifuncs.h \
+ /usr/include/glib-2.0/glib/gvarianttype.h \
+ /usr/include/glib-2.0/glib/gvariant.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_double.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/ahrs.o: subsystems/ahrs.c \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs/ahrs_int_cmpl_quat.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/ahrs_int_cmpl_quat.o: subsystems/ahrs/ahrs_int_cmpl_quat.c \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs/ahrs_int_cmpl_quat.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs/ahrs_aligner.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs/ahrs_int_utils.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs/ahrs_magnetic_field_model.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs/ahrs_float_utils.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/imu.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/imu/imu_b2.h \
+ /home/mav/paparazzi/sw/airborne/peripherals/max1168.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/peripherals/max1168_arch.h \
+ /home/mav/paparazzi/sw/airborne/peripherals/ami601.h \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/i2c.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/i2c_arch.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/subsystems/imu/imu_b2_arch.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps/gps_sim_nps.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensors.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_gyro.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_accel.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_mag.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_baro.h \
+ /home/mav/paparazzi/sw/simulator/nps/nps_sensor_gps.h \
+ /usr/include/glib-2.0/glib.h /usr/include/glib-2.0/glib/galloca.h \
+ /usr/include/glib-2.0/glib/gtypes.h \
+ /usr/lib/i386-linux-gnu/glib-2.0/include/glibconfig.h \
+ /usr/include/glib-2.0/glib/gmacros.h /usr/include/glib-2.0/glib/garray.h \
+ /usr/include/glib-2.0/glib/gasyncqueue.h \
+ /usr/include/glib-2.0/glib/gthread.h /usr/include/glib-2.0/glib/gerror.h \
+ /usr/include/glib-2.0/glib/gquark.h /usr/include/glib-2.0/glib/gutils.h \
+ /usr/include/glib-2.0/glib/gatomic.h \
+ /usr/include/glib-2.0/glib/gbacktrace.h \
+ /usr/include/glib-2.0/glib/gbase64.h \
+ /usr/include/glib-2.0/glib/gbitlock.h \
+ /usr/include/glib-2.0/glib/gbookmarkfile.h \
+ /usr/include/glib-2.0/glib/gcache.h /usr/include/glib-2.0/glib/glist.h \
+ /usr/include/glib-2.0/glib/gmem.h /usr/include/glib-2.0/glib/gslice.h \
+ /usr/include/glib-2.0/glib/gchecksum.h \
+ /usr/include/glib-2.0/glib/gcompletion.h \
+ /usr/include/glib-2.0/glib/gconvert.h \
+ /usr/include/glib-2.0/glib/gdataset.h /usr/include/glib-2.0/glib/gdate.h \
+ /usr/include/glib-2.0/glib/gdatetime.h \
+ /usr/include/glib-2.0/glib/gtimezone.h /usr/include/glib-2.0/glib/gdir.h \
+ /usr/include/glib-2.0/glib/gfileutils.h \
+ /usr/include/glib-2.0/glib/ghash.h /usr/include/glib-2.0/glib/ghmac.h \
+ /usr/include/glib-2.0/glib/gchecksum.h \
+ /usr/include/glib-2.0/glib/ghook.h \
+ /usr/include/glib-2.0/glib/ghostutils.h \
+ /usr/include/glib-2.0/glib/giochannel.h \
+ /usr/include/glib-2.0/glib/gmain.h /usr/include/glib-2.0/glib/gpoll.h \
+ /usr/include/glib-2.0/glib/gslist.h /usr/include/glib-2.0/glib/gstring.h \
+ /usr/include/glib-2.0/glib/gunicode.h \
+ /usr/include/glib-2.0/glib/gkeyfile.h \
+ /usr/include/glib-2.0/glib/gmappedfile.h \
+ /usr/include/glib-2.0/glib/gmarkup.h \
+ /usr/include/glib-2.0/glib/gmessages.h \
+ /usr/include/glib-2.0/glib/gnode.h /usr/include/glib-2.0/glib/goption.h \
+ /usr/include/glib-2.0/glib/gpattern.h \
+ /usr/include/glib-2.0/glib/gprimes.h /usr/include/glib-2.0/glib/gqsort.h \
+ /usr/include/glib-2.0/glib/gqueue.h /usr/include/glib-2.0/glib/grand.h \
+ /usr/include/glib-2.0/glib/grel.h /usr/include/glib-2.0/glib/gregex.h \
+ /usr/include/glib-2.0/glib/gscanner.h \
+ /usr/include/glib-2.0/glib/gsequence.h \
+ /usr/include/glib-2.0/glib/gshell.h /usr/include/glib-2.0/glib/gspawn.h \
+ /usr/include/glib-2.0/glib/gstrfuncs.h \
+ /usr/include/glib-2.0/glib/gtestutils.h \
+ /usr/include/glib-2.0/glib/gthreadpool.h \
+ /usr/include/glib-2.0/glib/gtimer.h /usr/include/glib-2.0/glib/gtree.h \
+ /usr/include/glib-2.0/glib/gurifuncs.h \
+ /usr/include/glib-2.0/glib/gvarianttype.h \
+ /usr/include/glib-2.0/glib/gvariant.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_double.h
+/home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/sim/ahrs_aligner.o: subsystems/ahrs/ahrs_aligner.c \
+ subsystems/ahrs/ahrs_aligner.h /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/imu.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/var/LisaLv11_Booz2v12_RC/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/imu/imu_b2.h \
+ /home/mav/paparazzi/sw/airborne/peripherals/max1168.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/peripherals/max1168_arch.h \
+ /home/mav/paparazzi/sw/airborne/peripherals/ami601.h \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/i2c.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/i2c_arch.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/subsystems/imu/imu_b2_arch.h \
+ /home/mav/paparazzi/sw/airborne/led.h

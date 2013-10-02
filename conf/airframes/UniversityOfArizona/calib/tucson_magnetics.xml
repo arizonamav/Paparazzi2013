@@ -1,0 +1,7 @@
+<airframe>
+        <section name="AHRS" prefix="AHRS_">
+                <define name="H_X" value="0.510045619461169"/>
+                <define name="H_Y" value="0.093273816847886"/>
+                <define name="H_Z" value="0.855075120184829"/>
+        </section>
+</airframe>

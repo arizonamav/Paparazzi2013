@@ -1,0 +1,24 @@
+<!DOCTYPE flight_plan SYSTEM "flight_plan.dtd">
+
+<flight_plan alt="757" ground_alt="755" lat0="32.120263" lon0="-110.762709" max_dist_from_home="350" name="Himmel Circuit 2" security_height="0">
+  <waypoints>
+    <waypoint name="HOME" x="0" y="0" height="10"/>
+    <waypoint name="SW" lat="32.119984" lon="-110.764131" height="60"/>
+    <waypoint name="SE" lat="32.119802" lon="-110.760663" height="60"/>
+    <waypoint name="NE" lat="32.121024" lon="-110.760552" height="60"/>
+    <waypoint name="NW" lat="32.121203" lon="-110.764056" height="60"/>
+
+ 
+
+  </waypoints>
+  <blocks>
+    <block name="corners">
+      <while cond="TRUE">
+        <go wp="SW"/>
+        <go wp="SE"/>
+	<go wp="NE"/>
+	<go wp="NW"/>
+      </while>
+    </block>
+  </blocks>
+</flight_plan>

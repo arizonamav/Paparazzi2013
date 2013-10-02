@@ -1,0 +1,2036 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 18, 4
+  12              		.thumb
+  13              		.file	"spektrum_arch.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.DelayUs,"ax",%progbits
+  18              		.align	1
+  19              		.thumb
+  20              		.thumb_func
+  22              	DelayUs:
+  23              	.LFB36:
+  24              		.file 1 "arch/stm32/subsystems/radio_control/spektrum_arch.c"
+   1:arch/stm32/subsystems/radio_control/spektrum_arch.c **** /*
+   2:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * $Id$
+   3:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+   4:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * Copyright (C) 2010 Eric Parsonage <eric@eparsonage.com>
+   5:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+   6:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * This file is part of paparazzi.
+   7:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+   8:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * paparazzi is free software; you can redistribute it and/or modify
+   9:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * it under the terms of the GNU General Public License as published by
+  10:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * the Free Software Foundation; either version 2, or (at your option)
+  11:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * any later version.
+  12:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+  13:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * paparazzi is distributed in the hope that it will be useful,
+  14:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  15:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  16:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * GNU General Public License for more details.
+  17:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+  18:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * You should have received a copy of the GNU General Public License
+  19:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * along with paparazzi; see the file COPYING.  If not, write to
+  20:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * the Free Software Foundation, 59 Temple Place - Suite 330,
+  21:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * Boston, MA 02111-1307, USA.
+  22:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  */
+  23:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+  24:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #include <stdint.h>
+  25:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #include <stm32/gpio.h>
+  26:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #include <stm32/rcc.h>
+  27:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #include <stm32/tim.h>
+  28:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #include <stm32/misc.h>
+  29:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #include <stm32/usart.h>
+  30:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #include "subsystems/radio_control.h"
+  31:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #include "subsystems/radio_control/spektrum_arch.h"
+  32:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #include "mcu_periph/uart.h"
+  33:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #include "pprz_baudrate.h"
+  34:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+  35:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+  36:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+  37:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #define SPEKTRUM_CHANNELS_PER_FRAME 7
+  38:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #define MAX_SPEKTRUM_FRAMES 2
+  39:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #define MAX_SPEKTRUM_CHANNELS 16
+  40:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+  41:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #define MAX_DELAY   INT16_MAX
+  42:arch/stm32/subsystems/radio_control/spektrum_arch.c **** /* the frequency of the delay timer */
+  43:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #define DELAY_TIM_FREQUENCY 1000000
+  44:arch/stm32/subsystems/radio_control/spektrum_arch.c **** /* Number of low pulses sent to satellite receivers */
+  45:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #define MASTER_RECEIVER_PULSES 5
+  46:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #define SLAVE_RECEIVER_PULSES 6
+  47:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+  48:arch/stm32/subsystems/radio_control/spektrum_arch.c **** /* The line that is pulled low at power up to initiate the bind process */
+  49:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #define BIND_PIN GPIO_Pin_3
+  50:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #define BIND_PIN_PORT GPIOC
+  51:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #define BIND_PIN_PERIPH RCC_APB2Periph_GPIOC
+  52:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+  53:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #define TIM_FREQ_1000000 1000000
+  54:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #define TIM_TICS_FOR_100us 100
+  55:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #define MIN_FRAME_SPACE  70  // 7ms
+  56:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #define MAX_BYTE_SPACE  3   // .3ms
+  57:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+  58:arch/stm32/subsystems/radio_control/spektrum_arch.c **** /*
+  59:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * in the makefile we set RADIO_CONTROL_SPEKTRUM_PRIMARY_PORT to be Uartx
+  60:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * but in uart_hw.c the initialisation functions are
+  61:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * defined as uartx these macros give us the glue
+  62:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * that allows static calls at compile time
+  63:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  */
+  64:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+  65:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #define __PrimaryUart(dev, _x) dev##_x
+  66:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #define _PrimaryUart(dev, _x)  __PrimaryUart(dev, _x)
+  67:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #define PrimaryUart(_x) _PrimaryUart(RADIO_CONTROL_SPEKTRUM_PRIMARY_PORT, _x)
+  68:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+  69:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #define __SecondaryUart(dev, _x) dev##_x
+  70:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #define _SecondaryUart(dev, _x)  __SecondaryUart(dev, _x)
+  71:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #define SecondaryUart(_x) _SecondaryUart(RADIO_CONTROL_SPEKTRUM_SECONDARY_PORT, _x)
+  72:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+  73:arch/stm32/subsystems/radio_control/spektrum_arch.c **** struct SpektrumStateStruct {
+  74:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     uint8_t ReSync;
+  75:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     uint8_t SpektrumTimer;
+  76:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     uint8_t Sync;
+  77:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     uint8_t ChannelCnt;
+  78:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     uint8_t FrameCnt;
+  79:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     uint8_t HighByte;
+  80:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     uint8_t SecondFrame;
+  81:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     uint16_t LostFrameCnt;
+  82:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     uint8_t RcAvailable;
+  83:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     int16_t values[SPEKTRUM_CHANNELS_PER_FRAME*MAX_SPEKTRUM_FRAMES];
+  84:arch/stm32/subsystems/radio_control/spektrum_arch.c **** };
+  85:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+  86:arch/stm32/subsystems/radio_control/spektrum_arch.c **** typedef struct SpektrumStateStruct SpektrumStateType;
+  87:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+  88:arch/stm32/subsystems/radio_control/spektrum_arch.c **** SpektrumStateType PrimarySpektrumState = {1,0,0,0,0,0,0,0,0};
+  89:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #ifdef RADIO_CONTROL_SPEKTRUM_SECONDARY_PORT
+  90:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #pragma message "Using secondary spektrum receiver."
+  91:arch/stm32/subsystems/radio_control/spektrum_arch.c **** SpektrumStateType SecondarySpektrumState = {1,0,0,0,0,0,0,0,0};
+  92:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #else
+  93:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #pragma message "NOT using secondary spektrum receiver."
+  94:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #endif
+  95:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+  96:arch/stm32/subsystems/radio_control/spektrum_arch.c **** int16_t SpektrumBuf[SPEKTRUM_CHANNELS_PER_FRAME*MAX_SPEKTRUM_FRAMES];
+  97:arch/stm32/subsystems/radio_control/spektrum_arch.c **** /* the order of the channels on a spektrum is always as follows :
+  98:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+  99:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * Throttle   0
+ 100:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * Aileron    1
+ 101:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * Elevator   2
+ 102:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * Rudder     3
+ 103:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * Gear       4
+ 104:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * Flap/Aux1  5
+ 105:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * Aux2       6
+ 106:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * Aux3       7
+ 107:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * Aux4       8
+ 108:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * Aux5       9
+ 109:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * Aux6      10
+ 110:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * Aux7      11
+ 111:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  */
+ 112:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 113:arch/stm32/subsystems/radio_control/spektrum_arch.c **** /* reverse some channels to suit Paparazzi conventions          */
+ 114:arch/stm32/subsystems/radio_control/spektrum_arch.c **** /* the maximum number of channels a Spektrum can transmit is 12 */
+ 115:arch/stm32/subsystems/radio_control/spektrum_arch.c **** int8_t SpektrumSigns[] = RADIO_CONTROL_SPEKTRUM_SIGNS;
+ 116:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 117:arch/stm32/subsystems/radio_control/spektrum_arch.c **** /* Parser state variables */
+ 118:arch/stm32/subsystems/radio_control/spektrum_arch.c **** static uint8_t EncodingType = 0;
+ 119:arch/stm32/subsystems/radio_control/spektrum_arch.c **** static uint8_t ExpectedFrames = 0;
+ 120:arch/stm32/subsystems/radio_control/spektrum_arch.c **** /* initialise the uarts used by the parser */
+ 121:arch/stm32/subsystems/radio_control/spektrum_arch.c **** void SpektrumUartInit(void);
+ 122:arch/stm32/subsystems/radio_control/spektrum_arch.c **** /* initialise the timer used by the parser to ensure sync */
+ 123:arch/stm32/subsystems/radio_control/spektrum_arch.c **** void SpektrumTimerInit(void);
+ 124:arch/stm32/subsystems/radio_control/spektrum_arch.c **** /* sets a GPIO pin as output for debugging */
+ 125:arch/stm32/subsystems/radio_control/spektrum_arch.c **** void DebugInit(void);
+ 126:arch/stm32/subsystems/radio_control/spektrum_arch.c **** void tim6_irq_handler(void);
+ 127:arch/stm32/subsystems/radio_control/spektrum_arch.c **** /* wait busy loop, microseconds */
+ 128:arch/stm32/subsystems/radio_control/spektrum_arch.c **** static void DelayUs( uint16_t uSecs );
+ 129:arch/stm32/subsystems/radio_control/spektrum_arch.c **** /* wait busy loop, milliseconds */
+ 130:arch/stm32/subsystems/radio_control/spektrum_arch.c **** static void DelayMs( uint16_t mSecs );
+ 131:arch/stm32/subsystems/radio_control/spektrum_arch.c **** /* setup timer 1 for busy wait delays */
+ 132:arch/stm32/subsystems/radio_control/spektrum_arch.c **** static void SpektrumDelayInit( void );
+ 133:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 134:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 135:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  /*****************************************************************************
+ 136:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 137:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * Initialise the timer an uarts used by the Spektrum receiver subsystem
+ 138:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 139:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *****************************************************************************/
+ 140:arch/stm32/subsystems/radio_control/spektrum_arch.c **** void radio_control_impl_init(void) {
+ 141:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   SpektrumTimerInit();
+ 142:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   // DebugInit();
+ 143:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   SpektrumUartInit();
+ 144:arch/stm32/subsystems/radio_control/spektrum_arch.c **** }
+ 145:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 146:arch/stm32/subsystems/radio_control/spektrum_arch.c **** /*****************************************************************************
+ 147:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * The bind function means that the satellite receivers believe they are
+ 148:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * connected to a 9 channel JR-R921 24 receiver thus during the bind process
+ 149:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * they try to get the transmitter to transmit at the highest resolution that
+ 150:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * it can manage. The data is contained in 16 byte packets transmitted at
+ 151:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * 115200 baud. Depending on the transmitter either 1 or 2 frames are required
+ 152:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * to contain the data for all channels. These frames are either 11ms or 22ms
+ 153:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * apart.
+ 154:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 155:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * The format of each frame for the main receiver is as follows
+ 156:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 157:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *  byte1:  frame loss data
+ 158:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *  byte2:  transmitter information
+ 159:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *  byte3:  and byte4:  channel data
+ 160:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *  byte5:  and byte6:  channel data
+ 161:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *  byte7:  and byte8:  channel data
+ 162:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *  byte9:  and byte10: channel data
+ 163:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *  byte11: and byte12: channel data
+ 164:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *  byte13: and byte14: channel data
+ 165:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *  byte15: and byte16: channel data
+ 166:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 167:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 168:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * The format of each frame for the secondary receiver is as follows
+ 169:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 170:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *  byte1:  frame loss data
+ 171:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *  byte2:  frame loss data
+ 172:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *  byte3:  and byte4:  channel data
+ 173:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *  byte5:  and byte6:  channel data
+ 174:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *  byte7:  and byte8:  channel data
+ 175:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *  byte9:  and byte10: channel data
+ 176:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *  byte11: and byte12: channel data
+ 177:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *  byte13: and byte14: channel data
+ 178:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *  byte15: and byte16: channel data
+ 179:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 180:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * The frame loss data bytes starts out containing 0 as long as the
+ 181:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * transmitter is switched on before the receivers. It then increments
+ 182:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * whenever frames are dropped.
+ 183:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 184:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * Three values for the transmitter information byte have been seen thus far
+ 185:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 186:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * 0x01 From a Spektrum DX7eu which transmits a single frame containing all
+ 187:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * channel data every 22ms with 10bit resolution.
+ 188:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 189:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * 0x02 From a Spektrum DM9 module which transmits two frames to carry the
+ 190:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * data for all channels 11ms apart with 10bit resolution.
+ 191:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 192:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * 0x12 From a Spektrum DX7se which transmits two frames to carry the
+ 193:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * data for all channels 11ms apart with 11bit resolution.
+ 194:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 195:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * 0x12 From a JR X9503 which transmits two frames to carry the
+ 196:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * data for all channels 11ms apart with 11bit resolution.
+ 197:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 198:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * 0x01 From a Spektrum DX7 which transmits a single frame containing all
+ 199:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * channel data every 22ms with 10bit resolution.
+ 200:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 201:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * 0x12 From a JR DSX12 which transmits two frames to carry the
+ 202:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * data for all channels 11ms apart with 11bit resolution.
+ 203:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 204:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * 0x1 From a Spektru DX5e which transmits a single frame containing all
+ 205:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * channel data every 22ms with 10bit resolution.
+ 206:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 207:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * 0x01 From a Spektrum DX6i which transmits a single frame containing all
+ 208:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * channel data every 22ms with 10bit resolution.
+ 209:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 210:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * Currently the assumption is that the data has the form :
+ 211:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 212:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * [0 0 0 R 0 0 N1 N0]
+ 213:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 214:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * where :
+ 215:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 216:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * 0 means a '0' bit
+ 217:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * R: 0 for 10 bit resolution 1 for 11 bit resolution channel data
+ 218:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * N1 to N0 is the number of frames required to receive all channel
+ 219:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * data.
+ 220:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 221:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * Channels can have either 10bit or 11bit resolution. Data from a tranmitter
+ 222:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * with 10 bit resolution has the form:
+ 223:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 224:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * [F 0 C3 C2 C1 C0 D9 D8 D7 D6 D5 D4 D3 D2 D1 D0]
+ 225:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 226:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * Data from a tranmitter with 11 bit resolution has the form
+ 227:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 228:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * [F C3 C2 C1 C0 D10 D9 D8 D7 D6 D5 D4 D3 D2 D1 D0]
+ 229:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 230:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * where :
+ 231:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 232:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * 0 means a '0' bit
+ 233:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * F: Normally 0 but set to 1 for the first channel of the 2nd frame if a
+ 234:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * second frame is transmitted.
+ 235:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 236:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * C3 to C0 is the channel number, 4 bit, matching the numbers allocated in
+ 237:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * the transmitter.
+ 238:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 239:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * D9 to D0 is the channel data (10 bit) 0xaa..0x200..0x356 for
+ 240:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * 100% transmitter-travel
+ 241:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 242:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 243:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * D10 to D0 is the channel data (11 bit) 0x154..0x400..0x6AC for
+ 244:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * 100% transmitter-travel
+ 245:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *****************************************************************************/
+ 246:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 247:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  /*****************************************************************************
+ 248:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 249:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * Spektrum Parser captures frame data by using time between frames to sync on
+ 250:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 251:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *****************************************************************************/
+ 252:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 253:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #define SpektrumParser(_c, _SpektrumState, _receiver)  {                      \
+ 254:arch/stm32/subsystems/radio_control/spektrum_arch.c ****                                                                               \
+ 255:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   uint16_t ChannelData;                                                       \
+ 256:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   uint8_t TimedOut;                                                           \
+ 257:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   static uint8_t TmpEncType = 0;        /* 0 = 10bit, 1 = 11 bit        */    \
+ 258:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   static uint8_t TmpExpFrames = 0;      /* # of frames for channel data */    \
+ 259:arch/stm32/subsystems/radio_control/spektrum_arch.c ****                                                                               \
+ 260:arch/stm32/subsystems/radio_control/spektrum_arch.c ****    TimedOut = (!_SpektrumState.SpektrumTimer) ? 1 : 0;                        \
+ 261:arch/stm32/subsystems/radio_control/spektrum_arch.c ****                                                                               \
+ 262:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* If we have just started the resync process or */                         \
+ 263:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* if we have recieved a character before our    */                         \
+ 264:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* 7ms wait has finished                         */                         \
+ 265:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   if ((_SpektrumState.ReSync == 1) ||                                         \
+ 266:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       ((_SpektrumState.Sync == 0) && (!TimedOut))) {                          \
+ 267:arch/stm32/subsystems/radio_control/spektrum_arch.c ****                                                                               \
+ 268:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     _SpektrumState.ReSync = 0;                                                \
+ 269:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     _SpektrumState.SpektrumTimer = MIN_FRAME_SPACE;                           \
+ 270:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     _SpektrumState.Sync = 0;                                                  \
+ 271:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     _SpektrumState.ChannelCnt = 0;                                            \
+ 272:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     _SpektrumState.FrameCnt = 0;                                              \
+ 273:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     _SpektrumState.SecondFrame = 0;                                           \
+ 274:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     return;                                                                   \
+ 275:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   }                                                                           \
+ 276:arch/stm32/subsystems/radio_control/spektrum_arch.c ****                                                                               \
+ 277:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* the first byte of a new frame. It was received */                        \
+ 278:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* more than 7ms after the last received byte.    */                        \
+ 279:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* It represents the number of lost frames so far.*/                        \
+ 280:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   if (_SpektrumState.Sync == 0) {                                             \
+ 281:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       _SpektrumState.LostFrameCnt = _c;                                       \
+ 282:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       if(_receiver) /* secondary receiver */                                  \
+ 283:arch/stm32/subsystems/radio_control/spektrum_arch.c ****         _SpektrumState.LostFrameCnt = _SpektrumState.LostFrameCnt << 8;       \
+ 284:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       _SpektrumState.Sync = 1;                                                \
+ 285:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       _SpektrumState.SpektrumTimer = MAX_BYTE_SPACE;                          \
+ 286:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       return;                                                                 \
+ 287:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   }                                                                           \
+ 288:arch/stm32/subsystems/radio_control/spektrum_arch.c ****                                                                               \
+ 289:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* all other bytes should be recieved within     */                         \
+ 290:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* MAX_BYTE_SPACE time of the last byte received */                         \
+ 291:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* otherwise something went wrong resynchronise  */                         \
+ 292:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   if(TimedOut) {                                                              \
+ 293:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     _SpektrumState.ReSync = 1;                                                \
+ 294:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     /* next frame not expected sooner than 7ms     */                         \
+ 295:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     _SpektrumState.SpektrumTimer = MIN_FRAME_SPACE;                           \
+ 296:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     return;                                                                   \
+ 297:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   }                                                                           \
+ 298:arch/stm32/subsystems/radio_control/spektrum_arch.c ****                                                                               \
+ 299:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* second character determines resolution and frame rate for main */        \
+ 300:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* receiver or low byte of LostFrameCount for secondary receiver  */        \
+ 301:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   if(_SpektrumState.Sync == 1) {                                              \
+ 302:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     if(_receiver) {                                                           \
+ 303:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       _SpektrumState.LostFrameCnt +=_c;                                       \
+ 304:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       TmpExpFrames = ExpectedFrames;                                          \
+ 305:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     } else {                                                                  \
+ 306:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       /* TODO: collect more data. I suspect that there is a low res         */\
+ 307:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       /* protocol that is still 10 bit but without using the full range.    */\
+ 308:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       TmpEncType =(_c & 0x10)>>4;      /* 0 = 10bit, 1 = 11 bit             */\
+ 309:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       TmpExpFrames = _c & 0x03;        /* 1 = 1 frame contains all channels */\
+ 310:arch/stm32/subsystems/radio_control/spektrum_arch.c ****                                        /* 2 = 2 channel data in 2 frames    */\
+ 311:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     }                                                                         \
+ 312:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     _SpektrumState.Sync = 2;                                                  \
+ 313:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     _SpektrumState.SpektrumTimer = MAX_BYTE_SPACE;                            \
+ 314:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     return;                                                                   \
+ 315:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   }                                                                           \
+ 316:arch/stm32/subsystems/radio_control/spektrum_arch.c ****                                                                               \
+ 317:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* high byte of channel data if this is the first byte */                   \
+ 318:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* of channel data and the most significant bit is set */                   \
+ 319:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* then this is the second frame of channel data.      */                   \
+ 320:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   if(_SpektrumState.Sync == 2) {                                              \
+ 321:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     _SpektrumState.HighByte = _c;                                             \
+ 322:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     if (_SpektrumState.ChannelCnt == 0) {                                     \
+ 323:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       _SpektrumState.SecondFrame = (_SpektrumState.HighByte & 0x80) ? 1 : 0;  \
+ 324:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     }                                                                         \
+ 325:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     _SpektrumState.Sync = 3;                                                  \
+ 326:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     _SpektrumState.SpektrumTimer = MAX_BYTE_SPACE;                            \
+ 327:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     return;                                                                   \
+ 328:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   }                                                                           \
+ 329:arch/stm32/subsystems/radio_control/spektrum_arch.c ****                                                                               \
+ 330:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* low byte of channel data */                                              \
+ 331:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   if(_SpektrumState.Sync == 3) {                                              \
+ 332:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     _SpektrumState.Sync = 2;                                                  \
+ 333:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     _SpektrumState.SpektrumTimer = MAX_BYTE_SPACE;                            \
+ 334:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     /* we overwrite the buffer now so rc data is not available now */         \
+ 335:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     _SpektrumState.RcAvailable = 0;                                           \
+ 336:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     ChannelData = ((uint16_t)_SpektrumState.HighByte << 8) | _c;              \
+ 337:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     _SpektrumState.values[_SpektrumState.ChannelCnt                           \
+ 338:arch/stm32/subsystems/radio_control/spektrum_arch.c ****                           + (_SpektrumState.SecondFrame * 7)] = ChannelData;  \
+ 339:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     _SpektrumState.ChannelCnt ++;                                             \
+ 340:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   }                                                                           \
+ 341:arch/stm32/subsystems/radio_control/spektrum_arch.c ****                                                                               \
+ 342:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* If we have a whole frame */                                              \
+ 343:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   if(_SpektrumState.ChannelCnt >= SPEKTRUM_CHANNELS_PER_FRAME) {              \
+ 344:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     /* how many frames did we expect ? */                                     \
+ 345:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     ++_SpektrumState.FrameCnt;                                                \
+ 346:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     if (_SpektrumState.FrameCnt == TmpExpFrames)                              \
+ 347:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     {                                                                         \
+ 348:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       /* set the rc_available_flag */                                         \
+ 349:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       _SpektrumState.RcAvailable = 1;                                         \
+ 350:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       _SpektrumState.FrameCnt = 0;                                            \
+ 351:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     }                                                                         \
+ 352:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     if(!_receiver) { /* main receiver */                                      \
+ 353:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       EncodingType = TmpEncType;         /* only update on a good */          \
+ 354:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       ExpectedFrames = TmpExpFrames;     /* main receiver frame   */          \
+ 355:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     }                                                                         \
+ 356:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     _SpektrumState.Sync = 0;                                                  \
+ 357:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     _SpektrumState.ChannelCnt = 0;                                            \
+ 358:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     _SpektrumState.SecondFrame = 0;                                           \
+ 359:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     _SpektrumState.SpektrumTimer = MIN_FRAME_SPACE;                           \
+ 360:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   }                                                                           \
+ 361:arch/stm32/subsystems/radio_control/spektrum_arch.c **** }                                                                             \
+ 362:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 363:arch/stm32/subsystems/radio_control/spektrum_arch.c **** /*****************************************************************************
+ 364:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 365:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * RadioControlEventImp decodes channel data stored by uart irq handlers
+ 366:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * and calls callback funtion
+ 367:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 368:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *****************************************************************************/
+ 369:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 370:arch/stm32/subsystems/radio_control/spektrum_arch.c **** void RadioControlEventImp(void (*frame_handler)(void)) {
+ 371:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   uint8_t ChannelCnt;
+ 372:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   uint8_t ChannelNum;
+ 373:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   uint16_t ChannelData;
+ 374:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   uint8_t MaxChannelNum = 0;
+ 375:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 376:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #ifdef RADIO_CONTROL_SPEKTRUM_SECONDARY_PORT
+ 377:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* If we have two receivers and at least one of them has new data */
+ 378:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   uint8_t BestReceiver;
+ 379:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   if ((PrimarySpektrumState.RcAvailable) ||
+ 380:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       (SecondarySpektrumState.RcAvailable)) {
+ 381:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     /* if both receivers have new data select the one  */
+ 382:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     /* that has had the least number of frames lost    */
+ 383:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     if ((PrimarySpektrumState.RcAvailable) &&
+ 384:arch/stm32/subsystems/radio_control/spektrum_arch.c ****         (SecondarySpektrumState.RcAvailable)) {
+ 385:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       BestReceiver  = (PrimarySpektrumState.LostFrameCnt
+ 386:arch/stm32/subsystems/radio_control/spektrum_arch.c ****                        <= SecondarySpektrumState.LostFrameCnt) ? 0 : 1;
+ 387:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     } else {
+ 388:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       /* if only one of the receivers have new data use it */
+ 389:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       BestReceiver  = (PrimarySpektrumState.RcAvailable) ? 0 : 1;
+ 390:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     }
+ 391:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     /* clear the data ready flags */
+ 392:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     PrimarySpektrumState.RcAvailable = 0;
+ 393:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     SecondarySpektrumState.RcAvailable = 0;
+ 394:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 395:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #else
+ 396:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* if we have one receiver and it has new data */
+ 397:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   if(PrimarySpektrumState.RcAvailable) {
+ 398:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     PrimarySpektrumState.RcAvailable = 0;
+ 399:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #endif
+ 400:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     ChannelCnt = 0;
+ 401:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     /* for every piece of channel data we have received */
+ 402:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     for(int i = 0; (i < SPEKTRUM_CHANNELS_PER_FRAME * ExpectedFrames); i++) {
+ 403:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #ifndef RADIO_CONTROL_SPEKTRUM_SECONDARY_PORT
+ 404:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       ChannelData = PrimarySpektrumState.values[i];
+ 405:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #else
+ 406:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       ChannelData = (!BestReceiver) ? PrimarySpektrumState.values[i] :
+ 407:arch/stm32/subsystems/radio_control/spektrum_arch.c ****                                  SecondarySpektrumState.values[i];
+ 408:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #endif
+ 409:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       /* find out the channel number and its value by  */
+ 410:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       /* using the EncodingType which is only received */
+ 411:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       /* from the main receiver                        */
+ 412:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       switch(EncodingType) {
+ 413:arch/stm32/subsystems/radio_control/spektrum_arch.c ****         case(0) : /* 10 bit */
+ 414:arch/stm32/subsystems/radio_control/spektrum_arch.c ****           ChannelNum = (ChannelData >> 10) & 0x0f;
+ 415:arch/stm32/subsystems/radio_control/spektrum_arch.c ****           /* don't bother decoding unused channels */
+ 416:arch/stm32/subsystems/radio_control/spektrum_arch.c ****           if (ChannelNum < RADIO_CONTROL_NB_CHANNEL) {
+ 417:arch/stm32/subsystems/radio_control/spektrum_arch.c ****            SpektrumBuf[ChannelNum] = ChannelData & 0x3ff;
+ 418:arch/stm32/subsystems/radio_control/spektrum_arch.c ****            SpektrumBuf[ChannelNum] -= 0x200;
+ 419:arch/stm32/subsystems/radio_control/spektrum_arch.c ****            SpektrumBuf[ChannelNum] *= MAX_PPRZ/0x156;
+ 420:arch/stm32/subsystems/radio_control/spektrum_arch.c ****            ChannelCnt++;
+ 421:arch/stm32/subsystems/radio_control/spektrum_arch.c ****           }
+ 422:arch/stm32/subsystems/radio_control/spektrum_arch.c ****           break;
+ 423:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 424:arch/stm32/subsystems/radio_control/spektrum_arch.c ****         case(1) : /* 11 bit */
+ 425:arch/stm32/subsystems/radio_control/spektrum_arch.c ****           ChannelNum = (ChannelData >> 11) & 0x0f;
+ 426:arch/stm32/subsystems/radio_control/spektrum_arch.c ****           /* don't bother decoding unused channels */
+ 427:arch/stm32/subsystems/radio_control/spektrum_arch.c ****           if (ChannelNum < RADIO_CONTROL_NB_CHANNEL) {
+ 428:arch/stm32/subsystems/radio_control/spektrum_arch.c ****             SpektrumBuf[ChannelNum] = ChannelData & 0x7ff;
+ 429:arch/stm32/subsystems/radio_control/spektrum_arch.c ****             SpektrumBuf[ChannelNum] -= 0x400;
+ 430:arch/stm32/subsystems/radio_control/spektrum_arch.c ****             SpektrumBuf[ChannelNum] *= MAX_PPRZ/0x2AC;
+ 431:arch/stm32/subsystems/radio_control/spektrum_arch.c ****             ChannelCnt++;
+ 432:arch/stm32/subsystems/radio_control/spektrum_arch.c ****           }
+ 433:arch/stm32/subsystems/radio_control/spektrum_arch.c ****           break;
+ 434:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 435:arch/stm32/subsystems/radio_control/spektrum_arch.c ****         default : ChannelNum = 0x0F; break;  /* never going to get here */
+ 436:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       }
+ 437:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       /* store the value of the highest valid channel */
+ 438:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       if ((ChannelNum != 0x0F) && (ChannelNum > MaxChannelNum))
+ 439:arch/stm32/subsystems/radio_control/spektrum_arch.c ****         MaxChannelNum = ChannelNum;
+ 440:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 441:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     }
+ 442:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 443:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     /* if we have a valid frame the pass it to the frame handler */
+ 444:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     if (ChannelCnt >= (MaxChannelNum + 1)) {
+ 445:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       radio_control.frame_cpt++;
+ 446:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       radio_control.time_since_last_frame = 0;
+ 447:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       radio_control.status = RC_OK;
+ 448:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       for (int i = 0; i < (MaxChannelNum + 1); i++) {
+ 449:arch/stm32/subsystems/radio_control/spektrum_arch.c ****         radio_control.values[i] = SpektrumBuf[i];
+ 450:arch/stm32/subsystems/radio_control/spektrum_arch.c ****         if (i == RADIO_THROTTLE ) {
+ 451:arch/stm32/subsystems/radio_control/spektrum_arch.c ****           radio_control.values[i] += MAX_PPRZ;
+ 452:arch/stm32/subsystems/radio_control/spektrum_arch.c ****           radio_control.values[i] /= 2;
+ 453:arch/stm32/subsystems/radio_control/spektrum_arch.c ****         }
+ 454:arch/stm32/subsystems/radio_control/spektrum_arch.c ****         radio_control.values[i] *= SpektrumSigns[i];
+ 455:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       }
+ 456:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       (*frame_handler)();
+ 457:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     }
+ 458:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   }
+ 459:arch/stm32/subsystems/radio_control/spektrum_arch.c **** }
+ 460:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 461:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 462:arch/stm32/subsystems/radio_control/spektrum_arch.c **** /*****************************************************************************
+ 463:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 464:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * Initialise TIM6 to fire an interrupt every 100 microseconds to provide
+ 465:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * timebase for SpektrumParser
+ 466:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 467:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *****************************************************************************/
+ 468:arch/stm32/subsystems/radio_control/spektrum_arch.c **** void SpektrumTimerInit( void ) {
+ 469:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 470:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* enable TIM6 clock */
+ 471:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM6, ENABLE);
+ 472:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 473:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* TIM6 configuration */
+ 474:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
+ 475:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_TimeBaseStructInit(&TIM_TimeBaseStructure);
+ 476:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* 100 microseconds ie 0.1 millisecond */
+ 477:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_TimeBaseStructure.TIM_Period = TIM_TICS_FOR_100us-1;
+ 478:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_TimeBaseStructure.TIM_Prescaler = ((AHB_CLK / TIM_FREQ_1000000) - 1);
+ 479:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
+ 480:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Down;
+ 481:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_TimeBaseInit(TIM6, &TIM_TimeBaseStructure);
+ 482:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 483:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* Enable TIM6 interrupts */
+ 484:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   NVIC_InitTypeDef NVIC_InitStructure;
+ 485:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 486:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* Enable and configure TIM6 IRQ channel */
+ 487:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   NVIC_InitStructure.NVIC_IRQChannel = TIM6_IRQn;
+ 488:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;
+ 489:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+ 490:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+ 491:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   NVIC_Init(&NVIC_InitStructure);
+ 492:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 493:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* Enable TIM6 Update interrupt */
+ 494:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_ITConfig(TIM6, TIM_IT_Update, ENABLE);
+ 495:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_ClearFlag(TIM6, TIM_FLAG_Update);
+ 496:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 497:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* TIM6 enable counter */
+ 498:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_Cmd(TIM6, ENABLE);
+ 499:arch/stm32/subsystems/radio_control/spektrum_arch.c **** }
+ 500:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 501:arch/stm32/subsystems/radio_control/spektrum_arch.c **** /*****************************************************************************
+ 502:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 503:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * TIM6 interrupt request handler updates times used by SpektrumParser
+ 504:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 505:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *****************************************************************************/
+ 506:arch/stm32/subsystems/radio_control/spektrum_arch.c **** void tim6_irq_handler( void ) {
+ 507:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 508:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_ClearITPendingBit(TIM6, TIM_IT_Update);
+ 509:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 510:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   if (PrimarySpektrumState.SpektrumTimer)
+ 511:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     --PrimarySpektrumState.SpektrumTimer;
+ 512:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #ifdef RADIO_CONTROL_SPEKTRUM_SECONDARY_PORT
+ 513:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   if (SecondarySpektrumState.SpektrumTimer)
+ 514:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     --SecondarySpektrumState.SpektrumTimer;
+ 515:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #endif
+ 516:arch/stm32/subsystems/radio_control/spektrum_arch.c **** }
+ 517:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 518:arch/stm32/subsystems/radio_control/spektrum_arch.c **** /*****************************************************************************
+ 519:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 520:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * Initialise the uarts for the spektrum satellite receivers
+ 521:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 522:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *****************************************************************************/
+ 523:arch/stm32/subsystems/radio_control/spektrum_arch.c **** void SpektrumUartInit(void) {
+ 524:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* init RCC */
+ 525:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   PrimaryUart(_remap);
+ 526:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   PrimaryUart(_clk)(PrimaryUart(_UartPeriph), ENABLE);;
+ 527:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   //RCC_APB1PeriphClockCmd(PrimaryUart(_UartPeriph), ENABLE);
+ 528:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 529:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* Enable USART interrupts */
+ 530:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   NVIC_InitTypeDef nvic;
+ 531:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   nvic.NVIC_IRQChannel = PrimaryUart(_IRQn);
+ 532:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   nvic.NVIC_IRQChannelPreemptionPriority = 2;
+ 533:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   nvic.NVIC_IRQChannelSubPriority = 1;
+ 534:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   nvic.NVIC_IRQChannelCmd = ENABLE;
+ 535:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   NVIC_Init(&nvic);
+ 536:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* Init GPIOS */
+ 537:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitTypeDef GPIO_InitStructure;
+ 538:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+ 539:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* Primary UART Rx pin as floating input */
+ 540:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Pin   = PrimaryUart(_RxPin);
+ 541:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN_FLOATING;
+ 542:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_Init(PrimaryUart(_RxPort), &GPIO_InitStructure);
+ 543:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* Configure Primary UART */
+ 544:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   USART_InitTypeDef usart;
+ 545:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   usart.USART_BaudRate            = B115200;
+ 546:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   usart.USART_WordLength          = USART_WordLength_8b;
+ 547:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   usart.USART_StopBits            = USART_StopBits_1;
+ 548:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   usart.USART_Parity              = USART_Parity_No;
+ 549:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   usart.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+ 550:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   usart.USART_Mode                = USART_Mode_Rx;
+ 551:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   USART_Init(PrimaryUart(_reg), &usart);
+ 552:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* Enable Primary UART Receive interrupts */
+ 553:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   USART_ITConfig(PrimaryUart(_reg), USART_IT_RXNE, ENABLE);
+ 554:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 555:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* required to get the correct baudrate on lisa m */
+ 556:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   pprz_usart_set_baudrate(PrimaryUart(_reg), B115200);
+ 557:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* Enable the Primary UART */
+ 558:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   USART_Cmd(PrimaryUart(_reg), ENABLE);
+ 559:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 560:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 561:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #ifdef RADIO_CONTROL_SPEKTRUM_SECONDARY_PORT
+ 562:arch/stm32/subsystems/radio_control/spektrum_arch.c ****    /* init RCC */
+ 563:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   SecondaryUart(_remap);
+ 564:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   SecondaryUart(_clk)(SecondaryUart(_UartPeriph), ENABLE);
+ 565:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   //RCC_APB1PeriphClockCmd(SecondaryUart(_UartPeriph), ENABLE);
+ 566:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* Enable USART interrupts */
+ 567:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   nvic.NVIC_IRQChannel = SecondaryUart(_IRQn);
+ 568:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   nvic.NVIC_IRQChannelPreemptionPriority = 2;
+ 569:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   nvic.NVIC_IRQChannelSubPriority = 2;
+ 570:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   nvic.NVIC_IRQChannelCmd = ENABLE;
+ 571:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   NVIC_Init(&nvic);
+ 572:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* Init GPIOS */;
+ 573:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+ 574:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* Secondary UART Rx pin as floating input */
+ 575:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Pin   = SecondaryUart(_RxPin);
+ 576:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN_FLOATING;
+ 577:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_Init(SecondaryUart(_RxPort), &GPIO_InitStructure);
+ 578:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* Configure secondary UART */
+ 579:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   usart.USART_BaudRate            = B115200;
+ 580:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   usart.USART_WordLength          = USART_WordLength_8b;
+ 581:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   usart.USART_StopBits            = USART_StopBits_1;
+ 582:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   usart.USART_Parity              = USART_Parity_No;
+ 583:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   usart.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+ 584:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   usart.USART_Mode                = USART_Mode_Rx;
+ 585:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   USART_Init(SecondaryUart(_reg), &usart);
+ 586:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* Enable Secondary UART Receive interrupts */
+ 587:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   USART_ITConfig(SecondaryUart(_reg), USART_IT_RXNE, ENABLE);
+ 588:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 589:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* required to get the correct baudrate on lisa m */
+ 590:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   pprz_usart_set_baudrate(SecondaryUart(_reg), B115200);
+ 591:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* Enable the Primary UART */
+ 592:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   USART_Cmd(SecondaryUart(_reg), ENABLE);
+ 593:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #endif
+ 594:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 595:arch/stm32/subsystems/radio_control/spektrum_arch.c **** }
+ 596:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 597:arch/stm32/subsystems/radio_control/spektrum_arch.c **** /*****************************************************************************
+ 598:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 599:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * The primary receiver UART interrupt request handler which passes the
+ 600:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * received character to Spektrum Parser.
+ 601:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 602:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *****************************************************************************/
+ 603:arch/stm32/subsystems/radio_control/spektrum_arch.c **** void PrimaryUart(_irq_handler)(void) {
+ 604:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 605:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   if(USART_GetITStatus(PrimaryUart(_reg), USART_IT_TXE) != RESET) {
+ 606:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       USART_ITConfig(PrimaryUart(_reg), USART_IT_TXE, DISABLE);
+ 607:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   }
+ 608:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 609:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   if(USART_GetITStatus(PrimaryUart(_reg), USART_IT_RXNE) != RESET) {
+ 610:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     uint8_t b =  USART_ReceiveData(PrimaryUart(_reg));
+ 611:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     SpektrumParser(b, PrimarySpektrumState, 0);
+ 612:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   }
+ 613:arch/stm32/subsystems/radio_control/spektrum_arch.c **** }
+ 614:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 615:arch/stm32/subsystems/radio_control/spektrum_arch.c **** /*****************************************************************************
+ 616:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 617:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * The secondary receiver UART interrupt request handler which passes the
+ 618:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * received character to Spektrum Parser.
+ 619:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 620:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *****************************************************************************/
+ 621:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #ifdef RADIO_CONTROL_SPEKTRUM_SECONDARY_PORT
+ 622:arch/stm32/subsystems/radio_control/spektrum_arch.c **** void SecondaryUart(_irq_handler)(void) {
+ 623:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 624:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   if(USART_GetITStatus(SecondaryUart(_reg), USART_IT_TXE) != RESET) {
+ 625:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       USART_ITConfig(SecondaryUart(_reg), USART_IT_TXE, DISABLE);
+ 626:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   }
+ 627:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 628:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   if(USART_GetITStatus(SecondaryUart(_reg), USART_IT_RXNE) != RESET) {
+ 629:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     uint8_t b =  USART_ReceiveData(SecondaryUart(_reg));
+ 630:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     SpektrumParser(b, SecondarySpektrumState, 1);
+ 631:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   }
+ 632:arch/stm32/subsystems/radio_control/spektrum_arch.c **** }
+ 633:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #endif
+ 634:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 635:arch/stm32/subsystems/radio_control/spektrum_arch.c **** /*****************************************************************************
+ 636:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 637:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * Use pin to output debug information.
+ 638:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 639:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *****************************************************************************/
+ 640:arch/stm32/subsystems/radio_control/spektrum_arch.c **** void DebugInit(void) {
+ 641:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOC, ENABLE);
+ 642:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitTypeDef GPIO_InitStructure;
+ 643:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
+ 644:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+ 645:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+ 646:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_Init(GPIOC, &GPIO_InitStructure);
+ 647:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_WriteBit(GPIOC, GPIO_Pin_5 , Bit_RESET );
+ 648:arch/stm32/subsystems/radio_control/spektrum_arch.c **** }
+ 649:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 650:arch/stm32/subsystems/radio_control/spektrum_arch.c **** /*****************************************************************************
+ 651:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 652:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * The following functions provide functionality to allow binding of
+ 653:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * spektrum satellite receivers. The pulse train sent to them means
+ 654:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * that Lisa is emulating a 9 channel JR-R921 24.
+ 655:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 656:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *****************************************************************************/
+ 657:arch/stm32/subsystems/radio_control/spektrum_arch.c **** /*****************************************************************************
+ 658:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 659:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * radio_control_spektrum_try_bind(void) must called on powerup as spektrum
+ 660:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * satellites can only bind immediately after power up also it must be called
+ 661:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * before the call to SpektrumUartInit as we leave them with their Rx pins set
+ 662:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * as outputs.
+ 663:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 664:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *****************************************************************************/
+ 665:arch/stm32/subsystems/radio_control/spektrum_arch.c **** void radio_control_spektrum_try_bind(void) {
+ 666:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 667:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* init RCC */
+ 668:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   RCC_APB2PeriphClockCmd(BIND_PIN_PERIPH , ENABLE);
+ 669:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 670:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* Init GPIO for the bind pin */
+ 671:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitTypeDef GPIO_InitStructure;
+ 672:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Pin = BIND_PIN;
+ 673:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
+ 674:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+ 675:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_Init(BIND_PIN_PORT, &GPIO_InitStructure);
+ 676:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* exit if the BIND_PIN is high, it needs to
+ 677:arch/stm32/subsystems/radio_control/spektrum_arch.c ****      be pulled low at startup to initiate bind */
+ 678:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   if (GPIO_ReadInputDataBit(BIND_PIN_PORT, BIND_PIN))
+ 679:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     return;
+ 680:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 681:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* bind initiated, initialise the delay timer */
+ 682:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   SpektrumDelayInit();
+ 683:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 684:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* initialise the uarts rx pins as  GPIOS */
+ 685:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   RCC_APB2PeriphClockCmd(PrimaryUart(_Periph) , ENABLE);
+ 686:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* Master receiver Rx push-pull */
+ 687:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Pin = PrimaryUart(_RxPin);
+ 688:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+ 689:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+ 690:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_Init(PrimaryUart(_RxPort), &GPIO_InitStructure);
+ 691:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* Master receiver RX line, drive high */
+ 692:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_WriteBit(PrimaryUart(_RxPort), PrimaryUart(_RxPin) , Bit_SET );
+ 693:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 694:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #ifdef RADIO_CONTROL_SPEKTRUM_SECONDARY_PORT
+ 695:arch/stm32/subsystems/radio_control/spektrum_arch.c ****    RCC_APB2PeriphClockCmd(SecondaryUart(_Periph) , ENABLE);
+ 696:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* Slave receiver Rx push-pull */
+ 697:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Pin = SecondaryUart(_RxPin);
+ 698:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+ 699:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+ 700:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_Init(SecondaryUart(_RxPort), &GPIO_InitStructure);
+ 701:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* Slave receiver RX line, drive high */
+ 702:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_WriteBit(SecondaryUart(_RxPort), SecondaryUart(_RxPin) , Bit_SET );
+ 703:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #endif
+ 704:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 705:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* We have no idea how long the window for allowing binding after
+ 706:arch/stm32/subsystems/radio_control/spektrum_arch.c ****      power up is. This works for the moment but will need revisiting */
+ 707:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   DelayMs(61);
+ 708:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 709:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   for (int i = 0; i < MASTER_RECEIVER_PULSES ; i++)
+ 710:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   {
+ 711:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     GPIO_WriteBit(PrimaryUart(_RxPort), PrimaryUart(_RxPin), Bit_RESET );
+ 712:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     DelayUs(118);
+ 713:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     GPIO_WriteBit(PrimaryUart(_RxPort), PrimaryUart(_RxPin), Bit_SET );
+ 714:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     DelayUs(122);
+ 715:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   }
+ 716:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 717:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #ifdef RADIO_CONTROL_SPEKTRUM_SECONDARY_PORT
+ 718:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   for (int i = 0; i < SLAVE_RECEIVER_PULSES; i++)
+ 719:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   {
+ 720:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     GPIO_WriteBit(SecondaryUart(_RxPort), SecondaryUart(_RxPin), Bit_RESET );
+ 721:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     DelayUs(120);
+ 722:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     GPIO_WriteBit(SecondaryUart(_RxPort), SecondaryUart(_RxPin), Bit_SET );
+ 723:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     DelayUs(120);
+ 724:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   }
+ 725:arch/stm32/subsystems/radio_control/spektrum_arch.c **** #endif /* RADIO_CONTROL_SPEKTRUM_SECONDARY_PORT */
+ 726:arch/stm32/subsystems/radio_control/spektrum_arch.c **** }
+ 727:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 728:arch/stm32/subsystems/radio_control/spektrum_arch.c **** /*****************************************************************************
+ 729:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 730:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  * Functions to implement busy wait loops with micro second granularity
+ 731:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *
+ 732:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  *****************************************************************************/
+ 733:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 734:arch/stm32/subsystems/radio_control/spektrum_arch.c **** /* set TIM6 to run at DELAY_TIM_FREQUENCY */
+ 735:arch/stm32/subsystems/radio_control/spektrum_arch.c **** static void SpektrumDelayInit( void ) {
+ 736:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* Enable timer clock */
+ 737:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM6, ENABLE);
+ 738:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* Time base configuration */
+ 739:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+ 740:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_TimeBaseStructInit(&TIM_TimeBaseStructure);
+ 741:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_TimeBaseStructure.TIM_Prescaler = (AHB_CLK / DELAY_TIM_FREQUENCY) - 1;
+ 742:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_TimeBaseStructure.TIM_Period = UINT16_MAX;
+ 743:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_TimeBaseStructure.TIM_ClockDivision = 0;
+ 744:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+ 745:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_TimeBaseInit(TIM6, &TIM_TimeBaseStructure);
+ 746:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 747:arch/stm32/subsystems/radio_control/spektrum_arch.c ****  /* Enable counter */
+ 748:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_Cmd(TIM6, ENABLE);
+ 749:arch/stm32/subsystems/radio_control/spektrum_arch.c **** }
+ 750:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 751:arch/stm32/subsystems/radio_control/spektrum_arch.c **** /* wait busy loop, microseconds */
+ 752:arch/stm32/subsystems/radio_control/spektrum_arch.c **** static void DelayUs( uint16_t uSecs ) {
+  25              		.loc 1 752 0
+  26              		.cfi_startproc
+  27              		@ args = 0, pretend = 0, frame = 0
+  28              		@ frame_needed = 0, uses_anonymous_args = 0
+  29              		@ link register save eliminated.
+  30              	.LVL0:
+ 753:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   uint16_t start = TIM6->CNT;
+  31              		.loc 1 753 0
+  32 0000 044B     		ldr	r3, .L4
+  33 0002 9A8C     		ldrh	r2, [r3, #36]
+  34 0004 92B2     		uxth	r2, r2
+  35              	.LVL1:
+  36              	.L2:
+ 754:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   /* use 16 bit count wrap around */
+ 755:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   while((uint16_t)(TIM6->CNT - start) <= uSecs);
+  37              		.loc 1 755 0 discriminator 1
+  38 0006 998C     		ldrh	r1, [r3, #36]
+  39 0008 891A     		subs	r1, r1, r2
+  40 000a 89B2     		uxth	r1, r1
+  41 000c 8142     		cmp	r1, r0
+  42 000e FAD9     		bls	.L2
+ 756:arch/stm32/subsystems/radio_control/spektrum_arch.c **** }
+  43              		.loc 1 756 0
+  44 0010 7047     		bx	lr
+  45              	.L5:
+  46 0012 00BF     		.align	2
+  47              	.L4:
+  48 0014 00100040 		.word	1073745920
+  49              		.cfi_endproc
+  50              	.LFE36:
+  52              		.section	.text.RadioControlEventImp,"ax",%progbits
+  53              		.align	1
+  54              		.global	RadioControlEventImp
+  55              		.thumb
+  56              		.thumb_func
+  58              	RadioControlEventImp:
+  59              	.LFB28:
+ 370:arch/stm32/subsystems/radio_control/spektrum_arch.c **** void RadioControlEventImp(void (*frame_handler)(void)) {
+  60              		.loc 1 370 0
+  61              		.cfi_startproc
+  62              		@ args = 0, pretend = 0, frame = 0
+  63              		@ frame_needed = 0, uses_anonymous_args = 0
+  64              	.LVL2:
+  65 0000 2DE9F047 		push	{r4, r5, r6, r7, r8, r9, sl, lr}
+  66              	.LCFI0:
+  67              		.cfi_def_cfa_offset 32
+  68              		.cfi_offset 14, -4
+  69              		.cfi_offset 10, -8
+  70              		.cfi_offset 9, -12
+  71              		.cfi_offset 8, -16
+  72              		.cfi_offset 7, -20
+  73              		.cfi_offset 6, -24
+  74              		.cfi_offset 5, -28
+  75              		.cfi_offset 4, -32
+ 397:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   if(PrimarySpektrumState.RcAvailable) {
+  76              		.loc 1 397 0
+  77 0004 354D     		ldr	r5, .L22
+  78 0006 AB7A     		ldrb	r3, [r5, #10]	@ zero_extendqisi2
+  79 0008 002B     		cmp	r3, #0
+  80 000a 64D0     		beq	.L6
+  81              	.LBB8:
+ 402:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     for(int i = 0; (i < SPEKTRUM_CHANNELS_PER_FRAME * ExpectedFrames); i++) {
+  82              		.loc 1 402 0
+  83 000c 344B     		ldr	r3, .L22+4
+  84 000e 4FF00709 		mov	r9, #7
+  85 0012 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+  86              	.LBE8:
+ 398:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     PrimarySpektrumState.RcAvailable = 0;
+  87              		.loc 1 398 0
+  88 0014 0021     		movs	r1, #0
+  89              	.LBB9:
+ 402:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     for(int i = 0; (i < SPEKTRUM_CHANNELS_PER_FRAME * ExpectedFrames); i++) {
+  90              		.loc 1 402 0
+  91 0016 09FB03F9 		mul	r9, r9, r3
+ 412:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       switch(EncodingType) {
+  92              		.loc 1 412 0
+  93 001a 324B     		ldr	r3, .L22+8
+  94              	.LBE9:
+ 398:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     PrimarySpektrumState.RcAvailable = 0;
+  95              		.loc 1 398 0
+  96 001c 05F80A1F 		strb	r1, [r5, #10]!
+  97              	.LVL3:
+  98              	.LBB10:
+ 412:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       switch(EncodingType) {
+  99              		.loc 1 412 0
+ 100 0020 93F800C0 		ldrb	ip, [r3, #0]	@ zero_extendqisi2
+ 374:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   uint8_t MaxChannelNum = 0;
+ 101              		.loc 1 374 0
+ 102 0024 0C46     		mov	r4, r1
+ 400:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     ChannelCnt = 0;
+ 103              		.loc 1 400 0
+ 104 0026 0A46     		mov	r2, r1
+ 419:arch/stm32/subsystems/radio_control/spektrum_arch.c ****            SpektrumBuf[ChannelNum] *= MAX_PPRZ/0x156;
+ 105              		.loc 1 419 0
+ 106 0028 2F4F     		ldr	r7, .L22+12
+ 107 002a 4FF01C0A 		mov	sl, #28
+ 430:arch/stm32/subsystems/radio_control/spektrum_arch.c ****             SpektrumBuf[ChannelNum] *= MAX_PPRZ/0x2AC;
+ 108              		.loc 1 430 0
+ 109 002e 4FF00E08 		mov	r8, #14
+ 402:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     for(int i = 0; (i < SPEKTRUM_CHANNELS_PER_FRAME * ExpectedFrames); i++) {
+ 110              		.loc 1 402 0
+ 111 0032 29E0     		b	.L8
+ 112              	.LVL4:
+ 113              	.L14:
+ 404:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       ChannelData = PrimarySpektrumState.values[i];
+ 114              		.loc 1 404 0
+ 115 0034 35F8026F 		ldrh	r6, [r5, #2]!
+ 116 0038 B3B2     		uxth	r3, r6
+ 117              	.LVL5:
+ 412:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       switch(EncodingType) {
+ 118              		.loc 1 412 0
+ 119 003a BCF1000F 		cmp	ip, #0
+ 120 003e 03D0     		beq	.L10
+ 121 0040 BCF1010F 		cmp	ip, #1
+ 122 0044 1FD1     		bne	.L9
+ 123 0046 0AE0     		b	.L21
+ 124              	.L10:
+ 414:arch/stm32/subsystems/radio_control/spektrum_arch.c ****           ChannelNum = (ChannelData >> 10) & 0x0f;
+ 125              		.loc 1 414 0
+ 126 0048 C3F38323 		ubfx	r3, r3, #10, #4
+ 127              	.LVL6:
+ 416:arch/stm32/subsystems/radio_control/spektrum_arch.c ****           if (ChannelNum < RADIO_CONTROL_NB_CHANNEL) {
+ 128              		.loc 1 416 0
+ 129 004c 0B2B     		cmp	r3, #11
+ 130 004e 15D8     		bhi	.L12
+ 417:arch/stm32/subsystems/radio_control/spektrum_arch.c ****            SpektrumBuf[ChannelNum] = ChannelData & 0x3ff;
+ 131              		.loc 1 417 0
+ 132 0050 B605     		lsls	r6, r6, #22
+ 133 0052 B60D     		lsrs	r6, r6, #22
+ 418:arch/stm32/subsystems/radio_control/spektrum_arch.c ****            SpektrumBuf[ChannelNum] -= 0x200;
+ 134              		.loc 1 418 0
+ 135 0054 A6F50076 		sub	r6, r6, #512
+ 419:arch/stm32/subsystems/radio_control/spektrum_arch.c ****            SpektrumBuf[ChannelNum] *= MAX_PPRZ/0x156;
+ 136              		.loc 1 419 0
+ 137 0058 0AFB06F6 		mul	r6, sl, r6
+ 138 005c 09E0     		b	.L20
+ 139              	.LVL7:
+ 140              	.L21:
+ 425:arch/stm32/subsystems/radio_control/spektrum_arch.c ****           ChannelNum = (ChannelData >> 11) & 0x0f;
+ 141              		.loc 1 425 0
+ 142 005e C3F3C323 		ubfx	r3, r3, #11, #4
+ 143              	.LVL8:
+ 427:arch/stm32/subsystems/radio_control/spektrum_arch.c ****           if (ChannelNum < RADIO_CONTROL_NB_CHANNEL) {
+ 144              		.loc 1 427 0
+ 145 0062 0B2B     		cmp	r3, #11
+ 146 0064 0AD8     		bhi	.L12
+ 428:arch/stm32/subsystems/radio_control/spektrum_arch.c ****             SpektrumBuf[ChannelNum] = ChannelData & 0x7ff;
+ 147              		.loc 1 428 0
+ 148 0066 7605     		lsls	r6, r6, #21
+ 149 0068 760D     		lsrs	r6, r6, #21
+ 429:arch/stm32/subsystems/radio_control/spektrum_arch.c ****             SpektrumBuf[ChannelNum] -= 0x400;
+ 150              		.loc 1 429 0
+ 151 006a A6F58066 		sub	r6, r6, #1024
+ 430:arch/stm32/subsystems/radio_control/spektrum_arch.c ****             SpektrumBuf[ChannelNum] *= MAX_PPRZ/0x2AC;
+ 152              		.loc 1 430 0
+ 153 006e 08FB06F6 		mul	r6, r8, r6
+ 154              	.LVL9:
+ 155              	.L20:
+ 431:arch/stm32/subsystems/radio_control/spektrum_arch.c ****             ChannelCnt++;
+ 156              		.loc 1 431 0
+ 157 0072 0132     		adds	r2, r2, #1
+ 158              	.LVL10:
+ 430:arch/stm32/subsystems/radio_control/spektrum_arch.c ****             SpektrumBuf[ChannelNum] *= MAX_PPRZ/0x2AC;
+ 159              		.loc 1 430 0
+ 160 0074 27F81360 		strh	r6, [r7, r3, lsl #1]	@ movhi
+ 431:arch/stm32/subsystems/radio_control/spektrum_arch.c ****             ChannelCnt++;
+ 161              		.loc 1 431 0
+ 162 0078 D2B2     		uxtb	r2, r2
+ 163              	.LVL11:
+ 164 007a 01E0     		b	.L17
+ 165              	.LVL12:
+ 166              	.L12:
+ 438:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       if ((ChannelNum != 0x0F) && (ChannelNum > MaxChannelNum))
+ 167              		.loc 1 438 0
+ 168 007c 0F2B     		cmp	r3, #15
+ 169 007e 02D0     		beq	.L9
+ 170              	.LVL13:
+ 171              	.L17:
+ 438:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       if ((ChannelNum != 0x0F) && (ChannelNum > MaxChannelNum))
+ 172              		.loc 1 438 0 is_stmt 0 discriminator 1
+ 173 0080 9C42     		cmp	r4, r3
+ 174 0082 38BF     		it	cc
+ 175 0084 1C46     		movcc	r4, r3
+ 176              	.LVL14:
+ 177              	.L9:
+ 402:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     for(int i = 0; (i < SPEKTRUM_CHANNELS_PER_FRAME * ExpectedFrames); i++) {
+ 178              		.loc 1 402 0 is_stmt 1
+ 179 0086 0131     		adds	r1, r1, #1
+ 180              	.LVL15:
+ 181              	.L8:
+ 402:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     for(int i = 0; (i < SPEKTRUM_CHANNELS_PER_FRAME * ExpectedFrames); i++) {
+ 182              		.loc 1 402 0 is_stmt 0 discriminator 1
+ 183 0088 4945     		cmp	r1, r9
+ 184 008a D3DB     		blt	.L14
+ 185              	.LBE10:
+ 444:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     if (ChannelCnt >= (MaxChannelNum + 1)) {
+ 186              		.loc 1 444 0 is_stmt 1
+ 187 008c 9442     		cmp	r4, r2
+ 188 008e 22DA     		bge	.L6
+ 445:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       radio_control.frame_cpt++;
+ 189              		.loc 1 445 0
+ 190 0090 164B     		ldr	r3, .L22+16
+ 446:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       radio_control.time_since_last_frame = 0;
+ 191              		.loc 1 446 0
+ 192 0092 0021     		movs	r1, #0
+ 193              	.LVL16:
+ 445:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       radio_control.frame_cpt++;
+ 194              		.loc 1 445 0
+ 195 0094 1A79     		ldrb	r2, [r3, #4]	@ zero_extendqisi2
+ 196              	.LVL17:
+ 197              	.LBB11:
+ 449:arch/stm32/subsystems/radio_control/spektrum_arch.c ****         radio_control.values[i] = SpektrumBuf[i];
+ 198              		.loc 1 449 0
+ 199 0096 DFF850C0 		ldr	ip, .L22+12
+ 200              	.LBE11:
+ 445:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       radio_control.frame_cpt++;
+ 201              		.loc 1 445 0
+ 202 009a 0132     		adds	r2, r2, #1
+ 203              	.LBB12:
+ 454:arch/stm32/subsystems/radio_control/spektrum_arch.c ****         radio_control.values[i] *= SpektrumSigns[i];
+ 204              		.loc 1 454 0
+ 205 009c 144F     		ldr	r7, .L22+20
+ 206              	.LBE12:
+ 445:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       radio_control.frame_cpt++;
+ 207              		.loc 1 445 0
+ 208 009e 1A71     		strb	r2, [r3, #4]
+ 446:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       radio_control.time_since_last_frame = 0;
+ 209              		.loc 1 446 0
+ 210 00a0 5970     		strb	r1, [r3, #1]
+ 447:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       radio_control.status = RC_OK;
+ 211              		.loc 1 447 0
+ 212 00a2 1970     		strb	r1, [r3, #0]
+ 213              	.LVL18:
+ 448:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       for (int i = 0; i < (MaxChannelNum + 1); i++) {
+ 214              		.loc 1 448 0
+ 215 00a4 0A46     		mov	r2, r1
+ 216              	.LBB13:
+ 452:arch/stm32/subsystems/radio_control/spektrum_arch.c ****           radio_control.values[i] /= 2;
+ 217              		.loc 1 452 0
+ 218 00a6 4FF0020E 		mov	lr, #2
+ 219              	.LVL19:
+ 220              	.L16:
+ 449:arch/stm32/subsystems/radio_control/spektrum_arch.c ****         radio_control.values[i] = SpektrumBuf[i];
+ 221              		.loc 1 449 0
+ 222 00aa 31F80C60 		ldrh	r6, [r1, ip]
+ 370:arch/stm32/subsystems/radio_control/spektrum_arch.c **** void RadioControlEventImp(void (*frame_handler)(void)) {
+ 223              		.loc 1 370 0
+ 224 00ae CD18     		adds	r5, r1, r3
+ 449:arch/stm32/subsystems/radio_control/spektrum_arch.c ****         radio_control.values[i] = SpektrumBuf[i];
+ 225              		.loc 1 449 0
+ 226 00b0 EE80     		strh	r6, [r5, #6]	@ movhi
+ 450:arch/stm32/subsystems/radio_control/spektrum_arch.c ****         if (i == RADIO_THROTTLE ) {
+ 227              		.loc 1 450 0
+ 228 00b2 2AB9     		cbnz	r2, .L15
+ 451:arch/stm32/subsystems/radio_control/spektrum_arch.c ****           radio_control.values[i] += MAX_PPRZ;
+ 229              		.loc 1 451 0
+ 230 00b4 06F51656 		add	r6, r6, #9600
+ 452:arch/stm32/subsystems/radio_control/spektrum_arch.c ****           radio_control.values[i] /= 2;
+ 231              		.loc 1 452 0
+ 232 00b8 36B2     		sxth	r6, r6
+ 233 00ba 96FBFEF6 		sdiv	r6, r6, lr
+ 234 00be DE80     		strh	r6, [r3, #6]	@ movhi
+ 235              	.L15:
+ 454:arch/stm32/subsystems/radio_control/spektrum_arch.c ****         radio_control.values[i] *= SpektrumSigns[i];
+ 236              		.loc 1 454 0
+ 237 00c0 D657     		ldrsb	r6, [r2, r7]
+ 238 00c2 B5F80680 		ldrh	r8, [r5, #6]
+ 448:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       for (int i = 0; i < (MaxChannelNum + 1); i++) {
+ 239              		.loc 1 448 0
+ 240 00c6 0132     		adds	r2, r2, #1
+ 241              	.LVL20:
+ 454:arch/stm32/subsystems/radio_control/spektrum_arch.c ****         radio_control.values[i] *= SpektrumSigns[i];
+ 242              		.loc 1 454 0
+ 243 00c8 08FB06F6 		mul	r6, r8, r6
+ 448:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       for (int i = 0; i < (MaxChannelNum + 1); i++) {
+ 244              		.loc 1 448 0
+ 245 00cc 0231     		adds	r1, r1, #2
+ 246 00ce 9442     		cmp	r4, r2
+ 454:arch/stm32/subsystems/radio_control/spektrum_arch.c ****         radio_control.values[i] *= SpektrumSigns[i];
+ 247              		.loc 1 454 0
+ 248 00d0 EE80     		strh	r6, [r5, #6]	@ movhi
+ 448:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       for (int i = 0; i < (MaxChannelNum + 1); i++) {
+ 249              		.loc 1 448 0
+ 250 00d2 EADA     		bge	.L16
+ 251              	.LBE13:
+ 456:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       (*frame_handler)();
+ 252              		.loc 1 456 0
+ 253 00d4 8047     		blx	r0
+ 254              	.LVL21:
+ 255              	.L6:
+ 256 00d6 BDE8F087 		pop	{r4, r5, r6, r7, r8, r9, sl, pc}
+ 257              	.L23:
+ 258 00da 00BF     		.align	2
+ 259              	.L22:
+ 260 00dc 00000000 		.word	.LANCHOR0
+ 261 00e0 00000000 		.word	.LANCHOR1
+ 262 00e4 00000000 		.word	.LANCHOR2
+ 263 00e8 00000000 		.word	.LANCHOR3
+ 264 00ec 00000000 		.word	radio_control
+ 265 00f0 00000000 		.word	.LANCHOR4
+ 266              		.cfi_endproc
+ 267              	.LFE28:
+ 269              		.section	.text.SpektrumTimerInit,"ax",%progbits
+ 270              		.align	1
+ 271              		.global	SpektrumTimerInit
+ 272              		.thumb
+ 273              		.thumb_func
+ 275              	SpektrumTimerInit:
+ 276              	.LFB29:
+ 468:arch/stm32/subsystems/radio_control/spektrum_arch.c **** void SpektrumTimerInit( void ) {
+ 277              		.loc 1 468 0
+ 278              		.cfi_startproc
+ 279              		@ args = 0, pretend = 0, frame = 16
+ 280              		@ frame_needed = 0, uses_anonymous_args = 0
+ 281 0000 30B5     		push	{r4, r5, lr}
+ 282              	.LCFI1:
+ 283              		.cfi_def_cfa_offset 12
+ 284              		.cfi_offset 14, -4
+ 285              		.cfi_offset 5, -8
+ 286              		.cfi_offset 4, -12
+ 471:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM6, ENABLE);
+ 287              		.loc 1 471 0
+ 288 0002 0121     		movs	r1, #1
+ 468:arch/stm32/subsystems/radio_control/spektrum_arch.c **** void SpektrumTimerInit( void ) {
+ 289              		.loc 1 468 0
+ 290 0004 85B0     		sub	sp, sp, #20
+ 291              	.LCFI2:
+ 292              		.cfi_def_cfa_offset 32
+ 471:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM6, ENABLE);
+ 293              		.loc 1 471 0
+ 294 0006 1020     		movs	r0, #16
+ 295 0008 FFF7FEFF 		bl	RCC_APB1PeriphClockCmd
+ 475:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_TimeBaseStructInit(&TIM_TimeBaseStructure);
+ 296              		.loc 1 475 0
+ 297 000c 6846     		mov	r0, sp
+ 298 000e FFF7FEFF 		bl	TIM_TimeBaseStructInit
+ 477:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_TimeBaseStructure.TIM_Period = TIM_TICS_FOR_100us-1;
+ 299              		.loc 1 477 0
+ 300 0012 6323     		movs	r3, #99
+ 481:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_TimeBaseInit(TIM6, &TIM_TimeBaseStructure);
+ 301              		.loc 1 481 0
+ 302 0014 164D     		ldr	r5, .L25
+ 477:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_TimeBaseStructure.TIM_Period = TIM_TICS_FOR_100us-1;
+ 303              		.loc 1 477 0
+ 304 0016 ADF80430 		strh	r3, [sp, #4]	@ movhi
+ 478:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_TimeBaseStructure.TIM_Prescaler = ((AHB_CLK / TIM_FREQ_1000000) - 1);
+ 305              		.loc 1 478 0
+ 306 001a 4723     		movs	r3, #71
+ 307 001c ADF80030 		strh	r3, [sp, #0]	@ movhi
+ 479:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
+ 308              		.loc 1 479 0
+ 309 0020 0023     		movs	r3, #0
+ 481:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_TimeBaseInit(TIM6, &TIM_TimeBaseStructure);
+ 310              		.loc 1 481 0
+ 311 0022 6946     		mov	r1, sp
+ 479:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
+ 312              		.loc 1 479 0
+ 313 0024 ADF80630 		strh	r3, [sp, #6]	@ movhi
+ 481:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_TimeBaseInit(TIM6, &TIM_TimeBaseStructure);
+ 314              		.loc 1 481 0
+ 315 0028 2846     		mov	r0, r5
+ 480:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Down;
+ 316              		.loc 1 480 0
+ 317 002a 1023     		movs	r3, #16
+ 318 002c ADF80230 		strh	r3, [sp, #2]	@ movhi
+ 481:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_TimeBaseInit(TIM6, &TIM_TimeBaseStructure);
+ 319              		.loc 1 481 0
+ 320 0030 FFF7FEFF 		bl	TIM_TimeBaseInit
+ 487:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   NVIC_InitStructure.NVIC_IRQChannel = TIM6_IRQn;
+ 321              		.loc 1 487 0
+ 322 0034 3623     		movs	r3, #54
+ 489:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+ 323              		.loc 1 489 0
+ 324 0036 0124     		movs	r4, #1
+ 487:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   NVIC_InitStructure.NVIC_IRQChannel = TIM6_IRQn;
+ 325              		.loc 1 487 0
+ 326 0038 8DF80C30 		strb	r3, [sp, #12]
+ 491:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   NVIC_Init(&NVIC_InitStructure);
+ 327              		.loc 1 491 0
+ 328 003c 03A8     		add	r0, sp, #12
+ 488:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 2;
+ 329              		.loc 1 488 0
+ 330 003e 0223     		movs	r3, #2
+ 331 0040 8DF80D30 		strb	r3, [sp, #13]
+ 489:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
+ 332              		.loc 1 489 0
+ 333 0044 8DF80E40 		strb	r4, [sp, #14]
+ 490:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+ 334              		.loc 1 490 0
+ 335 0048 8DF80F40 		strb	r4, [sp, #15]
+ 491:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   NVIC_Init(&NVIC_InitStructure);
+ 336              		.loc 1 491 0
+ 337 004c FFF7FEFF 		bl	NVIC_Init
+ 494:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_ITConfig(TIM6, TIM_IT_Update, ENABLE);
+ 338              		.loc 1 494 0
+ 339 0050 2846     		mov	r0, r5
+ 340 0052 2146     		mov	r1, r4
+ 341 0054 2246     		mov	r2, r4
+ 342 0056 FFF7FEFF 		bl	TIM_ITConfig
+ 495:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_ClearFlag(TIM6, TIM_FLAG_Update);
+ 343              		.loc 1 495 0
+ 344 005a 2846     		mov	r0, r5
+ 345 005c 2146     		mov	r1, r4
+ 346 005e FFF7FEFF 		bl	TIM_ClearFlag
+ 498:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_Cmd(TIM6, ENABLE);
+ 347              		.loc 1 498 0
+ 348 0062 2846     		mov	r0, r5
+ 349 0064 2146     		mov	r1, r4
+ 350 0066 FFF7FEFF 		bl	TIM_Cmd
+ 499:arch/stm32/subsystems/radio_control/spektrum_arch.c **** }
+ 351              		.loc 1 499 0
+ 352 006a 05B0     		add	sp, sp, #20
+ 353 006c 30BD     		pop	{r4, r5, pc}
+ 354              	.L26:
+ 355 006e 00BF     		.align	2
+ 356              	.L25:
+ 357 0070 00100040 		.word	1073745920
+ 358              		.cfi_endproc
+ 359              	.LFE29:
+ 361              		.section	.text.tim6_irq_handler,"ax",%progbits
+ 362              		.align	1
+ 363              		.global	tim6_irq_handler
+ 364              		.thumb
+ 365              		.thumb_func
+ 367              	tim6_irq_handler:
+ 368              	.LFB30:
+ 506:arch/stm32/subsystems/radio_control/spektrum_arch.c **** void tim6_irq_handler( void ) {
+ 369              		.loc 1 506 0
+ 370              		.cfi_startproc
+ 371              		@ args = 0, pretend = 0, frame = 0
+ 372              		@ frame_needed = 0, uses_anonymous_args = 0
+ 373 0000 08B5     		push	{r3, lr}
+ 374              	.LCFI3:
+ 375              		.cfi_def_cfa_offset 8
+ 376              		.cfi_offset 14, -4
+ 377              		.cfi_offset 3, -8
+ 508:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_ClearITPendingBit(TIM6, TIM_IT_Update);
+ 378              		.loc 1 508 0
+ 379 0002 0548     		ldr	r0, .L29
+ 380 0004 0121     		movs	r1, #1
+ 381 0006 FFF7FEFF 		bl	TIM_ClearITPendingBit
+ 510:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   if (PrimarySpektrumState.SpektrumTimer)
+ 382              		.loc 1 510 0
+ 383 000a 044B     		ldr	r3, .L29+4
+ 384 000c 5A78     		ldrb	r2, [r3, #1]	@ zero_extendqisi2
+ 385 000e 0AB1     		cbz	r2, .L27
+ 511:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     --PrimarySpektrumState.SpektrumTimer;
+ 386              		.loc 1 511 0
+ 387 0010 013A     		subs	r2, r2, #1
+ 388 0012 5A70     		strb	r2, [r3, #1]
+ 389              	.L27:
+ 390 0014 08BD     		pop	{r3, pc}
+ 391              	.L30:
+ 392 0016 00BF     		.align	2
+ 393              	.L29:
+ 394 0018 00100040 		.word	1073745920
+ 395 001c 00000000 		.word	.LANCHOR0
+ 396              		.cfi_endproc
+ 397              	.LFE30:
+ 399              		.section	.text.SpektrumUartInit,"ax",%progbits
+ 400              		.align	1
+ 401              		.global	SpektrumUartInit
+ 402              		.thumb
+ 403              		.thumb_func
+ 405              	SpektrumUartInit:
+ 406              	.LFB31:
+ 523:arch/stm32/subsystems/radio_control/spektrum_arch.c **** void SpektrumUartInit(void) {
+ 407              		.loc 1 523 0
+ 408              		.cfi_startproc
+ 409              		@ args = 0, pretend = 0, frame = 24
+ 410              		@ frame_needed = 0, uses_anonymous_args = 0
+ 411 0000 70B5     		push	{r4, r5, r6, lr}
+ 412              	.LCFI4:
+ 413              		.cfi_def_cfa_offset 16
+ 414              		.cfi_offset 14, -4
+ 415              		.cfi_offset 6, -8
+ 416              		.cfi_offset 5, -12
+ 417              		.cfi_offset 4, -16
+ 526:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   PrimaryUart(_clk)(PrimaryUart(_UartPeriph), ENABLE);;
+ 418              		.loc 1 526 0
+ 419 0002 0121     		movs	r1, #1
+ 523:arch/stm32/subsystems/radio_control/spektrum_arch.c **** void SpektrumUartInit(void) {
+ 420              		.loc 1 523 0
+ 421 0004 86B0     		sub	sp, sp, #24
+ 422              	.LCFI5:
+ 423              		.cfi_def_cfa_offset 40
+ 526:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   PrimaryUart(_clk)(PrimaryUart(_UartPeriph), ENABLE);;
+ 424              		.loc 1 526 0
+ 425 0006 4FF48040 		mov	r0, #16384
+ 426 000a FFF7FEFF 		bl	RCC_APB2PeriphClockCmd
+ 531:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   nvic.NVIC_IRQChannel = PrimaryUart(_IRQn);
+ 427              		.loc 1 531 0
+ 428 000e 2523     		movs	r3, #37
+ 533:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   nvic.NVIC_IRQChannelSubPriority = 1;
+ 429              		.loc 1 533 0
+ 430 0010 0124     		movs	r4, #1
+ 531:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   nvic.NVIC_IRQChannel = PrimaryUart(_IRQn);
+ 431              		.loc 1 531 0
+ 432 0012 8DF81030 		strb	r3, [sp, #16]
+ 535:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   NVIC_Init(&nvic);
+ 433              		.loc 1 535 0
+ 434 0016 04A8     		add	r0, sp, #16
+ 532:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   nvic.NVIC_IRQChannelPreemptionPriority = 2;
+ 435              		.loc 1 532 0
+ 436 0018 0223     		movs	r3, #2
+ 437 001a 8DF81130 		strb	r3, [sp, #17]
+ 533:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   nvic.NVIC_IRQChannelSubPriority = 1;
+ 438              		.loc 1 533 0
+ 439 001e 8DF81240 		strb	r4, [sp, #18]
+ 534:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   nvic.NVIC_IRQChannelCmd = ENABLE;
+ 440              		.loc 1 534 0
+ 441 0022 8DF81340 		strb	r4, [sp, #19]
+ 535:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   NVIC_Init(&nvic);
+ 442              		.loc 1 535 0
+ 443 0026 FFF7FEFF 		bl	NVIC_Init
+ 538:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+ 444              		.loc 1 538 0
+ 445 002a 0323     		movs	r3, #3
+ 541:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN_FLOATING;
+ 446              		.loc 1 541 0
+ 447 002c 0425     		movs	r5, #4
+ 538:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+ 448              		.loc 1 538 0
+ 449 002e 8DF81630 		strb	r3, [sp, #22]
+ 542:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_Init(PrimaryUart(_RxPort), &GPIO_InitStructure);
+ 450              		.loc 1 542 0
+ 451 0032 05A9     		add	r1, sp, #20
+ 540:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Pin   = PrimaryUart(_RxPin);
+ 452              		.loc 1 540 0
+ 453 0034 4FF48063 		mov	r3, #1024
+ 542:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_Init(PrimaryUart(_RxPort), &GPIO_InitStructure);
+ 454              		.loc 1 542 0
+ 455 0038 1448     		ldr	r0, .L32
+ 540:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Pin   = PrimaryUart(_RxPin);
+ 456              		.loc 1 540 0
+ 457 003a ADF81430 		strh	r3, [sp, #20]	@ movhi
+ 541:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN_FLOATING;
+ 458              		.loc 1 541 0
+ 459 003e 8DF81750 		strb	r5, [sp, #23]
+ 542:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_Init(PrimaryUart(_RxPort), &GPIO_InitStructure);
+ 460              		.loc 1 542 0
+ 461 0042 FFF7FEFF 		bl	GPIO_Init
+ 550:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   usart.USART_Mode                = USART_Mode_Rx;
+ 462              		.loc 1 550 0
+ 463 0046 ADF80A50 		strh	r5, [sp, #10]	@ movhi
+ 551:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   USART_Init(PrimaryUart(_reg), &usart);
+ 464              		.loc 1 551 0
+ 465 004a 114D     		ldr	r5, .L32+4
+ 546:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   usart.USART_WordLength          = USART_WordLength_8b;
+ 466              		.loc 1 546 0
+ 467 004c 0023     		movs	r3, #0
+ 545:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   usart.USART_BaudRate            = B115200;
+ 468              		.loc 1 545 0
+ 469 004e 4FF4E136 		mov	r6, #115200
+ 551:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   USART_Init(PrimaryUart(_reg), &usart);
+ 470              		.loc 1 551 0
+ 471 0052 2846     		mov	r0, r5
+ 472 0054 6946     		mov	r1, sp
+ 546:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   usart.USART_WordLength          = USART_WordLength_8b;
+ 473              		.loc 1 546 0
+ 474 0056 ADF80430 		strh	r3, [sp, #4]	@ movhi
+ 547:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   usart.USART_StopBits            = USART_StopBits_1;
+ 475              		.loc 1 547 0
+ 476 005a ADF80630 		strh	r3, [sp, #6]	@ movhi
+ 548:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   usart.USART_Parity              = USART_Parity_No;
+ 477              		.loc 1 548 0
+ 478 005e ADF80830 		strh	r3, [sp, #8]	@ movhi
+ 549:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   usart.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+ 479              		.loc 1 549 0
+ 480 0062 ADF80C30 		strh	r3, [sp, #12]	@ movhi
+ 545:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   usart.USART_BaudRate            = B115200;
+ 481              		.loc 1 545 0
+ 482 0066 0096     		str	r6, [sp, #0]
+ 551:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   USART_Init(PrimaryUart(_reg), &usart);
+ 483              		.loc 1 551 0
+ 484 0068 FFF7FEFF 		bl	USART_Init
+ 553:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   USART_ITConfig(PrimaryUart(_reg), USART_IT_RXNE, ENABLE);
+ 485              		.loc 1 553 0
+ 486 006c 2846     		mov	r0, r5
+ 487 006e 2246     		mov	r2, r4
+ 488 0070 40F22551 		movw	r1, #1317
+ 489 0074 FFF7FEFF 		bl	USART_ITConfig
+ 556:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   pprz_usart_set_baudrate(PrimaryUart(_reg), B115200);
+ 490              		.loc 1 556 0
+ 491 0078 2846     		mov	r0, r5
+ 492 007a 3146     		mov	r1, r6
+ 493 007c FFF7FEFF 		bl	usart_set_baudrate
+ 558:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   USART_Cmd(PrimaryUart(_reg), ENABLE);
+ 494              		.loc 1 558 0
+ 495 0080 2846     		mov	r0, r5
+ 496 0082 2146     		mov	r1, r4
+ 497 0084 FFF7FEFF 		bl	USART_Cmd
+ 595:arch/stm32/subsystems/radio_control/spektrum_arch.c **** }
+ 498              		.loc 1 595 0
+ 499 0088 06B0     		add	sp, sp, #24
+ 500 008a 70BD     		pop	{r4, r5, r6, pc}
+ 501              	.L33:
+ 502              		.align	2
+ 503              	.L32:
+ 504 008c 00080140 		.word	1073809408
+ 505 0090 00380140 		.word	1073821696
+ 506              		.cfi_endproc
+ 507              	.LFE31:
+ 509              		.section	.text.radio_control_impl_init,"ax",%progbits
+ 510              		.align	1
+ 511              		.global	radio_control_impl_init
+ 512              		.thumb
+ 513              		.thumb_func
+ 515              	radio_control_impl_init:
+ 516              	.LFB27:
+ 140:arch/stm32/subsystems/radio_control/spektrum_arch.c **** void radio_control_impl_init(void) {
+ 517              		.loc 1 140 0
+ 518              		.cfi_startproc
+ 519              		@ args = 0, pretend = 0, frame = 0
+ 520              		@ frame_needed = 0, uses_anonymous_args = 0
+ 521 0000 08B5     		push	{r3, lr}
+ 522              	.LCFI6:
+ 523              		.cfi_def_cfa_offset 8
+ 524              		.cfi_offset 14, -4
+ 525              		.cfi_offset 3, -8
+ 141:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   SpektrumTimerInit();
+ 526              		.loc 1 141 0
+ 527 0002 FFF7FEFF 		bl	SpektrumTimerInit
+ 144:arch/stm32/subsystems/radio_control/spektrum_arch.c **** }
+ 528              		.loc 1 144 0
+ 529 0006 BDE80840 		pop	{r3, lr}
+ 143:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   SpektrumUartInit();
+ 530              		.loc 1 143 0
+ 531 000a FFF7FEBF 		b	SpektrumUartInit
+ 532              		.cfi_endproc
+ 533              	.LFE27:
+ 535              		.section	.text.usart1_irq_handler,"ax",%progbits
+ 536              		.align	1
+ 537              		.global	usart1_irq_handler
+ 538              		.thumb
+ 539              		.thumb_func
+ 541              	usart1_irq_handler:
+ 542              	.LFB32:
+ 603:arch/stm32/subsystems/radio_control/spektrum_arch.c **** void PrimaryUart(_irq_handler)(void) {
+ 543              		.loc 1 603 0
+ 544              		.cfi_startproc
+ 545              		@ args = 0, pretend = 0, frame = 0
+ 546              		@ frame_needed = 0, uses_anonymous_args = 0
+ 547 0000 10B5     		push	{r4, lr}
+ 548              	.LCFI7:
+ 549              		.cfi_def_cfa_offset 8
+ 550              		.cfi_offset 14, -4
+ 551              		.cfi_offset 4, -8
+ 605:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   if(USART_GetITStatus(PrimaryUart(_reg), USART_IT_TXE) != RESET) {
+ 552              		.loc 1 605 0
+ 553 0002 4048     		ldr	r0, .L49
+ 554 0004 40F22771 		movw	r1, #1831
+ 555 0008 FFF7FEFF 		bl	USART_GetITStatus
+ 556 000c 28B1     		cbz	r0, .L36
+ 606:arch/stm32/subsystems/radio_control/spektrum_arch.c ****       USART_ITConfig(PrimaryUart(_reg), USART_IT_TXE, DISABLE);
+ 557              		.loc 1 606 0
+ 558 000e 3D48     		ldr	r0, .L49
+ 559 0010 40F22771 		movw	r1, #1831
+ 560 0014 0022     		movs	r2, #0
+ 561 0016 FFF7FEFF 		bl	USART_ITConfig
+ 562              	.L36:
+ 609:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   if(USART_GetITStatus(PrimaryUart(_reg), USART_IT_RXNE) != RESET) {
+ 563              		.loc 1 609 0
+ 564 001a 3A48     		ldr	r0, .L49
+ 565 001c 40F22551 		movw	r1, #1317
+ 566 0020 FFF7FEFF 		bl	USART_GetITStatus
+ 567 0024 0028     		cmp	r0, #0
+ 568 0026 6CD0     		beq	.L35
+ 569              	.LBB14:
+ 610:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     uint8_t b =  USART_ReceiveData(PrimaryUart(_reg));
+ 570              		.loc 1 610 0
+ 571 0028 3648     		ldr	r0, .L49
+ 572 002a FFF7FEFF 		bl	USART_ReceiveData
+ 573              	.LVL22:
+ 574              	.LBB15:
+ 611:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     SpektrumParser(b, PrimarySpektrumState, 0);
+ 575              		.loc 1 611 0
+ 576 002e 364B     		ldr	r3, .L49+4
+ 577 0030 1A78     		ldrb	r2, [r3, #0]	@ zero_extendqisi2
+ 578 0032 5978     		ldrb	r1, [r3, #1]	@ zero_extendqisi2
+ 579              	.LVL23:
+ 580 0034 012A     		cmp	r2, #1
+ 581 0036 08D0     		beq	.L38
+ 611:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     SpektrumParser(b, PrimarySpektrumState, 0);
+ 582              		.loc 1 611 0 is_stmt 0 discriminator 2
+ 583 0038 D1F10101 		rsbs	r1, r1, #1
+ 584              	.LVL24:
+ 585 003c 9A78     		ldrb	r2, [r3, #2]	@ zero_extendqisi2
+ 586 003e 38BF     		it	cc
+ 587 0040 0021     		movcc	r1, #0
+ 588              	.LBE15:
+ 610:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     uint8_t b =  USART_ReceiveData(PrimaryUart(_reg));
+ 589              		.loc 1 610 0 is_stmt 1 discriminator 2
+ 590 0042 C0B2     		uxtb	r0, r0
+ 591              	.LVL25:
+ 592              	.LBB16:
+ 611:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     SpektrumParser(b, PrimarySpektrumState, 0);
+ 593              		.loc 1 611 0 discriminator 2
+ 594 0044 0C46     		mov	r4, r1
+ 595 0046 6AB9     		cbnz	r2, .L39
+ 611:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     SpektrumParser(b, PrimarySpektrumState, 0);
+ 596              		.loc 1 611 0 is_stmt 0 discriminator 3
+ 597 0048 49B9     		cbnz	r1, .L40
+ 598              	.L38:
+ 611:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     SpektrumParser(b, PrimarySpektrumState, 0);
+ 599              		.loc 1 611 0 discriminator 1
+ 600 004a 2F4B     		ldr	r3, .L49+4
+ 601 004c 0022     		movs	r2, #0
+ 602 004e 4621     		movs	r1, #70
+ 603 0050 1A70     		strb	r2, [r3, #0]
+ 604 0052 5970     		strb	r1, [r3, #1]
+ 605 0054 9A70     		strb	r2, [r3, #2]
+ 606 0056 DA70     		strb	r2, [r3, #3]
+ 607 0058 1A71     		strb	r2, [r3, #4]
+ 608 005a 9A71     		strb	r2, [r3, #6]
+ 609 005c 10BD     		pop	{r4, pc}
+ 610              	.L40:
+ 611:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     SpektrumParser(b, PrimarySpektrumState, 0);
+ 611              		.loc 1 611 0 discriminator 5
+ 612 005e 1881     		strh	r0, [r3, #8]	@ movhi
+ 613 0060 0122     		movs	r2, #1
+ 614 0062 0FE0     		b	.L48
+ 615              	.L39:
+ 611:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     SpektrumParser(b, PrimarySpektrumState, 0);
+ 616              		.loc 1 611 0 discriminator 6
+ 617 0064 19B1     		cbz	r1, .L41
+ 611:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     SpektrumParser(b, PrimarySpektrumState, 0);
+ 618              		.loc 1 611 0 discriminator 9
+ 619 0066 0122     		movs	r2, #1
+ 620 0068 1A70     		strb	r2, [r3, #0]
+ 621 006a 4622     		movs	r2, #70
+ 622 006c 17E0     		b	.L47
+ 623              	.L41:
+ 611:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     SpektrumParser(b, PrimarySpektrumState, 0);
+ 624              		.loc 1 611 0 discriminator 10
+ 625 006e 012A     		cmp	r2, #1
+ 626 0070 0BD1     		bne	.L42
+ 611:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     SpektrumParser(b, PrimarySpektrumState, 0);
+ 627              		.loc 1 611 0 discriminator 14
+ 628 0072 264A     		ldr	r2, .L49+8
+ 629 0074 C0F30011 		ubfx	r1, r0, #4, #1
+ 630 0078 1170     		strb	r1, [r2, #0]
+ 631 007a 254A     		ldr	r2, .L49+12
+ 632 007c 00F00300 		and	r0, r0, #3
+ 633 0080 1070     		strb	r0, [r2, #0]
+ 634 0082 0222     		movs	r2, #2
+ 635              	.L48:
+ 636 0084 9A70     		strb	r2, [r3, #2]
+ 637 0086 0322     		movs	r2, #3
+ 638 0088 09E0     		b	.L47
+ 639              	.L42:
+ 611:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     SpektrumParser(b, PrimarySpektrumState, 0);
+ 640              		.loc 1 611 0 discriminator 12
+ 641 008a 022A     		cmp	r2, #2
+ 642 008c 09D1     		bne	.L43
+ 611:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     SpektrumParser(b, PrimarySpektrumState, 0);
+ 643              		.loc 1 611 0 discriminator 16
+ 644 008e DA78     		ldrb	r2, [r3, #3]	@ zero_extendqisi2
+ 645 0090 5871     		strb	r0, [r3, #5]
+ 646 0092 0AB9     		cbnz	r2, .L44
+ 611:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     SpektrumParser(b, PrimarySpektrumState, 0);
+ 647              		.loc 1 611 0 discriminator 18
+ 648 0094 C009     		lsrs	r0, r0, #7
+ 649 0096 9871     		strb	r0, [r3, #6]
+ 650              	.L44:
+ 611:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     SpektrumParser(b, PrimarySpektrumState, 0);
+ 651              		.loc 1 611 0 discriminator 19
+ 652 0098 1B4B     		ldr	r3, .L49+4
+ 653 009a 0322     		movs	r2, #3
+ 654 009c 9A70     		strb	r2, [r3, #2]
+ 655              	.L47:
+ 656 009e 5A70     		strb	r2, [r3, #1]
+ 657 00a0 10BD     		pop	{r4, pc}
+ 658              	.L43:
+ 611:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     SpektrumParser(b, PrimarySpektrumState, 0);
+ 659              		.loc 1 611 0 discriminator 17
+ 660 00a2 032A     		cmp	r2, #3
+ 661 00a4 10D1     		bne	.L45
+ 611:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     SpektrumParser(b, PrimarySpektrumState, 0);
+ 662              		.loc 1 611 0 discriminator 20
+ 663 00a6 0224     		movs	r4, #2
+ 664 00a8 5A70     		strb	r2, [r3, #1]
+ 665 00aa 9972     		strb	r1, [r3, #10]
+ 666              	.LVL26:
+ 667 00ac DA78     		ldrb	r2, [r3, #3]	@ zero_extendqisi2
+ 668 00ae 9979     		ldrb	r1, [r3, #6]	@ zero_extendqisi2
+ 669 00b0 9C70     		strb	r4, [r3, #2]
+ 670 00b2 0724     		movs	r4, #7
+ 671 00b4 04FB0121 		mla	r1, r4, r1, r2
+ 672 00b8 5C79     		ldrb	r4, [r3, #5]	@ zero_extendqisi2
+ 673 00ba 03EB4101 		add	r1, r3, r1, lsl #1
+ 674 00be 40EA0420 		orr	r0, r0, r4, lsl #8
+ 675              	.LVL27:
+ 676 00c2 0132     		adds	r2, r2, #1
+ 677 00c4 8881     		strh	r0, [r1, #12]	@ movhi
+ 678 00c6 DA70     		strb	r2, [r3, #3]
+ 679              	.L45:
+ 611:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     SpektrumParser(b, PrimarySpektrumState, 0);
+ 680              		.loc 1 611 0 discriminator 21
+ 681 00c8 0F4B     		ldr	r3, .L49+4
+ 682 00ca DA78     		ldrb	r2, [r3, #3]	@ zero_extendqisi2
+ 683 00cc 062A     		cmp	r2, #6
+ 684 00ce 18D9     		bls	.L35
+ 611:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     SpektrumParser(b, PrimarySpektrumState, 0);
+ 685              		.loc 1 611 0 discriminator 22
+ 686 00d0 1979     		ldrb	r1, [r3, #4]	@ zero_extendqisi2
+ 687 00d2 0F4A     		ldr	r2, .L49+12
+ 688 00d4 0131     		adds	r1, r1, #1
+ 689 00d6 1278     		ldrb	r2, [r2, #0]	@ zero_extendqisi2
+ 690 00d8 C9B2     		uxtb	r1, r1
+ 691 00da 9142     		cmp	r1, r2
+ 692 00dc 1971     		strb	r1, [r3, #4]
+ 693 00de 03D1     		bne	.L46
+ 611:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     SpektrumParser(b, PrimarySpektrumState, 0);
+ 694              		.loc 1 611 0 discriminator 23
+ 695 00e0 0121     		movs	r1, #1
+ 696 00e2 9972     		strb	r1, [r3, #10]
+ 697 00e4 0021     		movs	r1, #0
+ 698 00e6 1971     		strb	r1, [r3, #4]
+ 699              	.L46:
+ 611:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     SpektrumParser(b, PrimarySpektrumState, 0);
+ 700              		.loc 1 611 0 discriminator 25
+ 701 00e8 084B     		ldr	r3, .L49+8
+ 702 00ea 1978     		ldrb	r1, [r3, #0]	@ zero_extendqisi2
+ 703 00ec 094B     		ldr	r3, .L49+16
+ 704 00ee 1970     		strb	r1, [r3, #0]
+ 705 00f0 094B     		ldr	r3, .L49+20
+ 706 00f2 1A70     		strb	r2, [r3, #0]
+ 707 00f4 044B     		ldr	r3, .L49+4
+ 708 00f6 0022     		movs	r2, #0
+ 709 00f8 9A70     		strb	r2, [r3, #2]
+ 710 00fa DA70     		strb	r2, [r3, #3]
+ 711 00fc 9A71     		strb	r2, [r3, #6]
+ 712 00fe 4622     		movs	r2, #70
+ 713 0100 5A70     		strb	r2, [r3, #1]
+ 714              	.L35:
+ 715 0102 10BD     		pop	{r4, pc}
+ 716              	.L50:
+ 717              		.align	2
+ 718              	.L49:
+ 719 0104 00380140 		.word	1073821696
+ 720 0108 00000000 		.word	.LANCHOR0
+ 721 010c 00000000 		.word	.LANCHOR5
+ 722 0110 00000000 		.word	.LANCHOR6
+ 723 0114 00000000 		.word	.LANCHOR2
+ 724 0118 00000000 		.word	.LANCHOR1
+ 725              	.LBE16:
+ 726              	.LBE14:
+ 727              		.cfi_endproc
+ 728              	.LFE32:
+ 730              		.section	.text.DebugInit,"ax",%progbits
+ 731              		.align	1
+ 732              		.global	DebugInit
+ 733              		.thumb
+ 734              		.thumb_func
+ 736              	DebugInit:
+ 737              	.LFB33:
+ 640:arch/stm32/subsystems/radio_control/spektrum_arch.c **** void DebugInit(void) {
+ 738              		.loc 1 640 0 is_stmt 1
+ 739              		.cfi_startproc
+ 740              		@ args = 0, pretend = 0, frame = 8
+ 741              		@ frame_needed = 0, uses_anonymous_args = 0
+ 742 0000 37B5     		push	{r0, r1, r2, r4, r5, lr}
+ 743              	.LCFI8:
+ 744              		.cfi_def_cfa_offset 24
+ 745              		.cfi_offset 14, -4
+ 746              		.cfi_offset 5, -8
+ 747              		.cfi_offset 4, -12
+ 748              		.cfi_offset 2, -16
+ 749              		.cfi_offset 1, -20
+ 750              		.cfi_offset 0, -24
+ 641:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOC, ENABLE);
+ 751              		.loc 1 641 0
+ 752 0002 1020     		movs	r0, #16
+ 753 0004 0121     		movs	r1, #1
+ 646:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_Init(GPIOC, &GPIO_InitStructure);
+ 754              		.loc 1 646 0
+ 755 0006 0B4D     		ldr	r5, .L52
+ 641:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   RCC_APB2PeriphClockCmd( RCC_APB2Periph_GPIOC, ENABLE);
+ 756              		.loc 1 641 0
+ 757 0008 FFF7FEFF 		bl	RCC_APB2PeriphClockCmd
+ 644:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+ 758              		.loc 1 644 0
+ 759 000c 1023     		movs	r3, #16
+ 643:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
+ 760              		.loc 1 643 0
+ 761 000e 2024     		movs	r4, #32
+ 644:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+ 762              		.loc 1 644 0
+ 763 0010 8DF80730 		strb	r3, [sp, #7]
+ 646:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_Init(GPIOC, &GPIO_InitStructure);
+ 764              		.loc 1 646 0
+ 765 0014 2846     		mov	r0, r5
+ 645:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+ 766              		.loc 1 645 0
+ 767 0016 0323     		movs	r3, #3
+ 646:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_Init(GPIOC, &GPIO_InitStructure);
+ 768              		.loc 1 646 0
+ 769 0018 01A9     		add	r1, sp, #4
+ 643:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;
+ 770              		.loc 1 643 0
+ 771 001a ADF80440 		strh	r4, [sp, #4]	@ movhi
+ 645:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+ 772              		.loc 1 645 0
+ 773 001e 8DF80630 		strb	r3, [sp, #6]
+ 646:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_Init(GPIOC, &GPIO_InitStructure);
+ 774              		.loc 1 646 0
+ 775 0022 FFF7FEFF 		bl	GPIO_Init
+ 647:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_WriteBit(GPIOC, GPIO_Pin_5 , Bit_RESET );
+ 776              		.loc 1 647 0
+ 777 0026 2846     		mov	r0, r5
+ 778 0028 2146     		mov	r1, r4
+ 779 002a 0022     		movs	r2, #0
+ 780 002c FFF7FEFF 		bl	GPIO_WriteBit
+ 648:arch/stm32/subsystems/radio_control/spektrum_arch.c **** }
+ 781              		.loc 1 648 0
+ 782 0030 3EBD     		pop	{r1, r2, r3, r4, r5, pc}
+ 783              	.L53:
+ 784 0032 00BF     		.align	2
+ 785              	.L52:
+ 786 0034 00100140 		.word	1073811456
+ 787              		.cfi_endproc
+ 788              	.LFE33:
+ 790              		.section	.text.radio_control_spektrum_try_bind,"ax",%progbits
+ 791              		.align	1
+ 792              		.global	radio_control_spektrum_try_bind
+ 793              		.thumb
+ 794              		.thumb_func
+ 796              	radio_control_spektrum_try_bind:
+ 797              	.LFB34:
+ 665:arch/stm32/subsystems/radio_control/spektrum_arch.c **** void radio_control_spektrum_try_bind(void) {
+ 798              		.loc 1 665 0
+ 799              		.cfi_startproc
+ 800              		@ args = 0, pretend = 0, frame = 16
+ 801              		@ frame_needed = 0, uses_anonymous_args = 0
+ 802 0000 1FB5     		push	{r0, r1, r2, r3, r4, lr}
+ 803              	.LCFI9:
+ 804              		.cfi_def_cfa_offset 24
+ 805              		.cfi_offset 14, -4
+ 806              		.cfi_offset 4, -8
+ 807              		.cfi_offset 3, -12
+ 808              		.cfi_offset 2, -16
+ 809              		.cfi_offset 1, -20
+ 810              		.cfi_offset 0, -24
+ 668:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   RCC_APB2PeriphClockCmd(BIND_PIN_PERIPH , ENABLE);
+ 811              		.loc 1 668 0
+ 812 0002 1020     		movs	r0, #16
+ 813 0004 0121     		movs	r1, #1
+ 814 0006 FFF7FEFF 		bl	RCC_APB2PeriphClockCmd
+ 673:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
+ 815              		.loc 1 673 0
+ 816 000a 4823     		movs	r3, #72
+ 672:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Pin = BIND_PIN;
+ 817              		.loc 1 672 0
+ 818 000c 0824     		movs	r4, #8
+ 673:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU;
+ 819              		.loc 1 673 0
+ 820 000e 8DF80F30 		strb	r3, [sp, #15]
+ 675:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_Init(BIND_PIN_PORT, &GPIO_InitStructure);
+ 821              		.loc 1 675 0
+ 822 0012 2F48     		ldr	r0, .L60
+ 674:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+ 823              		.loc 1 674 0
+ 824 0014 0223     		movs	r3, #2
+ 675:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_Init(BIND_PIN_PORT, &GPIO_InitStructure);
+ 825              		.loc 1 675 0
+ 826 0016 03A9     		add	r1, sp, #12
+ 672:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Pin = BIND_PIN;
+ 827              		.loc 1 672 0
+ 828 0018 ADF80C40 		strh	r4, [sp, #12]	@ movhi
+ 674:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+ 829              		.loc 1 674 0
+ 830 001c 8DF80E30 		strb	r3, [sp, #14]
+ 675:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_Init(BIND_PIN_PORT, &GPIO_InitStructure);
+ 831              		.loc 1 675 0
+ 832 0020 FFF7FEFF 		bl	GPIO_Init
+ 678:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   if (GPIO_ReadInputDataBit(BIND_PIN_PORT, BIND_PIN))
+ 833              		.loc 1 678 0
+ 834 0024 2146     		mov	r1, r4
+ 835 0026 2A48     		ldr	r0, .L60
+ 836 0028 FFF7FEFF 		bl	GPIO_ReadInputDataBit
+ 837 002c 0446     		mov	r4, r0
+ 838 002e 0028     		cmp	r0, #0
+ 839 0030 4CD1     		bne	.L54
+ 840              	.LBB17:
+ 841              	.LBB18:
+ 737:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM6, ENABLE);
+ 842              		.loc 1 737 0
+ 843 0032 0121     		movs	r1, #1
+ 844 0034 1020     		movs	r0, #16
+ 845 0036 FFF7FEFF 		bl	RCC_APB1PeriphClockCmd
+ 740:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_TimeBaseStructInit(&TIM_TimeBaseStructure);
+ 846              		.loc 1 740 0
+ 847 003a 6846     		mov	r0, sp
+ 848 003c FFF7FEFF 		bl	TIM_TimeBaseStructInit
+ 741:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_TimeBaseStructure.TIM_Prescaler = (AHB_CLK / DELAY_TIM_FREQUENCY) - 1;
+ 849              		.loc 1 741 0
+ 850 0040 4723     		movs	r3, #71
+ 851 0042 ADF80030 		strh	r3, [sp, #0]	@ movhi
+ 745:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_TimeBaseInit(TIM6, &TIM_TimeBaseStructure);
+ 852              		.loc 1 745 0
+ 853 0046 2348     		ldr	r0, .L60+4
+ 742:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_TimeBaseStructure.TIM_Period = UINT16_MAX;
+ 854              		.loc 1 742 0
+ 855 0048 4FF6FF73 		movw	r3, #65535
+ 745:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_TimeBaseInit(TIM6, &TIM_TimeBaseStructure);
+ 856              		.loc 1 745 0
+ 857 004c 6946     		mov	r1, sp
+ 742:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_TimeBaseStructure.TIM_Period = UINT16_MAX;
+ 858              		.loc 1 742 0
+ 859 004e ADF80430 		strh	r3, [sp, #4]	@ movhi
+ 743:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_TimeBaseStructure.TIM_ClockDivision = 0;
+ 860              		.loc 1 743 0
+ 861 0052 ADF80640 		strh	r4, [sp, #6]	@ movhi
+ 744:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+ 862              		.loc 1 744 0
+ 863 0056 ADF80240 		strh	r4, [sp, #2]	@ movhi
+ 745:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_TimeBaseInit(TIM6, &TIM_TimeBaseStructure);
+ 864              		.loc 1 745 0
+ 865 005a FFF7FEFF 		bl	TIM_TimeBaseInit
+ 748:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   TIM_Cmd(TIM6, ENABLE);
+ 866              		.loc 1 748 0
+ 867 005e 1D48     		ldr	r0, .L60+4
+ 868 0060 0121     		movs	r1, #1
+ 869 0062 FFF7FEFF 		bl	TIM_Cmd
+ 870              	.LBE18:
+ 871              	.LBE17:
+ 685:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   RCC_APB2PeriphClockCmd(PrimaryUart(_Periph) , ENABLE);
+ 872              		.loc 1 685 0
+ 873 0066 0420     		movs	r0, #4
+ 874 0068 0121     		movs	r1, #1
+ 875 006a FFF7FEFF 		bl	RCC_APB2PeriphClockCmd
+ 688:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+ 876              		.loc 1 688 0
+ 877 006e 1023     		movs	r3, #16
+ 687:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Pin = PrimaryUart(_RxPin);
+ 878              		.loc 1 687 0
+ 879 0070 4FF48064 		mov	r4, #1024
+ 688:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+ 880              		.loc 1 688 0
+ 881 0074 8DF80F30 		strb	r3, [sp, #15]
+ 690:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_Init(PrimaryUart(_RxPort), &GPIO_InitStructure);
+ 882              		.loc 1 690 0
+ 883 0078 1748     		ldr	r0, .L60+8
+ 689:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+ 884              		.loc 1 689 0
+ 885 007a 0323     		movs	r3, #3
+ 690:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_Init(PrimaryUart(_RxPort), &GPIO_InitStructure);
+ 886              		.loc 1 690 0
+ 887 007c 03A9     		add	r1, sp, #12
+ 687:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Pin = PrimaryUart(_RxPin);
+ 888              		.loc 1 687 0
+ 889 007e ADF80C40 		strh	r4, [sp, #12]	@ movhi
+ 689:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+ 890              		.loc 1 689 0
+ 891 0082 8DF80E30 		strb	r3, [sp, #14]
+ 690:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_Init(PrimaryUart(_RxPort), &GPIO_InitStructure);
+ 892              		.loc 1 690 0
+ 893 0086 FFF7FEFF 		bl	GPIO_Init
+ 692:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   GPIO_WriteBit(PrimaryUart(_RxPort), PrimaryUart(_RxPin) , Bit_SET );
+ 894              		.loc 1 692 0
+ 895 008a 2146     		mov	r1, r4
+ 896 008c 1248     		ldr	r0, .L60+8
+ 897 008e 0122     		movs	r2, #1
+ 898 0090 FFF7FEFF 		bl	GPIO_WriteBit
+ 899              	.LVL28:
+ 900 0094 3D24     		movs	r4, #61
+ 901              	.LVL29:
+ 902              	.L56:
+ 903              	.LBB19:
+ 904              	.LBB20:
+ 757:arch/stm32/subsystems/radio_control/spektrum_arch.c **** 
+ 758:arch/stm32/subsystems/radio_control/spektrum_arch.c **** /* wait busy loop, milliseconds */
+ 759:arch/stm32/subsystems/radio_control/spektrum_arch.c **** static void DelayMs( uint16_t mSecs ) {
+ 760:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   for(int i = 0; i < mSecs; i++) {
+ 761:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     DelayUs(DELAY_TIM_FREQUENCY / 1000);
+ 905              		.loc 1 761 0
+ 906 0096 4FF47A70 		mov	r0, #1000
+ 907 009a FFF7FEFF 		bl	DelayUs
+ 760:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   for(int i = 0; i < mSecs; i++) {
+ 908              		.loc 1 760 0
+ 909 009e 013C     		subs	r4, r4, #1
+ 910 00a0 F9D1     		bne	.L56
+ 911 00a2 0524     		movs	r4, #5
+ 912              	.L57:
+ 913              	.LBE20:
+ 914              	.LBE19:
+ 915              	.LBB21:
+ 711:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     GPIO_WriteBit(PrimaryUart(_RxPort), PrimaryUart(_RxPin), Bit_RESET );
+ 916              		.loc 1 711 0 discriminator 2
+ 917 00a4 0022     		movs	r2, #0
+ 918 00a6 4FF48061 		mov	r1, #1024
+ 919 00aa 0B48     		ldr	r0, .L60+8
+ 920 00ac FFF7FEFF 		bl	GPIO_WriteBit
+ 712:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     DelayUs(118);
+ 921              		.loc 1 712 0 discriminator 2
+ 922 00b0 7620     		movs	r0, #118
+ 923 00b2 FFF7FEFF 		bl	DelayUs
+ 713:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     GPIO_WriteBit(PrimaryUart(_RxPort), PrimaryUart(_RxPin), Bit_SET );
+ 924              		.loc 1 713 0 discriminator 2
+ 925 00b6 0122     		movs	r2, #1
+ 926 00b8 0748     		ldr	r0, .L60+8
+ 927 00ba 4FF48061 		mov	r1, #1024
+ 928 00be FFF7FEFF 		bl	GPIO_WriteBit
+ 714:arch/stm32/subsystems/radio_control/spektrum_arch.c ****     DelayUs(122);
+ 929              		.loc 1 714 0 discriminator 2
+ 930 00c2 7A20     		movs	r0, #122
+ 931 00c4 FFF7FEFF 		bl	DelayUs
+ 709:arch/stm32/subsystems/radio_control/spektrum_arch.c ****   for (int i = 0; i < MASTER_RECEIVER_PULSES ; i++)
+ 932              		.loc 1 709 0 discriminator 2
+ 933 00c8 013C     		subs	r4, r4, #1
+ 934 00ca EBD1     		bne	.L57
+ 935              	.LVL30:
+ 936              	.L54:
+ 937              	.LBE21:
+ 726:arch/stm32/subsystems/radio_control/spektrum_arch.c **** }
+ 938              		.loc 1 726 0
+ 939 00cc 1FBD     		pop	{r0, r1, r2, r3, r4, pc}
+ 940              	.L61:
+ 941 00ce 00BF     		.align	2
+ 942              	.L60:
+ 943 00d0 00100140 		.word	1073811456
+ 944 00d4 00100040 		.word	1073745920
+ 945 00d8 00080140 		.word	1073809408
+ 946              		.cfi_endproc
+ 947              	.LFE34:
+ 949              		.global	SpektrumSigns
+ 950              		.global	SpektrumBuf
+ 951              		.global	PrimarySpektrumState
+ 952              		.section	.bss.TmpEncType.3420,"aw",%nobits
+ 953              		.set	.LANCHOR5,. + 0
+ 956              	TmpEncType.3420:
+ 957 0000 00       		.space	1
+ 958              		.section	.data.SpektrumSigns,"aw",%progbits
+ 959              		.set	.LANCHOR4,. + 0
+ 962              	SpektrumSigns:
+ 963 0000 01       		.byte	1
+ 964 0001 FF       		.byte	-1
+ 965 0002 FF       		.byte	-1
+ 966 0003 FF       		.byte	-1
+ 967 0004 01       		.byte	1
+ 968 0005 FF       		.byte	-1
+ 969 0006 01       		.byte	1
+ 970 0007 01       		.byte	1
+ 971 0008 01       		.byte	1
+ 972 0009 01       		.byte	1
+ 973 000a 01       		.byte	1
+ 974 000b 01       		.byte	1
+ 975              		.section	.bss.ExpectedFrames,"aw",%nobits
+ 976              		.set	.LANCHOR1,. + 0
+ 979              	ExpectedFrames:
+ 980 0000 00       		.space	1
+ 981              		.section	.data.PrimarySpektrumState,"aw",%progbits
+ 982              		.align	1
+ 983              		.set	.LANCHOR0,. + 0
+ 986              	PrimarySpektrumState:
+ 987 0000 01       		.byte	1
+ 988 0001 00       		.byte	0
+ 989 0002 00       		.byte	0
+ 990 0003 00       		.byte	0
+ 991 0004 00       		.byte	0
+ 992 0005 00       		.byte	0
+ 993 0006 00       		.byte	0
+ 994 0007 00       		.space	1
+ 995 0008 0000     		.short	0
+ 996 000a 00       		.byte	0
+ 997 000b 00000000 		.space	29
+ 997      00000000 
+ 997      00000000 
+ 997      00000000 
+ 997      00000000 
+ 998              		.section	.bss.SpektrumBuf,"aw",%nobits
+ 999              		.align	1
+ 1000              		.set	.LANCHOR3,. + 0
+ 1003              	SpektrumBuf:
+ 1004 0000 00000000 		.space	28
+ 1004      00000000 
+ 1004      00000000 
+ 1004      00000000 
+ 1004      00000000 
+ 1005              		.section	.bss.EncodingType,"aw",%nobits
+ 1006              		.set	.LANCHOR2,. + 0
+ 1009              	EncodingType:
+ 1010 0000 00       		.space	1
+ 1011              		.section	.bss.TmpExpFrames.3421,"aw",%nobits
+ 1012              		.set	.LANCHOR6,. + 0
+ 1015              	TmpExpFrames.3421:
+ 1016 0000 00       		.space	1
+ 1017              		.text
+ 1018              	.Letext0:
+ 1019              		.file 2 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+ 1020              		.file 3 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+ 1021              		.file 4 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+ 1022              		.file 5 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+ 1023              		.file 6 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+ 1024              		.file 7 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+ 1025              		.file 8 "./paparazzi.h"
+ 1026              		.file 9 "./subsystems/radio_control.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 spektrum_arch.c
+     /tmp/cclVgj70.s:18     .text.DelayUs:00000000 $t
+     /tmp/cclVgj70.s:22     .text.DelayUs:00000000 DelayUs
+     /tmp/cclVgj70.s:48     .text.DelayUs:00000014 $d
+     /tmp/cclVgj70.s:53     .text.RadioControlEventImp:00000000 $t
+     /tmp/cclVgj70.s:58     .text.RadioControlEventImp:00000000 RadioControlEventImp
+     /tmp/cclVgj70.s:260    .text.RadioControlEventImp:000000dc $d
+     /tmp/cclVgj70.s:270    .text.SpektrumTimerInit:00000000 $t
+     /tmp/cclVgj70.s:275    .text.SpektrumTimerInit:00000000 SpektrumTimerInit
+     /tmp/cclVgj70.s:357    .text.SpektrumTimerInit:00000070 $d
+     /tmp/cclVgj70.s:362    .text.tim6_irq_handler:00000000 $t
+     /tmp/cclVgj70.s:367    .text.tim6_irq_handler:00000000 tim6_irq_handler
+     /tmp/cclVgj70.s:394    .text.tim6_irq_handler:00000018 $d
+     /tmp/cclVgj70.s:400    .text.SpektrumUartInit:00000000 $t
+     /tmp/cclVgj70.s:405    .text.SpektrumUartInit:00000000 SpektrumUartInit
+     /tmp/cclVgj70.s:504    .text.SpektrumUartInit:0000008c $d
+     /tmp/cclVgj70.s:510    .text.radio_control_impl_init:00000000 $t
+     /tmp/cclVgj70.s:515    .text.radio_control_impl_init:00000000 radio_control_impl_init
+     /tmp/cclVgj70.s:536    .text.usart1_irq_handler:00000000 $t
+     /tmp/cclVgj70.s:541    .text.usart1_irq_handler:00000000 usart1_irq_handler
+     /tmp/cclVgj70.s:719    .text.usart1_irq_handler:00000104 $d
+     /tmp/cclVgj70.s:731    .text.DebugInit:00000000 $t
+     /tmp/cclVgj70.s:736    .text.DebugInit:00000000 DebugInit
+     /tmp/cclVgj70.s:786    .text.DebugInit:00000034 $d
+     /tmp/cclVgj70.s:791    .text.radio_control_spektrum_try_bind:00000000 $t
+     /tmp/cclVgj70.s:796    .text.radio_control_spektrum_try_bind:00000000 radio_control_spektrum_try_bind
+     /tmp/cclVgj70.s:943    .text.radio_control_spektrum_try_bind:000000d0 $d
+     /tmp/cclVgj70.s:962    .data.SpektrumSigns:00000000 SpektrumSigns
+     /tmp/cclVgj70.s:1003   .bss.SpektrumBuf:00000000 SpektrumBuf
+     /tmp/cclVgj70.s:986    .data.PrimarySpektrumState:00000000 PrimarySpektrumState
+     /tmp/cclVgj70.s:956    .bss.TmpEncType.3420:00000000 TmpEncType.3420
+     /tmp/cclVgj70.s:957    .bss.TmpEncType.3420:00000000 $d
+     /tmp/cclVgj70.s:979    .bss.ExpectedFrames:00000000 ExpectedFrames
+     /tmp/cclVgj70.s:980    .bss.ExpectedFrames:00000000 $d
+     /tmp/cclVgj70.s:982    .data.PrimarySpektrumState:00000000 $d
+     /tmp/cclVgj70.s:999    .bss.SpektrumBuf:00000000 $d
+     /tmp/cclVgj70.s:1009   .bss.EncodingType:00000000 EncodingType
+     /tmp/cclVgj70.s:1010   .bss.EncodingType:00000000 $d
+     /tmp/cclVgj70.s:1015   .bss.TmpExpFrames.3421:00000000 TmpExpFrames.3421
+     /tmp/cclVgj70.s:1016   .bss.TmpExpFrames.3421:00000000 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+radio_control
+RCC_APB1PeriphClockCmd
+TIM_TimeBaseStructInit
+TIM_TimeBaseInit
+NVIC_Init
+TIM_ITConfig
+TIM_ClearFlag
+TIM_Cmd
+TIM_ClearITPendingBit
+RCC_APB2PeriphClockCmd
+GPIO_Init
+USART_Init
+USART_ITConfig
+usart_set_baudrate
+USART_Cmd
+USART_GetITStatus
+USART_ReceiveData
+GPIO_WriteBit
+GPIO_ReadInputDataBit

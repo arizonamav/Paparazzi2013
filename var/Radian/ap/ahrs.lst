@@ -1,0 +1,56 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 18, 4
+  12              		.thumb
+  13              		.file	"ahrs.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.global	ahrs_mag_offset
+  18              		.global	ahrs_float
+  19              		.global	ahrs
+  20              		.section	.bss.ahrs_mag_offset,"aw",%nobits
+  21              		.align	2
+  24              	ahrs_mag_offset:
+  25 0000 00000000 		.space	4
+  26              		.section	.bss.ahrs,"aw",%nobits
+  27              		.align	2
+  30              	ahrs:
+  31 0000 00000000 		.space	156
+  31      00000000 
+  31      00000000 
+  31      00000000 
+  31      00000000 
+  32              		.section	.bss.ahrs_float,"aw",%nobits
+  33              		.align	2
+  36              	ahrs_float:
+  37 0000 00000000 		.space	188
+  37      00000000 
+  37      00000000 
+  37      00000000 
+  37      00000000 
+  38              		.text
+  39              	.Letext0:
+  40              		.file 1 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+  41              		.file 2 "./math/pprz_algebra_int.h"
+  42              		.file 3 "./math/pprz_algebra_float.h"
+  43              		.file 4 "./subsystems/ahrs.h"
+  44              		.file 5 "subsystems/ahrs.c"
+DEFINED SYMBOLS
+                            *ABS*:00000000 ahrs.c
+     /tmp/ccdW3VuW.s:24     .bss.ahrs_mag_offset:00000000 ahrs_mag_offset
+     /tmp/ccdW3VuW.s:36     .bss.ahrs_float:00000000 ahrs_float
+     /tmp/ccdW3VuW.s:30     .bss.ahrs:00000000 ahrs
+     /tmp/ccdW3VuW.s:21     .bss.ahrs_mag_offset:00000000 $d
+     /tmp/ccdW3VuW.s:27     .bss.ahrs:00000000 $d
+     /tmp/ccdW3VuW.s:33     .bss.ahrs_float:00000000 $d
+
+NO UNDEFINED SYMBOLS

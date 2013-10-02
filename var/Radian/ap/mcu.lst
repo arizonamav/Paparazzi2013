@@ -1,0 +1,366 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 18, 4
+  12              		.thumb
+  13              		.file	"mcu.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.mcu_init,"ax",%progbits
+  18              		.align	1
+  19              		.global	mcu_init
+  20              		.thumb
+  21              		.thumb_func
+  23              	mcu_init:
+  24              	.LFB29:
+  25              		.file 1 "mcu.c"
+   1:mcu.c         **** /*
+   2:mcu.c         ****  * Paparazzi microcontroller initialisation function
+   3:mcu.c         ****  *
+   4:mcu.c         ****  * Copyright (C) 2010 The Paparazzi team
+   5:mcu.c         ****  *
+   6:mcu.c         ****  * This file is part of Paparazzi.
+   7:mcu.c         ****  *
+   8:mcu.c         ****  * Paparazzi is free software; you can redistribute it and/or modify
+   9:mcu.c         ****  * it under the terms of the GNU General Public License as published by
+  10:mcu.c         ****  * the Free Software Foundation; either version 2, or (at your option)
+  11:mcu.c         ****  * any later version.
+  12:mcu.c         ****  *
+  13:mcu.c         ****  * Paparazzi is distributed in the hope that it will be useful,
+  14:mcu.c         ****  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  15:mcu.c         ****  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  16:mcu.c         ****  * GNU General Public License for more details.
+  17:mcu.c         ****  *
+  18:mcu.c         ****  * You should have received a copy of the GNU General Public License
+  19:mcu.c         ****  * along with Paparazzi; see the file COPYING.  If not, write to
+  20:mcu.c         ****  * the Free Software Foundation, 59 Temple Place - Suite 330,
+  21:mcu.c         ****  * Boston, MA 02111-1307, USA.
+  22:mcu.c         ****  *
+  23:mcu.c         ****  */
+  24:mcu.c         **** 
+  25:mcu.c         **** #include "mcu.h"
+  26:mcu.c         **** 
+  27:mcu.c         **** #ifdef PERIPHERALS_AUTO_INIT
+  28:mcu.c         **** #include "mcu_periph/sys_time.h"
+  29:mcu.c         **** #ifdef USE_LED
+  30:mcu.c         **** #include "led.h"
+  31:mcu.c         **** #endif
+  32:mcu.c         **** #if defined RADIO_CONTROL
+  33:mcu.c         **** #if defined RADIO_CONTROL_LINK  || defined RADIO_CONTROL_SPEKTRUM_PRIMARY_PORT
+  34:mcu.c         **** #include "subsystems/radio_control.h"
+  35:mcu.c         **** #endif
+  36:mcu.c         **** #endif
+  37:mcu.c         **** #if defined USE_UART0 || defined USE_UART1  || defined USE_UART2 || defined USE_UART3 || defined US
+  38:mcu.c         **** #include "mcu_periph/uart.h"
+  39:mcu.c         **** #endif
+  40:mcu.c         **** #if defined USE_I2C0  || defined USE_I2C1  || defined USE_I2C2
+  41:mcu.c         **** #include "mcu_periph/i2c.h"
+  42:mcu.c         **** #endif
+  43:mcu.c         **** #if defined USE_ADC
+  44:mcu.c         **** #include "mcu_periph/adc.h"
+  45:mcu.c         **** #endif
+  46:mcu.c         **** #ifdef USE_USB_SERIAL
+  47:mcu.c         **** #include "mcu_periph/usb_serial.h"
+  48:mcu.c         **** #endif
+  49:mcu.c         **** #ifdef USE_SPI
+  50:mcu.c         **** #include "mcu_periph/spi.h"
+  51:mcu.c         **** #endif
+  52:mcu.c         **** #ifdef USE_DAC
+  53:mcu.c         **** #include "mcu_periph/dac.h"
+  54:mcu.c         **** #endif
+  55:mcu.c         **** #endif /* PERIPHERALS_AUTO_INIT */
+  56:mcu.c         **** 
+  57:mcu.c         **** void mcu_init(void) {
+  26              		.loc 1 57 0
+  27              		.cfi_startproc
+  28              		@ args = 0, pretend = 0, frame = 8
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  30 0000 2DE9F341 		push	{r0, r1, r4, r5, r6, r7, r8, lr}
+  31              	.LCFI0:
+  32              		.cfi_def_cfa_offset 32
+  33              		.cfi_offset 14, -4
+  34              		.cfi_offset 8, -8
+  35              		.cfi_offset 7, -12
+  36              		.cfi_offset 6, -16
+  37              		.cfi_offset 5, -20
+  38              		.cfi_offset 4, -24
+  39              		.cfi_offset 1, -28
+  40              		.cfi_offset 0, -32
+  41              	.LBB9:
+  42              	.LBB10:
+  43              	.LBB11:
+  44              		.file 2 "led.h"
+   1:led.h         **** /*
+   2:led.h         ****  * $Id$
+   3:led.h         ****  *
+   4:led.h         ****  * Copyright (C) 2003-2005  Antoine Drouin
+   5:led.h         ****  *
+   6:led.h         ****  * This file is part of paparazzi.
+   7:led.h         ****  *
+   8:led.h         ****  * paparazzi is free software; you can redistribute it and/or modify
+   9:led.h         ****  * it under the terms of the GNU General Public License as published by
+  10:led.h         ****  * the Free Software Foundation; either version 2, or (at your option)
+  11:led.h         ****  * any later version.
+  12:led.h         ****  *
+  13:led.h         ****  * paparazzi is distributed in the hope that it will be useful,
+  14:led.h         ****  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  15:led.h         ****  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  16:led.h         ****  * GNU General Public License for more details.
+  17:led.h         ****  *
+  18:led.h         ****  * You should have received a copy of the GNU General Public License
+  19:led.h         ****  * along with paparazzi; see the file COPYING.  If not, write to
+  20:led.h         ****  * the Free Software Foundation, 59 Temple Place - Suite 330,
+  21:led.h         ****  * Boston, MA 02111-1307, USA.
+  22:led.h         ****  *
+  23:led.h         ****  */
+  24:led.h         **** 
+  25:led.h         **** /** \file led.h
+  26:led.h         ****  *  \brief arch independent LED (Light Emitting Diodes) API
+  27:led.h         ****  *
+  28:led.h         ****  *
+  29:led.h         ****  */
+  30:led.h         **** 
+  31:led.h         **** #ifndef LED_H
+  32:led.h         **** #define LED_H
+  33:led.h         **** 
+  34:led.h         **** #if defined USE_LED
+  35:led.h         **** 
+  36:led.h         **** #include "led_hw.h"
+  37:led.h         **** 
+  38:led.h         **** static inline void led_init ( void ) {
+  39:led.h         **** #ifdef LED_1_BANK
+  40:led.h         ****   LED_INIT(1);
+  45              		.loc 2 40 0
+  46 0004 384C     		ldr	r4, .L2
+  47              	.LBE11:
+  48              	.LBE10:
+  49              	.LBE9:
+  58:mcu.c         **** 
+  59:mcu.c         ****   mcu_arch_init();
+  50              		.loc 1 59 0
+  51 0006 FFF7FEFF 		bl	mcu_arch_init
+  60:mcu.c         **** 
+  61:mcu.c         **** #ifdef PERIPHERALS_AUTO_INIT
+  62:mcu.c         ****   sys_time_init();
+  52              		.loc 1 62 0
+  53 000a FFF7FEFF 		bl	sys_time_init
+  54              	.LBB21:
+  55              	.LBB20:
+  56              	.LBB12:
+  57              		.loc 2 40 0
+  58 000e 0920     		movs	r0, #9
+  59 0010 0121     		movs	r1, #1
+  60 0012 1025     		movs	r5, #16
+  61 0014 FFF7FEFF 		bl	RCC_APB2PeriphClockCmd
+  62 0018 0326     		movs	r6, #3
+  63 001a 2046     		mov	r0, r4
+  64 001c 01A9     		add	r1, sp, #4
+  65 001e ADF80450 		strh	r5, [sp, #4]	@ movhi
+  66 0022 8DF80750 		strb	r5, [sp, #7]
+  67 0026 8DF80660 		strb	r6, [sp, #6]
+  68 002a FFF7FEFF 		bl	GPIO_Init
+  69 002e 0121     		movs	r1, #1
+  70 0030 2E48     		ldr	r0, .L2+4
+  71 0032 FFF7FEFF 		bl	GPIO_PinRemapConfig
+  72              	.LBE12:
+  41:led.h         ****   LED_OFF(1);
+  73              		.loc 2 41 0
+  74 0036 2561     		str	r5, [r4, #16]
+  75              	.LBB13:
+  42:led.h         **** #endif /* LED_1_BANK */
+  43:led.h         **** 
+  44:led.h         **** #ifdef LED_2_BANK
+  45:led.h         ****   LED_INIT(2);
+  76              		.loc 2 45 0
+  77 0038 2846     		mov	r0, r5
+  78 003a 04F58064 		add	r4, r4, #1024
+  79 003e 0121     		movs	r1, #1
+  80 0040 FFF7FEFF 		bl	RCC_APB2PeriphClockCmd
+  81 0044 4FF02008 		mov	r8, #32
+  82 0048 2046     		mov	r0, r4
+  83 004a 01A9     		add	r1, sp, #4
+  84 004c ADF80480 		strh	r8, [sp, #4]	@ movhi
+  85 0050 8DF80750 		strb	r5, [sp, #7]
+  86 0054 8DF80660 		strb	r6, [sp, #6]
+  87 0058 FFF7FEFF 		bl	GPIO_Init
+  88              	.LBE13:
+  46:led.h         ****   LED_OFF(2);
+  89              		.loc 2 46 0
+  90 005c C4F81080 		str	r8, [r4, #16]
+  91              	.LBB14:
+  47:led.h         **** #endif /* LED_2_BANK */
+  48:led.h         **** 
+  49:led.h         **** #ifdef LED_3_BANK
+  50:led.h         ****   LED_INIT(3);
+  92              		.loc 2 50 0
+  93 0060 2846     		mov	r0, r5
+  94 0062 4FF00408 		mov	r8, #4
+  95 0066 0121     		movs	r1, #1
+  96 0068 FFF7FEFF 		bl	RCC_APB2PeriphClockCmd
+  97 006c 0DEB0801 		add	r1, sp, r8
+  98 0070 2046     		mov	r0, r4
+  99 0072 ADF80480 		strh	r8, [sp, #4]	@ movhi
+ 100 0076 8DF80750 		strb	r5, [sp, #7]
+ 101 007a 8DF80660 		strb	r6, [sp, #6]
+ 102 007e FFF7FEFF 		bl	GPIO_Init
+ 103              	.LBE14:
+  51:led.h         ****   LED_OFF(3);
+ 104              		.loc 2 51 0
+ 105 0082 C4F81080 		str	r8, [r4, #16]
+ 106              	.LBB15:
+  52:led.h         **** #endif /* LED_3_BANK */
+  53:led.h         **** 
+  54:led.h         **** #ifdef LED_4_BANK
+  55:led.h         ****   LED_INIT(4);
+ 107              		.loc 2 55 0
+ 108 0086 2846     		mov	r0, r5
+ 109 0088 0121     		movs	r1, #1
+ 110 008a FFF7FEFF 		bl	RCC_APB2PeriphClockCmd
+ 111 008e 4FF48058 		mov	r8, #4096
+ 112 0092 2046     		mov	r0, r4
+ 113 0094 01A9     		add	r1, sp, #4
+ 114 0096 8DF80750 		strb	r5, [sp, #7]
+ 115 009a ADF80480 		strh	r8, [sp, #4]	@ movhi
+ 116 009e 8DF80660 		strb	r6, [sp, #6]
+ 117 00a2 FFF7FEFF 		bl	GPIO_Init
+ 118              	.LBE15:
+ 119              	.LBB16:
+  56:led.h         ****   LED_OFF(4);
+  57:led.h         **** #endif /* LED_4_BANK */
+  58:led.h         **** 
+  59:led.h         **** #ifdef LED_5_BANK
+  60:led.h         ****   LED_INIT(5);
+ 120              		.loc 2 60 0
+ 121 00a6 2846     		mov	r0, r5
+ 122 00a8 0121     		movs	r1, #1
+ 123              	.LBE16:
+  56:led.h         ****   LED_OFF(4);
+ 124              		.loc 2 56 0
+ 125 00aa C4F81080 		str	r8, [r4, #16]
+ 126              	.LBB17:
+ 127              		.loc 2 60 0
+ 128 00ae FFF7FEFF 		bl	RCC_APB2PeriphClockCmd
+ 129              	.LBE17:
+ 130              	.LBB18:
+  40:led.h         ****   LED_INIT(1);
+ 131              		.loc 2 40 0
+ 132 00b2 2F46     		mov	r7, r5	@ movhi
+ 133              	.LBE18:
+ 134              	.LBB19:
+ 135              		.loc 2 60 0
+ 136 00b4 2046     		mov	r0, r4
+ 137 00b6 01A9     		add	r1, sp, #4
+ 138 00b8 4FF48065 		mov	r5, #1024
+ 139 00bc ADF80450 		strh	r5, [sp, #4]	@ movhi
+ 140 00c0 8DF80770 		strb	r7, [sp, #7]
+ 141 00c4 8DF80660 		strb	r6, [sp, #6]
+ 142 00c8 FFF7FEFF 		bl	GPIO_Init
+ 143              	.LBE19:
+  61:led.h         ****   LED_OFF(5);
+ 144              		.loc 2 61 0
+ 145 00cc 2561     		str	r5, [r4, #16]
+ 146              	.LBE20:
+ 147              	.LBE21:
+  63:mcu.c         **** #ifdef USE_LED
+  64:mcu.c         ****   led_init();
+  65:mcu.c         **** #endif
+  66:mcu.c         ****   /* for now this means using spektrum */
+  67:mcu.c         **** #if defined RADIO_CONTROL & defined RADIO_CONTROL_SPEKTRUM_PRIMARY_PORT & defined RADIO_CONTROL_BIN
+  68:mcu.c         ****   RADIO_CONTROL_BIND_IMPL_FUNC();
+ 148              		.loc 1 68 0
+ 149 00ce FFF7FEFF 		bl	radio_control_spektrum_try_bind
+  69:mcu.c         **** #endif
+  70:mcu.c         **** #ifdef USE_UART0
+  71:mcu.c         ****   uart0_init();
+  72:mcu.c         **** #endif
+  73:mcu.c         **** #ifdef USE_UART1
+  74:mcu.c         ****   uart1_init();
+  75:mcu.c         **** #endif
+  76:mcu.c         **** #ifdef USE_UART2
+  77:mcu.c         ****   uart2_init();
+ 150              		.loc 1 77 0
+ 151 00d2 FFF7FEFF 		bl	uart2_init
+  78:mcu.c         **** #endif
+  79:mcu.c         **** #ifdef USE_UART3
+  80:mcu.c         ****   uart3_init();
+ 152              		.loc 1 80 0
+ 153 00d6 FFF7FEFF 		bl	uart3_init
+  81:mcu.c         **** #endif
+  82:mcu.c         **** #ifdef USE_UART4
+  83:mcu.c         ****   uart4_init();
+  84:mcu.c         **** #endif
+  85:mcu.c         **** #ifdef USE_UART5
+  86:mcu.c         ****   uart5_init();
+  87:mcu.c         **** #endif
+  88:mcu.c         **** #ifdef USE_I2C0
+  89:mcu.c         ****   i2c0_init();
+  90:mcu.c         **** #endif
+  91:mcu.c         **** #ifdef USE_I2C1
+  92:mcu.c         ****   i2c1_init();
+  93:mcu.c         **** #endif
+  94:mcu.c         **** #ifdef USE_I2C2
+  95:mcu.c         ****   i2c2_init();
+  96:mcu.c         **** #endif
+  97:mcu.c         **** #ifdef USE_ADC
+  98:mcu.c         ****   adc_init();
+ 154              		.loc 1 98 0
+ 155 00da FFF7FEFF 		bl	adc_init
+  99:mcu.c         **** #endif
+ 100:mcu.c         **** #ifdef USE_USB_SERIAL
+ 101:mcu.c         ****   VCOM_init();
+ 102:mcu.c         **** #endif
+ 103:mcu.c         **** #ifdef USE_SPI
+ 104:mcu.c         ****   spi_init();
+ 156              		.loc 1 104 0
+ 157 00de FFF7FEFF 		bl	spi_init
+ 105:mcu.c         **** #endif
+ 106:mcu.c         **** #ifdef USE_DAC
+ 107:mcu.c         ****   dac_init();
+ 108:mcu.c         **** #endif
+ 109:mcu.c         **** #endif /* PERIPHERALS_AUTO_INIT */
+ 110:mcu.c         **** 
+ 111:mcu.c         **** }
+ 158              		.loc 1 111 0
+ 159 00e2 BDE8FC81 		pop	{r2, r3, r4, r5, r6, r7, r8, pc}
+ 160              	.L3:
+ 161 00e6 00BF     		.align	2
+ 162              	.L2:
+ 163 00e8 000C0140 		.word	1073810432
+ 164 00ec 00013000 		.word	3145984
+ 165              		.cfi_endproc
+ 166              	.LFE29:
+ 168              		.text
+ 169              	.Letext0:
+ 170              		.file 3 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+ 171              		.file 4 "/home/mav/paparazzi/sw/include/std.h"
+ 172              		.file 5 "mcu_periph/sys_time.h"
+ 173              		.file 6 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+ 174              		.file 7 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+ 175              		.file 8 "./paparazzi.h"
+ 176              		.file 9 "subsystems/radio_control.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 mcu.c
+     /tmp/ccPbK4FQ.s:18     .text.mcu_init:00000000 $t
+     /tmp/ccPbK4FQ.s:23     .text.mcu_init:00000000 mcu_init
+     /tmp/ccPbK4FQ.s:163    .text.mcu_init:000000e8 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+mcu_arch_init
+sys_time_init
+RCC_APB2PeriphClockCmd
+GPIO_Init
+GPIO_PinRemapConfig
+radio_control_spektrum_try_bind
+uart2_init
+uart3_init
+adc_init
+spi_init

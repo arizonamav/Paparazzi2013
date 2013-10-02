@@ -1,0 +1,85 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 18, 4
+  12              		.thumb
+  13              		.file	"inter_mcu.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.global	time_since_last_ap
+  18              		.global	ap_ok
+  19              		.global	inter_mcu_received_ap
+  20              		.global	inter_mcu_received_fbw
+  21              		.global	ap_state
+  22              		.global	fbw_state
+  23              		.section	.bss.inter_mcu_received_ap,"aw",%nobits
+  26              	inter_mcu_received_ap:
+  27 0000 00       		.space	1
+  28              		.section	.bss._ap_state,"aw",%nobits
+  29              		.align	1
+  32              	_ap_state:
+  33 0000 00000000 		.space	6
+  33      0000
+  34              		.section	.bss.ap_ok,"aw",%nobits
+  37              	ap_ok:
+  38 0000 00       		.space	1
+  39              		.section	.data.fbw_state,"aw",%progbits
+  40              		.align	2
+  43              	fbw_state:
+  44 0000 00000000 		.word	_fbw_state
+  45              		.section	.bss.time_since_last_ap,"aw",%nobits
+  48              	time_since_last_ap:
+  49 0000 00       		.space	1
+  50              		.section	.bss.inter_mcu_received_fbw,"aw",%nobits
+  53              	inter_mcu_received_fbw:
+  54 0000 00       		.space	1
+  55              		.section	.data.ap_state,"aw",%progbits
+  56              		.align	2
+  59              	ap_state:
+  60 0000 00000000 		.word	_ap_state
+  61              		.section	.bss._fbw_state,"aw",%nobits
+  62              		.align	2
+  65              	_fbw_state:
+  66 0000 00000000 		.space	32
+  66      00000000 
+  66      00000000 
+  66      00000000 
+  66      00000000 
+  67              		.text
+  68              	.Letext0:
+  69              		.file 1 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+  70              		.file 2 "/home/mav/paparazzi/sw/include/std.h"
+  71              		.file 3 "paparazzi.h"
+  72              		.file 4 "subsystems/radio_control.h"
+  73              		.file 5 "subsystems/electrical.h"
+  74              		.file 6 "inter_mcu.h"
+  75              		.file 7 "firmwares/fixedwing/main_fbw.h"
+  76              		.file 8 "inter_mcu.c"
+DEFINED SYMBOLS
+                            *ABS*:00000000 inter_mcu.c
+     /tmp/ccghqXCo.s:48     .bss.time_since_last_ap:00000000 time_since_last_ap
+     /tmp/ccghqXCo.s:37     .bss.ap_ok:00000000 ap_ok
+     /tmp/ccghqXCo.s:26     .bss.inter_mcu_received_ap:00000000 inter_mcu_received_ap
+     /tmp/ccghqXCo.s:53     .bss.inter_mcu_received_fbw:00000000 inter_mcu_received_fbw
+     /tmp/ccghqXCo.s:59     .data.ap_state:00000000 ap_state
+     /tmp/ccghqXCo.s:43     .data.fbw_state:00000000 fbw_state
+     /tmp/ccghqXCo.s:27     .bss.inter_mcu_received_ap:00000000 $d
+     /tmp/ccghqXCo.s:29     .bss._ap_state:00000000 $d
+     /tmp/ccghqXCo.s:32     .bss._ap_state:00000000 _ap_state
+     /tmp/ccghqXCo.s:38     .bss.ap_ok:00000000 $d
+     /tmp/ccghqXCo.s:40     .data.fbw_state:00000000 $d
+     /tmp/ccghqXCo.s:65     .bss._fbw_state:00000000 _fbw_state
+     /tmp/ccghqXCo.s:49     .bss.time_since_last_ap:00000000 $d
+     /tmp/ccghqXCo.s:54     .bss.inter_mcu_received_fbw:00000000 $d
+     /tmp/ccghqXCo.s:56     .data.ap_state:00000000 $d
+     /tmp/ccghqXCo.s:62     .bss._fbw_state:00000000 $d
+
+NO UNDEFINED SYMBOLS

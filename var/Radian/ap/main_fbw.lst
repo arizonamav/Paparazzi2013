@@ -1,0 +1,2779 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 18, 4
+  12              		.thumb
+  13              		.file	"main_fbw.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.inter_mcu_fill_fbw_state,"ax",%progbits
+  18              		.align	1
+  19              		.thumb
+  20              		.thumb_func
+  22              	inter_mcu_fill_fbw_state:
+  23              	.LFB31:
+  24              		.file 1 "./inter_mcu.h"
+   1:./inter_mcu.h **** /*  $Id$
+   2:./inter_mcu.h ****  *
+   3:./inter_mcu.h ****  * Copyright (C) 2003-2005  Pascal Brisset, Antoine Drouin
+   4:./inter_mcu.h ****  *
+   5:./inter_mcu.h ****  * This file is part of paparazzi.
+   6:./inter_mcu.h ****  *
+   7:./inter_mcu.h ****  * paparazzi is free software; you can redistribute it and/or modify
+   8:./inter_mcu.h ****  * it under the terms of the GNU General Public License as published by
+   9:./inter_mcu.h ****  * the Free Software Foundation; either version 2, or (at your option)
+  10:./inter_mcu.h ****  * any later version.
+  11:./inter_mcu.h ****  *
+  12:./inter_mcu.h ****  * paparazzi is distributed in the hope that it will be useful,
+  13:./inter_mcu.h ****  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  14:./inter_mcu.h ****  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  15:./inter_mcu.h ****  * GNU General Public License for more details.
+  16:./inter_mcu.h ****  *
+  17:./inter_mcu.h ****  * You should have received a copy of the GNU General Public License
+  18:./inter_mcu.h ****  * along with paparazzi; see the file COPYING.  If not, write to
+  19:./inter_mcu.h ****  * the Free Software Foundation, 59 Temple Place - Suite 330,
+  20:./inter_mcu.h ****  * Boston, MA 02111-1307, USA.
+  21:./inter_mcu.h ****  *
+  22:./inter_mcu.h ****  */
+  23:./inter_mcu.h **** 
+  24:./inter_mcu.h **** /** \brief Communication between fbw and ap processes
+  25:./inter_mcu.h ****  * This unit contains the data structure used to communicate between the
+  26:./inter_mcu.h ****  * "fly by wire" process and the "autopilot" process. It must be linked once in a
+  27:./inter_mcu.h ****  * monoprocessor architecture, twice in a twin-processors (the historical
+  28:./inter_mcu.h ****  * Atmel AVRs mega8-mega128 one) architecture. In the latter case, the
+  29:./inter_mcu.h ****  * inter-mcu communication process (e.g. SPI) must fill and read these data structures.
+  30:./inter_mcu.h **** */
+  31:./inter_mcu.h **** 
+  32:./inter_mcu.h **** #ifndef INTER_MCU_H
+  33:./inter_mcu.h **** #define INTER_MCU_H
+  34:./inter_mcu.h **** 
+  35:./inter_mcu.h **** 
+  36:./inter_mcu.h **** #ifdef INTER_MCU
+  37:./inter_mcu.h **** 
+  38:./inter_mcu.h **** #include <inttypes.h>
+  39:./inter_mcu.h **** 
+  40:./inter_mcu.h **** #include "std.h"
+  41:./inter_mcu.h **** 
+  42:./inter_mcu.h **** #include "paparazzi.h"
+  43:./inter_mcu.h **** #include "generated/airframe.h"
+  44:./inter_mcu.h **** #include "subsystems/radio_control.h"
+  45:./inter_mcu.h **** #include "subsystems/electrical.h"
+  46:./inter_mcu.h **** #include "firmwares/fixedwing/main_fbw.h"
+  47:./inter_mcu.h **** 
+  48:./inter_mcu.h **** #ifndef SINGLE_MCU
+  49:./inter_mcu.h **** #include "generated/radio.h"
+  50:./inter_mcu.h **** #define RADIO_CONTROL_NB_CHANNEL RADIO_CTL_NB
+  51:./inter_mcu.h **** #endif
+  52:./inter_mcu.h **** 
+  53:./inter_mcu.h **** /** Data structure shared by fbw and ap processes */
+  54:./inter_mcu.h **** struct fbw_state {
+  55:./inter_mcu.h **** #if defined RADIO_CONTROL || RADIO_CONTROL_AUTO1
+  56:./inter_mcu.h ****   pprz_t channels[RADIO_CONTROL_NB_CHANNEL];
+  57:./inter_mcu.h ****   uint8_t ppm_cpt;
+  58:./inter_mcu.h **** #endif
+  59:./inter_mcu.h ****   uint8_t status;
+  60:./inter_mcu.h ****   uint8_t nb_err;
+  61:./inter_mcu.h ****   uint8_t vsupply; 	/* 1e-1 V */
+  62:./inter_mcu.h ****   int32_t current;	/* milliAmps */
+  63:./inter_mcu.h **** };
+  64:./inter_mcu.h **** 
+  65:./inter_mcu.h **** struct ap_state {
+  66:./inter_mcu.h ****   pprz_t commands[COMMANDS_NB];
+  67:./inter_mcu.h **** };
+  68:./inter_mcu.h **** 
+  69:./inter_mcu.h **** // Status bits from FBW to AUTOPILOT
+  70:./inter_mcu.h **** #define STATUS_RADIO_OK 0
+  71:./inter_mcu.h **** #define STATUS_RADIO_REALLY_LOST 1
+  72:./inter_mcu.h **** #define STATUS_MODE_AUTO 2
+  73:./inter_mcu.h **** #define STATUS_MODE_FAILSAFE 3
+  74:./inter_mcu.h **** #define AVERAGED_CHANNELS_SENT 4
+  75:./inter_mcu.h **** #define MASK_FBW_CHANGED 0xf
+  76:./inter_mcu.h **** 
+  77:./inter_mcu.h **** 
+  78:./inter_mcu.h **** extern struct fbw_state* fbw_state;
+  79:./inter_mcu.h **** extern struct ap_state*  ap_state;
+  80:./inter_mcu.h **** 
+  81:./inter_mcu.h **** extern volatile bool_t inter_mcu_received_fbw;
+  82:./inter_mcu.h **** extern volatile bool_t inter_mcu_received_ap;
+  83:./inter_mcu.h **** 
+  84:./inter_mcu.h **** 
+  85:./inter_mcu.h **** #ifdef FBW
+  86:./inter_mcu.h **** 
+  87:./inter_mcu.h **** extern uint8_t time_since_last_ap;
+  88:./inter_mcu.h **** extern bool_t ap_ok;
+  89:./inter_mcu.h **** 
+  90:./inter_mcu.h **** #define AP_STALLED_TIME        30  // 500ms with a 60Hz timer
+  91:./inter_mcu.h **** 
+  92:./inter_mcu.h **** 
+  93:./inter_mcu.h **** static inline void inter_mcu_init(void) {
+  94:./inter_mcu.h ****   fbw_state->status = 0;
+  95:./inter_mcu.h ****   fbw_state->nb_err = 0;
+  96:./inter_mcu.h **** 
+  97:./inter_mcu.h ****   ap_ok = FALSE;
+  98:./inter_mcu.h **** }
+  99:./inter_mcu.h **** 
+ 100:./inter_mcu.h **** 
+ 101:./inter_mcu.h **** /* Prepare data to be sent to mcu0 */
+ 102:./inter_mcu.h **** static inline void inter_mcu_fill_fbw_state (void) {
+  25              		.loc 1 102 0
+  26              		.cfi_startproc
+  27              		@ args = 0, pretend = 0, frame = 0
+  28              		@ frame_needed = 0, uses_anonymous_args = 0
+  29              	.LVL0:
+  30 0000 10B5     		push	{r4, lr}
+  31              	.LCFI0:
+  32              		.cfi_def_cfa_offset 8
+  33              		.cfi_offset 14, -4
+  34              		.cfi_offset 4, -8
+ 103:./inter_mcu.h ****   uint8_t status = 0;
+ 104:./inter_mcu.h **** 
+ 105:./inter_mcu.h **** #ifdef RADIO_CONTROL
+ 106:./inter_mcu.h ****   uint8_t i;
+ 107:./inter_mcu.h ****   for(i = 0; i < RADIO_CONTROL_NB_CHANNEL; i++)
+ 108:./inter_mcu.h ****     fbw_state->channels[i] = radio_control.values[i];
+  35              		.loc 1 108 0
+  36 0002 184B     		ldr	r3, .L12
+ 102:./inter_mcu.h **** static inline void inter_mcu_fill_fbw_state (void) {
+  37              		.loc 1 102 0
+  38 0004 1848     		ldr	r0, .L12+4
+  39              		.loc 1 108 0
+  40 0006 1B68     		ldr	r3, [r3, #0]
+  41 0008 0022     		movs	r2, #0
+  42              	.LVL1:
+  43              	.L2:
+ 102:./inter_mcu.h **** static inline void inter_mcu_fill_fbw_state (void) {
+  44              		.loc 1 102 0 discriminator 2
+  45 000a 1418     		adds	r4, r2, r0
+  46              		.loc 1 108 0 discriminator 2
+  47 000c E488     		ldrh	r4, [r4, #6]
+ 102:./inter_mcu.h **** static inline void inter_mcu_fill_fbw_state (void) {
+  48              		.loc 1 102 0 discriminator 2
+  49 000e 1649     		ldr	r1, .L12+4
+  50              		.loc 1 108 0 discriminator 2
+  51 0010 9C52     		strh	r4, [r3, r2]	@ movhi
+  52 0012 0232     		adds	r2, r2, #2
+ 107:./inter_mcu.h ****   for(i = 0; i < RADIO_CONTROL_NB_CHANNEL; i++)
+  53              		.loc 1 107 0 discriminator 2
+  54 0014 182A     		cmp	r2, #24
+  55 0016 F8D1     		bne	.L2
+ 109:./inter_mcu.h **** 
+ 110:./inter_mcu.h ****   fbw_state->ppm_cpt = radio_control.frame_rate;
+  56              		.loc 1 110 0
+  57 0018 CA78     		ldrb	r2, [r1, #3]	@ zero_extendqisi2
+  58 001a 1A76     		strb	r2, [r3, #24]
+ 111:./inter_mcu.h **** 
+ 112:./inter_mcu.h ****   status = (radio_control.status == RC_OK ? _BV(STATUS_RADIO_OK) : 0);
+  59              		.loc 1 112 0
+  60 001c 0A78     		ldrb	r2, [r1, #0]	@ zero_extendqisi2
+  61              	.LVL2:
+ 113:./inter_mcu.h ****   status |= (radio_control.status == RC_REALLY_LOST ? _BV(STATUS_RADIO_REALLY_LOST) : 0);
+  62              		.loc 1 113 0
+  63 001e 022A     		cmp	r2, #2
+  64 0020 0CBF     		ite	eq
+  65 0022 0221     		moveq	r1, #2
+  66 0024 0021     		movne	r1, #0
+  67 0026 002A     		cmp	r2, #0
+  68 0028 08BF     		it	eq
+  69 002a 41F00101 		orreq	r1, r1, #1
+  70              	.LVL3:
+ 114:./inter_mcu.h ****   status |= (radio_control.status == RC_OK ? _BV(AVERAGED_CHANNELS_SENT) : 0); // Any valid frame c
+  71              		.loc 1 114 0
+  72 002e 002A     		cmp	r2, #0
+  73 0030 0CBF     		ite	eq
+  74 0032 1022     		moveq	r2, #16
+  75 0034 0022     		movne	r2, #0
+  76 0036 0A43     		orrs	r2, r2, r1
+  77              	.LVL4:
+ 115:./inter_mcu.h **** #endif // RADIO_CONTROL
+ 116:./inter_mcu.h **** 
+ 117:./inter_mcu.h ****   status |= (fbw_mode == FBW_MODE_AUTO ? _BV(STATUS_MODE_AUTO) : 0);
+  78              		.loc 1 117 0
+  79 0038 0C49     		ldr	r1, .L12+8
+  80 003a 0978     		ldrb	r1, [r1, #0]	@ zero_extendqisi2
+  81 003c 0129     		cmp	r1, #1
+  82 003e 0CBF     		ite	eq
+  83 0040 0420     		moveq	r0, #4
+  84 0042 0020     		movne	r0, #0
+  85 0044 0243     		orrs	r2, r2, r0
+  86              	.LVL5:
+ 118:./inter_mcu.h ****   status |= (fbw_mode == FBW_MODE_FAILSAFE ? _BV(STATUS_MODE_FAILSAFE) : 0);
+  87              		.loc 1 118 0
+  88 0046 0229     		cmp	r1, #2
+  89 0048 0CBF     		ite	eq
+  90 004a 0821     		moveq	r1, #8
+  91 004c 0021     		movne	r1, #0
+  92              	.LVL6:
+  93 004e 1143     		orrs	r1, r1, r2
+  94              	.LVL7:
+ 119:./inter_mcu.h ****   fbw_state->status  = status;
+ 120:./inter_mcu.h **** 
+ 121:./inter_mcu.h ****   fbw_state->vsupply = electrical.vsupply;
+  95              		.loc 1 121 0
+  96 0050 074A     		ldr	r2, .L12+12
+ 119:./inter_mcu.h ****   fbw_state->status  = status;
+  97              		.loc 1 119 0
+  98 0052 5976     		strb	r1, [r3, #25]
+  99              		.loc 1 121 0
+ 100 0054 1178     		ldrb	r1, [r2, #0]	@ zero_extendqisi2
+ 122:./inter_mcu.h ****   fbw_state->current = electrical.current;
+ 101              		.loc 1 122 0
+ 102 0056 5268     		ldr	r2, [r2, #4]
+ 121:./inter_mcu.h ****   fbw_state->vsupply = electrical.vsupply;
+ 103              		.loc 1 121 0
+ 104 0058 D976     		strb	r1, [r3, #27]
+ 105              		.loc 1 122 0
+ 106 005a DA61     		str	r2, [r3, #28]
+ 123:./inter_mcu.h **** #if defined SINGLE_MCU
+ 124:./inter_mcu.h ****   /**Directly set the flag indicating to AP that shared buffer is available*/
+ 125:./inter_mcu.h ****   inter_mcu_received_fbw = TRUE;
+ 107              		.loc 1 125 0
+ 108 005c 054B     		ldr	r3, .L12+16
+ 109 005e 0122     		movs	r2, #1
+ 110 0060 1A70     		strb	r2, [r3, #0]
+ 126:./inter_mcu.h **** #endif
+ 127:./inter_mcu.h **** }
+ 111              		.loc 1 127 0
+ 112 0062 10BD     		pop	{r4, pc}
+ 113              	.L13:
+ 114              		.align	2
+ 115              	.L12:
+ 116 0064 00000000 		.word	fbw_state
+ 117 0068 00000000 		.word	radio_control
+ 118 006c 00000000 		.word	.LANCHOR0
+ 119 0070 00000000 		.word	electrical
+ 120 0074 00000000 		.word	inter_mcu_received_fbw
+ 121              		.cfi_endproc
+ 122              	.LFE31:
+ 124              		.section	.text.handle_rc_frame,"ax",%progbits
+ 125              		.align	1
+ 126              		.thumb
+ 127              		.thumb_func
+ 129              	handle_rc_frame:
+ 130              	.LFB41:
+ 131              		.file 2 "firmwares/fixedwing/main_fbw.c"
+   1:firmwares/fixedwing/main_fbw.c **** /*
+   2:firmwares/fixedwing/main_fbw.c ****  * Paparazzi $Id$
+   3:firmwares/fixedwing/main_fbw.c ****  *
+   4:firmwares/fixedwing/main_fbw.c ****  * Copyright (C) 2003-2010 The Paparazzi Team
+   5:firmwares/fixedwing/main_fbw.c ****  *
+   6:firmwares/fixedwing/main_fbw.c ****  * This file is part of Paparazzi.
+   7:firmwares/fixedwing/main_fbw.c ****  *
+   8:firmwares/fixedwing/main_fbw.c ****  * Paparazzi is free software; you can redistribute it and/or modify
+   9:firmwares/fixedwing/main_fbw.c ****  * it under the terms of the GNU General Public License as published by
+  10:firmwares/fixedwing/main_fbw.c ****  * the Free Software Foundation; either version 2, or (at your option)
+  11:firmwares/fixedwing/main_fbw.c ****  * any later version.
+  12:firmwares/fixedwing/main_fbw.c ****  *
+  13:firmwares/fixedwing/main_fbw.c ****  * Paparazzi is distributed in the hope that it will be useful,
+  14:firmwares/fixedwing/main_fbw.c ****  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  15:firmwares/fixedwing/main_fbw.c ****  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  16:firmwares/fixedwing/main_fbw.c ****  * GNU General Public License for more details.
+  17:firmwares/fixedwing/main_fbw.c ****  *
+  18:firmwares/fixedwing/main_fbw.c ****  * You should have received a copy of the GNU General Public License
+  19:firmwares/fixedwing/main_fbw.c ****  * along with Paparazzi; see the file COPYING.  If not, write to
+  20:firmwares/fixedwing/main_fbw.c ****  * the Free Software Foundation, 59 Temple Place - Suite 330,
+  21:firmwares/fixedwing/main_fbw.c ****  * Boston, MA 02111-1307, USA.
+  22:firmwares/fixedwing/main_fbw.c ****  *
+  23:firmwares/fixedwing/main_fbw.c ****  */
+  24:firmwares/fixedwing/main_fbw.c **** 
+  25:firmwares/fixedwing/main_fbw.c **** /** \file main_fbw.c
+  26:firmwares/fixedwing/main_fbw.c ****  *  \brief FBW ( FlyByWire ) process
+  27:firmwares/fixedwing/main_fbw.c ****  *
+  28:firmwares/fixedwing/main_fbw.c ****  *   This process is responsible for decoding radio control, generating actuators
+  29:firmwares/fixedwing/main_fbw.c ****  * signals either from the radio control or from the commands provided by the
+  30:firmwares/fixedwing/main_fbw.c ****  * AP (autopilot) process. It also performs a telemetry task and a low level monitoring
+  31:firmwares/fixedwing/main_fbw.c ****  * ( for parameters like the supply )
+  32:firmwares/fixedwing/main_fbw.c ****  */
+  33:firmwares/fixedwing/main_fbw.c **** 
+  34:firmwares/fixedwing/main_fbw.c **** #include "generated/airframe.h"
+  35:firmwares/fixedwing/main_fbw.c **** 
+  36:firmwares/fixedwing/main_fbw.c **** #include "firmwares/fixedwing/main_fbw.h"
+  37:firmwares/fixedwing/main_fbw.c **** #include "mcu.h"
+  38:firmwares/fixedwing/main_fbw.c **** #include "mcu_periph/sys_time.h"
+  39:firmwares/fixedwing/main_fbw.c **** #include "commands.h"
+  40:firmwares/fixedwing/main_fbw.c **** #include "firmwares/fixedwing/actuators.h"
+  41:firmwares/fixedwing/main_fbw.c **** #include "subsystems/electrical.h"
+  42:firmwares/fixedwing/main_fbw.c **** #include "subsystems/radio_control.h"
+  43:firmwares/fixedwing/main_fbw.c **** #include "firmwares/fixedwing/autopilot.h"
+  44:firmwares/fixedwing/main_fbw.c **** #include "fbw_downlink.h"
+  45:firmwares/fixedwing/main_fbw.c **** #include "paparazzi.h"
+  46:firmwares/fixedwing/main_fbw.c **** #include "mcu_periph/i2c.h"
+  47:firmwares/fixedwing/main_fbw.c **** 
+  48:firmwares/fixedwing/main_fbw.c **** #ifdef MCU_SPI_LINK
+  49:firmwares/fixedwing/main_fbw.c **** #include "link_mcu.h"
+  50:firmwares/fixedwing/main_fbw.c **** #endif
+  51:firmwares/fixedwing/main_fbw.c **** 
+  52:firmwares/fixedwing/main_fbw.c **** uint8_t fbw_mode;
+  53:firmwares/fixedwing/main_fbw.c **** 
+  54:firmwares/fixedwing/main_fbw.c **** #include "inter_mcu.h"
+  55:firmwares/fixedwing/main_fbw.c **** 
+  56:firmwares/fixedwing/main_fbw.c **** 
+  57:firmwares/fixedwing/main_fbw.c **** volatile uint8_t fbw_new_actuators = 0;
+  58:firmwares/fixedwing/main_fbw.c **** 
+  59:firmwares/fixedwing/main_fbw.c **** tid_t fbw_periodic_tid; ///< id for periodic_task_fbw() timer
+  60:firmwares/fixedwing/main_fbw.c **** tid_t electrical_tid;   ///< id for electrical_periodic() timer
+  61:firmwares/fixedwing/main_fbw.c **** 
+  62:firmwares/fixedwing/main_fbw.c **** /********** INIT *************************************************************/
+  63:firmwares/fixedwing/main_fbw.c **** void init_fbw( void ) {
+  64:firmwares/fixedwing/main_fbw.c **** 
+  65:firmwares/fixedwing/main_fbw.c ****   mcu_init();
+  66:firmwares/fixedwing/main_fbw.c **** 
+  67:firmwares/fixedwing/main_fbw.c ****   electrical_init();
+  68:firmwares/fixedwing/main_fbw.c **** 
+  69:firmwares/fixedwing/main_fbw.c **** #ifdef ACTUATORS
+  70:firmwares/fixedwing/main_fbw.c ****   actuators_init();
+  71:firmwares/fixedwing/main_fbw.c ****   /* Load the failsafe defaults */
+  72:firmwares/fixedwing/main_fbw.c ****   SetCommands(commands_failsafe);
+  73:firmwares/fixedwing/main_fbw.c ****   fbw_new_actuators = 1;
+  74:firmwares/fixedwing/main_fbw.c **** #endif
+  75:firmwares/fixedwing/main_fbw.c **** #ifdef RADIO_CONTROL
+  76:firmwares/fixedwing/main_fbw.c ****   radio_control_init();
+  77:firmwares/fixedwing/main_fbw.c **** #endif
+  78:firmwares/fixedwing/main_fbw.c **** #ifdef INTER_MCU
+  79:firmwares/fixedwing/main_fbw.c ****   inter_mcu_init();
+  80:firmwares/fixedwing/main_fbw.c **** #endif
+  81:firmwares/fixedwing/main_fbw.c **** #ifdef MCU_SPI_LINK
+  82:firmwares/fixedwing/main_fbw.c ****   link_mcu_restart();
+  83:firmwares/fixedwing/main_fbw.c **** #endif
+  84:firmwares/fixedwing/main_fbw.c **** 
+  85:firmwares/fixedwing/main_fbw.c ****   fbw_mode = FBW_MODE_FAILSAFE;
+  86:firmwares/fixedwing/main_fbw.c **** 
+  87:firmwares/fixedwing/main_fbw.c ****   /**** start timers for periodic functions *****/
+  88:firmwares/fixedwing/main_fbw.c ****   fbw_periodic_tid = sys_time_register_timer((1./60.), NULL);
+  89:firmwares/fixedwing/main_fbw.c ****   electrical_tid = sys_time_register_timer(0.1, NULL);
+  90:firmwares/fixedwing/main_fbw.c **** 
+  91:firmwares/fixedwing/main_fbw.c **** #ifndef SINGLE_MCU
+  92:firmwares/fixedwing/main_fbw.c ****   mcu_int_enable();
+  93:firmwares/fixedwing/main_fbw.c **** #endif
+  94:firmwares/fixedwing/main_fbw.c **** }
+  95:firmwares/fixedwing/main_fbw.c **** 
+  96:firmwares/fixedwing/main_fbw.c **** 
+  97:firmwares/fixedwing/main_fbw.c **** static inline void set_failsafe_mode( void ) {
+  98:firmwares/fixedwing/main_fbw.c ****   fbw_mode = FBW_MODE_FAILSAFE;
+  99:firmwares/fixedwing/main_fbw.c ****   SetCommands(commands_failsafe);
+ 100:firmwares/fixedwing/main_fbw.c ****   fbw_new_actuators = 1;
+ 101:firmwares/fixedwing/main_fbw.c **** }
+ 102:firmwares/fixedwing/main_fbw.c **** 
+ 103:firmwares/fixedwing/main_fbw.c **** 
+ 104:firmwares/fixedwing/main_fbw.c **** #ifdef RADIO_CONTROL
+ 105:firmwares/fixedwing/main_fbw.c **** static inline void handle_rc_frame( void ) {
+ 132              		.loc 2 105 0
+ 133              		.cfi_startproc
+ 134              		@ args = 0, pretend = 0, frame = 0
+ 135              		@ frame_needed = 0, uses_anonymous_args = 0
+ 136              		@ link register save eliminated.
+ 106:firmwares/fixedwing/main_fbw.c ****   fbw_mode = FBW_MODE_OF_PPRZ(radio_control.values[RADIO_MODE]);
+ 137              		.loc 2 106 0
+ 138 0000 0A4B     		ldr	r3, .L16
+ 139 0002 0B49     		ldr	r1, .L16+4
+ 140 0004 B3F90E20 		ldrsh	r2, [r3, #14]
+ 141 0008 12F5965F 		cmn	r2, #4800
+ 142 000c B4BF     		ite	lt
+ 143 000e 0022     		movlt	r2, #0
+ 144 0010 0122     		movge	r2, #1
+ 145 0012 0A70     		strb	r2, [r1, #0]
+ 107:firmwares/fixedwing/main_fbw.c ****   if (fbw_mode == FBW_MODE_MANUAL)
+ 146              		.loc 2 107 0
+ 147 0014 4AB9     		cbnz	r2, .L14
+ 148              	.LBB25:
+ 149              	.LBB26:
+ 108:firmwares/fixedwing/main_fbw.c ****   {
+ 109:firmwares/fixedwing/main_fbw.c ****     SetCommandsFromRC(commands, radio_control.values);
+ 150              		.loc 2 109 0
+ 151 0016 074A     		ldr	r2, .L16+8
+ 152 0018 D988     		ldrh	r1, [r3, #6]
+ 153 001a 1180     		strh	r1, [r2, #0]	@ movhi
+ 154 001c 1989     		ldrh	r1, [r3, #8]
+ 155 001e 5B89     		ldrh	r3, [r3, #10]
+ 156 0020 5180     		strh	r1, [r2, #2]	@ movhi
+ 157 0022 9380     		strh	r3, [r2, #4]	@ movhi
+ 110:firmwares/fixedwing/main_fbw.c ****     fbw_new_actuators = 1;
+ 158              		.loc 2 110 0
+ 159 0024 044B     		ldr	r3, .L16+12
+ 160 0026 0122     		movs	r2, #1
+ 161 0028 1A70     		strb	r2, [r3, #0]
+ 162              	.L14:
+ 163 002a 7047     		bx	lr
+ 164              	.L17:
+ 165              		.align	2
+ 166              	.L16:
+ 167 002c 00000000 		.word	radio_control
+ 168 0030 00000000 		.word	.LANCHOR0
+ 169 0034 00000000 		.word	commands
+ 170 0038 00000000 		.word	.LANCHOR1
+ 171              	.LBE26:
+ 172              	.LBE25:
+ 173              		.cfi_endproc
+ 174              	.LFE41:
+ 176              		.section	.text.init_fbw,"ax",%progbits
+ 177              		.align	1
+ 178              		.global	init_fbw
+ 179              		.thumb
+ 180              		.thumb_func
+ 182              	init_fbw:
+ 183              	.LFB39:
+  63:firmwares/fixedwing/main_fbw.c **** void init_fbw( void ) {
+ 184              		.loc 2 63 0
+ 185              		.cfi_startproc
+ 186              		@ args = 0, pretend = 0, frame = 0
+ 187              		@ frame_needed = 0, uses_anonymous_args = 0
+ 188 0000 70B5     		push	{r4, r5, r6, lr}
+ 189              	.LCFI1:
+ 190              		.cfi_def_cfa_offset 16
+ 191              		.cfi_offset 14, -4
+ 192              		.cfi_offset 6, -8
+ 193              		.cfi_offset 5, -12
+ 194              		.cfi_offset 4, -16
+  65:firmwares/fixedwing/main_fbw.c ****   mcu_init();
+ 195              		.loc 2 65 0
+ 196 0002 FFF7FEFF 		bl	mcu_init
+  67:firmwares/fixedwing/main_fbw.c ****   electrical_init();
+ 197              		.loc 2 67 0
+ 198 0006 FFF7FEFF 		bl	electrical_init
+  70:firmwares/fixedwing/main_fbw.c ****   actuators_init();
+ 199              		.loc 2 70 0
+ 200 000a FFF7FEFF 		bl	actuators_init
+ 201              	.LVL8:
+ 202              	.LBB27:
+  72:firmwares/fixedwing/main_fbw.c ****   SetCommands(commands_failsafe);
+ 203              		.loc 2 72 0
+ 204 000e 1A4A     		ldr	r2, .L21
+ 205 0010 1A4B     		ldr	r3, .L21+4
+ 206 0012 1188     		ldrh	r1, [r2, #0]
+ 207              	.LBE27:
+ 208              	.LBB28:
+ 209              	.LBB29:
+  63:firmwares/fixedwing/main_fbw.c **** void init_fbw( void ) {
+ 210              		.loc 2 63 0
+ 211 0014 1A48     		ldr	r0, .L21+8
+ 212              	.LBE29:
+ 213              	.LBE28:
+ 214              	.LBB31:
+  72:firmwares/fixedwing/main_fbw.c ****   SetCommands(commands_failsafe);
+ 215              		.loc 2 72 0
+ 216 0016 1980     		strh	r1, [r3, #0]	@ movhi
+ 217              	.LVL9:
+ 218 0018 5188     		ldrh	r1, [r2, #2]
+ 219 001a 9288     		ldrh	r2, [r2, #4]
+ 220 001c 5980     		strh	r1, [r3, #2]	@ movhi
+ 221              	.LVL10:
+ 222 001e 9A80     		strh	r2, [r3, #4]	@ movhi
+ 223              	.LVL11:
+ 224              	.LBE31:
+  73:firmwares/fixedwing/main_fbw.c ****   fbw_new_actuators = 1;
+ 225              		.loc 2 73 0
+ 226 0020 184B     		ldr	r3, .L21+12
+ 227 0022 0122     		movs	r2, #1
+ 228 0024 1A70     		strb	r2, [r3, #0]
+ 229              	.LVL12:
+ 230 0026 0022     		movs	r2, #0
+ 231              	.LBB32:
+ 232              	.LBB30:
+ 233              		.file 3 "./subsystems/radio_control.h"
+   1:./subsystems/radio_control.h **** /*
+   2:./subsystems/radio_control.h ****  * Paparazzi $Id$
+   3:./subsystems/radio_control.h ****  *
+   4:./subsystems/radio_control.h ****  * Copyright (C) 2006 Pascal Brisset, Antoine Drouin
+   5:./subsystems/radio_control.h ****  *
+   6:./subsystems/radio_control.h ****  * This file is part of paparazzi.
+   7:./subsystems/radio_control.h ****  *
+   8:./subsystems/radio_control.h ****  * paparazzi is free software; you can redistribute it and/or modify
+   9:./subsystems/radio_control.h ****  * it under the terms of the GNU General Public License as published by
+  10:./subsystems/radio_control.h ****  * the Free Software Foundation; either version 2, or (at your option)
+  11:./subsystems/radio_control.h ****  * any later version.
+  12:./subsystems/radio_control.h ****  *
+  13:./subsystems/radio_control.h ****  * paparazzi is distributed in the hope that it will be useful,
+  14:./subsystems/radio_control.h ****  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  15:./subsystems/radio_control.h ****  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  16:./subsystems/radio_control.h ****  * GNU General Public License for more details.
+  17:./subsystems/radio_control.h ****  *
+  18:./subsystems/radio_control.h ****  * You should have received a copy of the GNU General Public License
+  19:./subsystems/radio_control.h ****  * along with paparazzi; see the file COPYING.  If not, write to
+  20:./subsystems/radio_control.h ****  * the Free Software Foundation, 59 Temple Place - Suite 330,
+  21:./subsystems/radio_control.h ****  * Boston, MA 02111-1307, USA.
+  22:./subsystems/radio_control.h ****  *
+  23:./subsystems/radio_control.h ****  */
+  24:./subsystems/radio_control.h **** 
+  25:./subsystems/radio_control.h **** #ifndef RADIO_CONTROL_H
+  26:./subsystems/radio_control.h **** #define RADIO_CONTROL_H
+  27:./subsystems/radio_control.h **** 
+  28:./subsystems/radio_control.h **** #if defined RADIO_CONTROL
+  29:./subsystems/radio_control.h **** 
+  30:./subsystems/radio_control.h **** #include "led.h"
+  31:./subsystems/radio_control.h **** #include "generated/airframe.h"
+  32:./subsystems/radio_control.h **** #include "paparazzi.h"
+  33:./subsystems/radio_control.h **** 
+  34:./subsystems/radio_control.h **** /* underlying hardware */
+  35:./subsystems/radio_control.h **** #include RADIO_CONTROL_TYPE_H
+  36:./subsystems/radio_control.h **** /* must be defined by underlying hardware */
+  37:./subsystems/radio_control.h **** extern void radio_control_impl_init(void);
+  38:./subsystems/radio_control.h **** /* RADIO_CONTROL_NB_CHANNEL has to be defined by the implementation */
+  39:./subsystems/radio_control.h **** 
+  40:./subsystems/radio_control.h **** /* timeouts - for now assumes 60Hz periodic */
+  41:./subsystems/radio_control.h **** #define RC_AVG_PERIOD 8  /* TODO remove if IIR filter is used */
+  42:./subsystems/radio_control.h **** #define RC_LOST_TIME 30  /* 500ms with a 60Hz timer */
+  43:./subsystems/radio_control.h **** #define RC_REALLY_LOST_TIME 60 /* ~1s */
+  44:./subsystems/radio_control.h **** /* Number of valid frames before going back to RC OK */
+  45:./subsystems/radio_control.h **** #define RC_OK_CPT 15
+  46:./subsystems/radio_control.h **** 
+  47:./subsystems/radio_control.h **** #define RC_OK          0
+  48:./subsystems/radio_control.h **** #define RC_LOST        1
+  49:./subsystems/radio_control.h **** #define RC_REALLY_LOST 2
+  50:./subsystems/radio_control.h **** 
+  51:./subsystems/radio_control.h **** struct RadioControl {
+  52:./subsystems/radio_control.h ****   uint8_t status;
+  53:./subsystems/radio_control.h ****   uint8_t time_since_last_frame;
+  54:./subsystems/radio_control.h ****   uint8_t radio_ok_cpt;
+  55:./subsystems/radio_control.h ****   uint8_t frame_rate;
+  56:./subsystems/radio_control.h ****   uint8_t frame_cpt;
+  57:./subsystems/radio_control.h ****   pprz_t  values[RADIO_CONTROL_NB_CHANNEL];
+  58:./subsystems/radio_control.h **** };
+  59:./subsystems/radio_control.h **** 
+  60:./subsystems/radio_control.h **** extern struct RadioControl radio_control;
+  61:./subsystems/radio_control.h **** 
+  62:./subsystems/radio_control.h **** 
+  63:./subsystems/radio_control.h **** /************* INIT ******************************************************/
+  64:./subsystems/radio_control.h **** static inline void radio_control_init ( void ) {
+  65:./subsystems/radio_control.h ****   uint8_t i;
+  66:./subsystems/radio_control.h ****   for (i=0; i<RADIO_CONTROL_NB_CHANNEL; i++)
+  67:./subsystems/radio_control.h ****     radio_control.values[i] = 0;
+ 234              		.loc 3 67 0
+ 235 0028 1146     		mov	r1, r2
+ 236              	.LVL13:
+ 237              	.L19:
+  63:firmwares/fixedwing/main_fbw.c **** void init_fbw( void ) {
+ 238              		.loc 2 63 0
+ 239 002a 1618     		adds	r6, r2, r0
+ 240              		.loc 3 67 0
+ 241 002c 0232     		adds	r2, r2, #2
+ 242 002e 0024     		movs	r4, #0
+  66:./subsystems/radio_control.h ****   for (i=0; i<RADIO_CONTROL_NB_CHANNEL; i++)
+ 243              		.loc 3 66 0
+ 244 0030 182A     		cmp	r2, #24
+  63:firmwares/fixedwing/main_fbw.c **** void init_fbw( void ) {
+ 245              		.loc 2 63 0
+ 246 0032 134B     		ldr	r3, .L21+8
+ 247              		.loc 3 67 0
+ 248 0034 2546     		mov	r5, r4	@ movhi
+ 249 0036 F180     		strh	r1, [r6, #6]	@ movhi
+  66:./subsystems/radio_control.h ****   for (i=0; i<RADIO_CONTROL_NB_CHANNEL; i++)
+ 250              		.loc 3 66 0
+ 251 0038 F7D1     		bne	.L19
+  68:./subsystems/radio_control.h ****   radio_control.status = RC_REALLY_LOST;
+  69:./subsystems/radio_control.h ****   radio_control.time_since_last_frame = RC_REALLY_LOST_TIME;
+ 252              		.loc 3 69 0
+ 253 003a 3C22     		movs	r2, #60
+  68:./subsystems/radio_control.h ****   radio_control.status = RC_REALLY_LOST;
+ 254              		.loc 3 68 0
+ 255 003c 0226     		movs	r6, #2
+ 256              		.loc 3 69 0
+ 257 003e 5A70     		strb	r2, [r3, #1]
+  68:./subsystems/radio_control.h ****   radio_control.status = RC_REALLY_LOST;
+ 258              		.loc 3 68 0
+ 259 0040 1E70     		strb	r6, [r3, #0]
+  70:./subsystems/radio_control.h ****   radio_control.radio_ok_cpt = 0;
+ 260              		.loc 3 70 0
+ 261 0042 9C70     		strb	r4, [r3, #2]
+  71:./subsystems/radio_control.h ****   radio_control.frame_rate = 0;
+ 262              		.loc 3 71 0
+ 263 0044 DC70     		strb	r4, [r3, #3]
+  72:./subsystems/radio_control.h ****   radio_control.frame_cpt = 0;
+ 264              		.loc 3 72 0
+ 265 0046 1C71     		strb	r4, [r3, #4]
+  73:./subsystems/radio_control.h ****   radio_control_impl_init();
+ 266              		.loc 3 73 0
+ 267 0048 FFF7FEFF 		bl	radio_control_impl_init
+ 268              	.LBE30:
+ 269              	.LBE32:
+ 270              	.LBB33:
+ 271              	.LBB34:
+  94:./inter_mcu.h ****   fbw_state->status = 0;
+ 272              		.loc 1 94 0
+ 273 004c 0E4B     		ldr	r3, .L21+16
+ 274              	.LBE34:
+ 275              	.LBE33:
+  88:firmwares/fixedwing/main_fbw.c ****   fbw_periodic_tid = sys_time_register_timer((1./60.), NULL);
+ 276              		.loc 2 88 0
+ 277 004e 2146     		mov	r1, r4
+ 278              	.LBB37:
+ 279              	.LBB35:
+  94:./inter_mcu.h ****   fbw_state->status = 0;
+ 280              		.loc 1 94 0
+ 281 0050 1B68     		ldr	r3, [r3, #0]
+ 282              	.LBE35:
+ 283              	.LBE37:
+  88:firmwares/fixedwing/main_fbw.c ****   fbw_periodic_tid = sys_time_register_timer((1./60.), NULL);
+ 284              		.loc 2 88 0
+ 285 0052 0E48     		ldr	r0, .L21+20
+ 286              	.LBB38:
+ 287              	.LBB36:
+  94:./inter_mcu.h ****   fbw_state->status = 0;
+ 288              		.loc 1 94 0
+ 289 0054 5C76     		strb	r4, [r3, #25]
+  95:./inter_mcu.h ****   fbw_state->nb_err = 0;
+ 290              		.loc 1 95 0
+ 291 0056 9C76     		strb	r4, [r3, #26]
+  97:./inter_mcu.h ****   ap_ok = FALSE;
+ 292              		.loc 1 97 0
+ 293 0058 0D4B     		ldr	r3, .L21+24
+ 294 005a 1C70     		strb	r4, [r3, #0]
+ 295              	.LBE36:
+ 296              	.LBE38:
+  85:firmwares/fixedwing/main_fbw.c ****   fbw_mode = FBW_MODE_FAILSAFE;
+ 297              		.loc 2 85 0
+ 298 005c 0D4B     		ldr	r3, .L21+28
+ 299 005e 1E70     		strb	r6, [r3, #0]
+  88:firmwares/fixedwing/main_fbw.c ****   fbw_periodic_tid = sys_time_register_timer((1./60.), NULL);
+ 300              		.loc 2 88 0
+ 301 0060 FFF7FEFF 		bl	sys_time_register_timer
+ 302 0064 0C4B     		ldr	r3, .L21+32
+  89:firmwares/fixedwing/main_fbw.c ****   electrical_tid = sys_time_register_timer(0.1, NULL);
+ 303              		.loc 2 89 0
+ 304 0066 2146     		mov	r1, r4
+  88:firmwares/fixedwing/main_fbw.c ****   fbw_periodic_tid = sys_time_register_timer((1./60.), NULL);
+ 305              		.loc 2 88 0
+ 306 0068 1870     		strb	r0, [r3, #0]
+  89:firmwares/fixedwing/main_fbw.c ****   electrical_tid = sys_time_register_timer(0.1, NULL);
+ 307              		.loc 2 89 0
+ 308 006a 0C48     		ldr	r0, .L21+36
+ 309 006c FFF7FEFF 		bl	sys_time_register_timer
+ 310 0070 0B4B     		ldr	r3, .L21+40
+ 311 0072 1870     		strb	r0, [r3, #0]
+  94:firmwares/fixedwing/main_fbw.c **** }
+ 312              		.loc 2 94 0
+ 313 0074 70BD     		pop	{r4, r5, r6, pc}
+ 314              	.L22:
+ 315 0076 00BF     		.align	2
+ 316              	.L21:
+ 317 0078 00000000 		.word	commands_failsafe
+ 318 007c 00000000 		.word	commands
+ 319 0080 00000000 		.word	radio_control
+ 320 0084 00000000 		.word	.LANCHOR1
+ 321 0088 00000000 		.word	fbw_state
+ 322 008c 8988883C 		.word	1015580809
+ 323 0090 00000000 		.word	ap_ok
+ 324 0094 00000000 		.word	.LANCHOR0
+ 325 0098 00000000 		.word	.LANCHOR2
+ 326 009c CDCCCC3D 		.word	1036831949
+ 327 00a0 00000000 		.word	.LANCHOR3
+ 328              		.cfi_endproc
+ 329              	.LFE39:
+ 331              		.global	__aeabi_i2f
+ 332              		.global	__aeabi_f2d
+ 333              		.global	__aeabi_fcmpgt
+ 334              		.global	__aeabi_dmul
+ 335              		.global	__aeabi_d2f
+ 336              		.global	__aeabi_f2iz
+ 337              		.section	.text.event_task_fbw,"ax",%progbits
+ 338              		.align	1
+ 339              		.global	event_task_fbw
+ 340              		.thumb
+ 341              		.thumb_func
+ 343              	event_task_fbw:
+ 344              	.LFB42:
+ 111:firmwares/fixedwing/main_fbw.c ****   }
+ 112:firmwares/fixedwing/main_fbw.c **** }
+ 113:firmwares/fixedwing/main_fbw.c **** #endif
+ 114:firmwares/fixedwing/main_fbw.c **** 
+ 115:firmwares/fixedwing/main_fbw.c **** 
+ 116:firmwares/fixedwing/main_fbw.c **** /********** EVENT ************************************************************/
+ 117:firmwares/fixedwing/main_fbw.c **** 
+ 118:firmwares/fixedwing/main_fbw.c **** void event_task_fbw( void) {
+ 345              		.loc 2 118 0
+ 346              		.cfi_startproc
+ 347              		@ args = 0, pretend = 0, frame = 0
+ 348              		@ frame_needed = 0, uses_anonymous_args = 0
+ 349 0000 2DE9F041 		push	{r4, r5, r6, r7, r8, lr}
+ 350              	.LCFI2:
+ 351              		.cfi_def_cfa_offset 24
+ 352              		.cfi_offset 14, -4
+ 353              		.cfi_offset 8, -8
+ 354              		.cfi_offset 7, -12
+ 355              		.cfi_offset 6, -16
+ 356              		.cfi_offset 5, -20
+ 357              		.cfi_offset 4, -24
+ 119:firmwares/fixedwing/main_fbw.c **** #ifdef RADIO_CONTROL
+ 120:firmwares/fixedwing/main_fbw.c ****   RadioControlEvent(handle_rc_frame);
+ 358              		.loc 2 120 0
+ 359 0004 6648     		ldr	r0, .L43+16
+ 360 0006 FFF7FEFF 		bl	RadioControlEventImp
+ 121:firmwares/fixedwing/main_fbw.c **** #endif
+ 122:firmwares/fixedwing/main_fbw.c **** 
+ 123:firmwares/fixedwing/main_fbw.c ****   i2c_event();
+ 361              		.loc 2 123 0
+ 362 000a FFF7FEFF 		bl	i2c_event
+ 124:firmwares/fixedwing/main_fbw.c **** 
+ 125:firmwares/fixedwing/main_fbw.c **** #ifdef INTER_MCU
+ 126:firmwares/fixedwing/main_fbw.c **** #ifdef MCU_SPI_LINK
+ 127:firmwares/fixedwing/main_fbw.c ****     link_mcu_event_task();
+ 128:firmwares/fixedwing/main_fbw.c **** #endif /* MCU_SPI_LINK */
+ 129:firmwares/fixedwing/main_fbw.c **** 
+ 130:firmwares/fixedwing/main_fbw.c **** 
+ 131:firmwares/fixedwing/main_fbw.c ****   if (inter_mcu_received_ap) {
+ 363              		.loc 2 131 0
+ 364 000e 654B     		ldr	r3, .L43+20
+ 365 0010 1A78     		ldrb	r2, [r3, #0]	@ zero_extendqisi2
+ 366 0012 E2B1     		cbz	r2, .L24
+ 132:firmwares/fixedwing/main_fbw.c ****     inter_mcu_received_ap = FALSE;
+ 367              		.loc 2 132 0
+ 368 0014 0022     		movs	r2, #0
+ 369 0016 1A70     		strb	r2, [r3, #0]
+ 370              	.LBB39:
+ 371              	.LBB40:
+ 128:./inter_mcu.h **** 
+ 129:./inter_mcu.h **** /** Prepares date for next comm with AP. Set ::ap_ok to TRUE */
+ 130:./inter_mcu.h **** static inline void inter_mcu_event_task( void) {
+ 131:./inter_mcu.h ****   time_since_last_ap = 0;
+ 372              		.loc 1 131 0
+ 373 0018 634B     		ldr	r3, .L43+24
+ 374 001a 1A70     		strb	r2, [r3, #0]
+ 132:./inter_mcu.h ****   ap_ok = TRUE;
+ 375              		.loc 1 132 0
+ 376 001c 634B     		ldr	r3, .L43+28
+ 377 001e 0122     		movs	r2, #1
+ 378 0020 1A70     		strb	r2, [r3, #0]
+ 379              	.LBE40:
+ 380              	.LBE39:
+ 133:firmwares/fixedwing/main_fbw.c ****     inter_mcu_event_task();
+ 134:firmwares/fixedwing/main_fbw.c ****     if (ap_ok && fbw_mode == FBW_MODE_FAILSAFE) {
+ 381              		.loc 2 134 0
+ 382 0022 634B     		ldr	r3, .L43+32
+ 383 0024 1978     		ldrb	r1, [r3, #0]	@ zero_extendqisi2
+ 384 0026 0229     		cmp	r1, #2
+ 135:firmwares/fixedwing/main_fbw.c ****       fbw_mode = FBW_MODE_AUTO;
+ 385              		.loc 2 135 0
+ 386 0028 08BF     		it	eq
+ 387 002a 1A70     		strbeq	r2, [r3, #0]
+ 136:firmwares/fixedwing/main_fbw.c ****     }
+ 137:firmwares/fixedwing/main_fbw.c ****     if (fbw_mode == FBW_MODE_AUTO) {
+ 388              		.loc 2 137 0
+ 389 002c 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 390 002e 012B     		cmp	r3, #1
+ 391 0030 08D1     		bne	.L26
+ 392              	.LVL14:
+ 393              	.LBB41:
+ 138:firmwares/fixedwing/main_fbw.c ****       SetCommands(ap_state->commands);
+ 394              		.loc 2 138 0 discriminator 1
+ 395 0032 604B     		ldr	r3, .L43+36
+ 396 0034 1A68     		ldr	r2, [r3, #0]
+ 397 0036 604B     		ldr	r3, .L43+40
+ 398 0038 1188     		ldrh	r1, [r2, #0]
+ 399 003a 1980     		strh	r1, [r3, #0]	@ movhi
+ 400              	.LVL15:
+ 401 003c 5188     		ldrh	r1, [r2, #2]
+ 402 003e 5980     		strh	r1, [r3, #2]	@ movhi
+ 403              	.LVL16:
+ 404 0040 9288     		ldrh	r2, [r2, #4]
+ 405 0042 9A80     		strh	r2, [r3, #4]	@ movhi
+ 406              	.LVL17:
+ 407              	.L26:
+ 408              	.LBE41:
+ 139:firmwares/fixedwing/main_fbw.c ****     }
+ 140:firmwares/fixedwing/main_fbw.c **** #ifdef SetApOnlyCommands
+ 141:firmwares/fixedwing/main_fbw.c ****     else
+ 142:firmwares/fixedwing/main_fbw.c ****     {
+ 143:firmwares/fixedwing/main_fbw.c ****       SetApOnlyCommands(ap_state->commands);
+ 144:firmwares/fixedwing/main_fbw.c ****     }
+ 145:firmwares/fixedwing/main_fbw.c **** #endif
+ 146:firmwares/fixedwing/main_fbw.c ****     fbw_new_actuators = 1;
+ 409              		.loc 2 146 0
+ 410 0044 5D4B     		ldr	r3, .L43+44
+ 411 0046 0122     		movs	r2, #1
+ 412 0048 1A70     		strb	r2, [r3, #0]
+ 147:firmwares/fixedwing/main_fbw.c **** 
+ 148:firmwares/fixedwing/main_fbw.c **** #ifdef SINGLE_MCU
+ 149:firmwares/fixedwing/main_fbw.c ****     inter_mcu_fill_fbw_state();
+ 413              		.loc 2 149 0
+ 414 004a FFF7FEFF 		bl	inter_mcu_fill_fbw_state
+ 415              	.L24:
+ 150:firmwares/fixedwing/main_fbw.c **** #endif /**Else the buffer is filled even if the last receive was not correct */
+ 151:firmwares/fixedwing/main_fbw.c ****   }
+ 152:firmwares/fixedwing/main_fbw.c **** 
+ 153:firmwares/fixedwing/main_fbw.c **** #ifdef ACTUATORS
+ 154:firmwares/fixedwing/main_fbw.c ****   if (fbw_new_actuators > 0)
+ 416              		.loc 2 154 0
+ 417 004e 5B4B     		ldr	r3, .L43+44
+ 418 0050 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 419 0052 002B     		cmp	r3, #0
+ 420 0054 00F09980 		beq	.L23
+ 421              	.LVL18:
+ 422              	.LBB42:
+ 155:firmwares/fixedwing/main_fbw.c ****   {
+ 156:firmwares/fixedwing/main_fbw.c ****     pprz_t trimmed_commands[COMMANDS_NB];
+ 157:firmwares/fixedwing/main_fbw.c ****     int i;
+ 158:firmwares/fixedwing/main_fbw.c ****     for(i = 0; i < COMMANDS_NB; i++) trimmed_commands[i] = commands[i];
+ 159:firmwares/fixedwing/main_fbw.c **** 
+ 160:firmwares/fixedwing/main_fbw.c ****     #ifdef COMMAND_ROLL
+ 161:firmwares/fixedwing/main_fbw.c ****     trimmed_commands[COMMAND_ROLL] += ChopAbs(command_roll_trim, MAX_PPRZ/10);
+ 423              		.loc 2 161 0 discriminator 1
+ 424 0058 594A     		ldr	r2, .L43+48
+ 158:firmwares/fixedwing/main_fbw.c ****     for(i = 0; i < COMMANDS_NB; i++) trimmed_commands[i] = commands[i];
+ 425              		.loc 2 158 0 discriminator 1
+ 426 005a 574B     		ldr	r3, .L43+40
+ 427              		.loc 2 161 0 discriminator 1
+ 428 005c B2F90020 		ldrsh	r2, [r2, #0]
+ 158:firmwares/fixedwing/main_fbw.c ****     for(i = 0; i < COMMANDS_NB; i++) trimmed_commands[i] = commands[i];
+ 429              		.loc 2 158 0 discriminator 1
+ 430 0060 1888     		ldrh	r0, [r3, #0]
+ 431              	.LVL19:
+ 432              		.loc 2 161 0 discriminator 1
+ 433 0062 12F5707F 		cmn	r2, #960
+ 158:firmwares/fixedwing/main_fbw.c ****     for(i = 0; i < COMMANDS_NB; i++) trimmed_commands[i] = commands[i];
+ 434              		.loc 2 158 0 discriminator 1
+ 435 0066 9D88     		ldrh	r5, [r3, #4]
+ 436              	.LVL20:
+ 437              		.loc 2 161 0 discriminator 1
+ 438 0068 5B88     		ldrh	r3, [r3, #2]
+ 439 006a 07DB     		blt	.L35
+ 440 006c B2F5707F 		cmp	r2, #960
+ 441 0070 B4BF     		ite	lt
+ 442 0072 1446     		movlt	r4, r2
+ 443 0074 4FF47074 		movge	r4, #960
+ 444 0078 A4B2     		uxth	r4, r4
+ 445 007a 01E0     		b	.L28
+ 446              	.L35:
+ 447              		.loc 2 161 0 is_stmt 0
+ 448 007c 4FF64044 		movw	r4, #64576
+ 449              	.L28:
+ 450              		.loc 2 161 0 discriminator 3
+ 451 0080 E418     		adds	r4, r4, r3
+ 162:firmwares/fixedwing/main_fbw.c ****     #endif
+ 163:firmwares/fixedwing/main_fbw.c ****     #ifdef COMMAND_PITCH
+ 164:firmwares/fixedwing/main_fbw.c ****     trimmed_commands[COMMAND_PITCH] += ChopAbs(command_pitch_trim, MAX_PPRZ/10);
+ 452              		.loc 2 164 0 is_stmt 1 discriminator 3
+ 453 0082 504B     		ldr	r3, .L43+52
+ 161:firmwares/fixedwing/main_fbw.c ****     trimmed_commands[COMMAND_ROLL] += ChopAbs(command_roll_trim, MAX_PPRZ/10);
+ 454              		.loc 2 161 0 discriminator 3
+ 455 0084 A4B2     		uxth	r4, r4
+ 456              		.loc 2 164 0 discriminator 3
+ 457 0086 B3F90020 		ldrsh	r2, [r3, #0]
+ 458 008a ADB2     		uxth	r5, r5
+ 459 008c 12F5707F 		cmn	r2, #960
+ 460 0090 07DB     		blt	.L36
+ 461              		.loc 2 164 0 is_stmt 0 discriminator 1
+ 462 0092 B2F5707F 		cmp	r2, #960
+ 463 0096 B4BF     		ite	lt
+ 464 0098 1346     		movlt	r3, r2
+ 465 009a 4FF47073 		movge	r3, #960
+ 466 009e 9BB2     		uxth	r3, r3
+ 467 00a0 01E0     		b	.L29
+ 468              	.L36:
+ 469              		.loc 2 164 0
+ 470 00a2 4FF64043 		movw	r3, #64576
+ 471              	.L29:
+ 472              	.LBB43:
+ 165:firmwares/fixedwing/main_fbw.c ****     #endif
+ 166:firmwares/fixedwing/main_fbw.c **** 
+ 167:firmwares/fixedwing/main_fbw.c ****     SetActuatorsFromCommands(trimmed_commands);
+ 473              		.loc 2 167 0 is_stmt 1 discriminator 3
+ 474 00a6 00B2     		sxth	r0, r0
+ 475              	.LBE43:
+ 164:firmwares/fixedwing/main_fbw.c ****     trimmed_commands[COMMAND_PITCH] += ChopAbs(command_pitch_trim, MAX_PPRZ/10);
+ 476              		.loc 2 164 0 discriminator 3
+ 477 00a8 5D19     		adds	r5, r3, r5
+ 478              	.LBB44:
+ 479              		.loc 2 167 0 discriminator 3
+ 480 00aa FFF7FEFF 		bl	__aeabi_i2f
+ 481 00ae 8046     		mov	r8, r0
+ 482              	.LVL21:
+ 483 00b0 FFF7FEFF 		bl	__aeabi_f2d
+ 484              	.LVL22:
+ 485 00b4 0646     		mov	r6, r0
+ 486 00b6 0F46     		mov	r7, r1
+ 487 00b8 4046     		mov	r0, r8
+ 488 00ba 0021     		movs	r1, #0
+ 489              	.LBE44:
+ 164:firmwares/fixedwing/main_fbw.c ****     trimmed_commands[COMMAND_PITCH] += ChopAbs(command_pitch_trim, MAX_PPRZ/10);
+ 490              		.loc 2 164 0 discriminator 3
+ 491 00bc ADB2     		uxth	r5, r5
+ 492              	.LBB45:
+ 493              		.loc 2 167 0 discriminator 3
+ 494 00be FFF7FEFF 		bl	__aeabi_fcmpgt
+ 495 00c2 18B1     		cbz	r0, .L42
+ 496              		.loc 2 167 0 is_stmt 0
+ 497 00c4 32A3     		adr	r3, .L43
+ 498 00c6 D3E90023 		ldrd	r2, [r3]
+ 499 00ca 01E0     		b	.L30
+ 500              	.L42:
+ 501 00cc 0022     		movs	r2, #0
+ 502 00ce 0023     		movs	r3, #0
+ 503              	.L30:
+ 504              	.LVL23:
+ 505              		.loc 2 167 0 discriminator 3
+ 506 00d0 3046     		mov	r0, r6
+ 507 00d2 3946     		mov	r1, r7
+ 508 00d4 FFF7FEFF 		bl	__aeabi_dmul
+ 509              	.LVL24:
+ 510 00d8 FFF7FEFF 		bl	__aeabi_d2f
+ 511 00dc FFF7FEFF 		bl	__aeabi_f2iz
+ 512              	.LVL25:
+ 513 00e0 10F57A73 		adds	r3, r0, #1000
+ 514 00e4 06D2     		bcs	.L38
+ 515              		.loc 2 167 0 discriminator 4
+ 516 00e6 B3F5FA6F 		cmp	r3, #2000
+ 517 00ea 28BF     		it	cs
+ 518 00ec 4FF4FA63 		movcs	r3, #2000
+ 519 00f0 9BB2     		uxth	r3, r3
+ 520 00f2 01E0     		b	.L32
+ 521              	.L38:
+ 522              		.loc 2 167 0
+ 523 00f4 4FF47A73 		mov	r3, #1000
+ 524              	.L32:
+ 525              		.loc 2 167 0 discriminator 6
+ 526 00f8 334F     		ldr	r7, .L43+56
+ 527 00fa 344E     		ldr	r6, .L43+60
+ 528 00fc 3B80     		strh	r3, [r7, #0]	@ movhi
+ 529 00fe 3360     		str	r3, [r6, #0]
+ 530              	.LVL26:
+ 531 0100 20B2     		sxth	r0, r4
+ 532              	.LVL27:
+ 533 0102 FFF7FEFF 		bl	__aeabi_i2f
+ 534 0106 FFF7FEFF 		bl	__aeabi_f2d
+ 535 010a 23A3     		adr	r3, .L43+8
+ 536 010c D3E90023 		ldrd	r2, [r3]
+ 537 0110 FFF7FEFF 		bl	__aeabi_dmul
+ 538              	.LVL28:
+ 539 0114 FFF7FEFF 		bl	__aeabi_d2f
+ 540 0118 FFF7FEFF 		bl	__aeabi_f2iz
+ 541 011c 00F2DC50 		addw	r0, r0, #1500
+ 542              	.LVL29:
+ 543 0120 B0F57A7F 		cmp	r0, #1000
+ 544 0124 07D3     		bcc	.L39
+ 545              		.loc 2 167 0 discriminator 7
+ 546 0126 B0F5FA6F 		cmp	r0, #2000
+ 547 012a 34BF     		ite	cc
+ 548 012c 0346     		movcc	r3, r0
+ 549 012e 4FF4FA63 		movcs	r3, #2000
+ 550 0132 9BB2     		uxth	r3, r3
+ 551 0134 01E0     		b	.L33
+ 552              	.L39:
+ 553              		.loc 2 167 0
+ 554 0136 4FF47A73 		mov	r3, #1000
+ 555              	.L33:
+ 556              		.loc 2 167 0 discriminator 9
+ 557 013a BB80     		strh	r3, [r7, #4]	@ movhi
+ 558 013c B360     		str	r3, [r6, #8]
+ 559              	.LVL30:
+ 560 013e 28B2     		sxth	r0, r5
+ 561              	.LVL31:
+ 562 0140 FFF7FEFF 		bl	__aeabi_i2f
+ 563 0144 FFF7FEFF 		bl	__aeabi_f2d
+ 564 0148 13A3     		adr	r3, .L43+8
+ 565 014a D3E90023 		ldrd	r2, [r3]
+ 566 014e FFF7FEFF 		bl	__aeabi_dmul
+ 567              	.LVL32:
+ 568 0152 FFF7FEFF 		bl	__aeabi_d2f
+ 569 0156 FFF7FEFF 		bl	__aeabi_f2iz
+ 570 015a 00F2DC50 		addw	r0, r0, #1500
+ 571              	.LVL33:
+ 572 015e B0F57A7F 		cmp	r0, #1000
+ 573 0162 07D3     		bcc	.L40
+ 574              		.loc 2 167 0 discriminator 10
+ 575 0164 B0F5FA6F 		cmp	r0, #2000
+ 576 0168 34BF     		ite	cc
+ 577 016a 0346     		movcc	r3, r0
+ 578 016c 4FF4FA63 		movcs	r3, #2000
+ 579 0170 9BB2     		uxth	r3, r3
+ 580 0172 01E0     		b	.L34
+ 581              	.L40:
+ 582              		.loc 2 167 0
+ 583 0174 4FF47A73 		mov	r3, #1000
+ 584              	.L34:
+ 585              		.loc 2 167 0 discriminator 12
+ 586 0178 134A     		ldr	r2, .L43+56
+ 587 017a 5380     		strh	r3, [r2, #2]	@ movhi
+ 588 017c 134A     		ldr	r2, .L43+60
+ 589 017e 5360     		str	r3, [r2, #4]
+ 590 0180 FFF7FEFF 		bl	actuators_pwm_commit
+ 591              	.LVL34:
+ 592              	.LBE45:
+ 168:firmwares/fixedwing/main_fbw.c ****     fbw_new_actuators = 0;
+ 593              		.loc 2 168 0 is_stmt 1 discriminator 12
+ 594 0184 0D4B     		ldr	r3, .L43+44
+ 595 0186 0022     		movs	r2, #0
+ 596 0188 1A70     		strb	r2, [r3, #0]
+ 597              	.LVL35:
+ 598              	.L23:
+ 599 018a BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
+ 600              	.L44:
+ 601 018e 00BF     		.align	3
+ 602              	.L43:
+ 603 0190 7E08ABAA 		.word	-1431631746
+ 604 0194 AAAABA3F 		.word	1069197994
+ 605 0198 E797AAAA 		.word	-1431660569
+ 606 019c AAAAAA3F 		.word	1068149418
+ 607 01a0 00000000 		.word	handle_rc_frame
+ 608 01a4 00000000 		.word	inter_mcu_received_ap
+ 609 01a8 00000000 		.word	time_since_last_ap
+ 610 01ac 00000000 		.word	ap_ok
+ 611 01b0 00000000 		.word	.LANCHOR0
+ 612 01b4 00000000 		.word	ap_state
+ 613 01b8 00000000 		.word	commands
+ 614 01bc 00000000 		.word	.LANCHOR1
+ 615 01c0 00000000 		.word	command_roll_trim
+ 616 01c4 00000000 		.word	command_pitch_trim
+ 617 01c8 00000000 		.word	actuators
+ 618 01cc 00000000 		.word	actuators_pwm_values
+ 619              	.LBE42:
+ 620              		.cfi_endproc
+ 621              	.LFE42:
+ 623              		.section	.text.periodic_task_fbw,"ax",%progbits
+ 624              		.align	1
+ 625              		.global	periodic_task_fbw
+ 626              		.thumb
+ 627              		.thumb_func
+ 629              	periodic_task_fbw:
+ 630              	.LFB43:
+ 169:firmwares/fixedwing/main_fbw.c ****   }
+ 170:firmwares/fixedwing/main_fbw.c **** #endif
+ 171:firmwares/fixedwing/main_fbw.c **** 
+ 172:firmwares/fixedwing/main_fbw.c **** 
+ 173:firmwares/fixedwing/main_fbw.c **** #ifdef MCU_SPI_LINK
+ 174:firmwares/fixedwing/main_fbw.c ****   if (link_mcu_received) {
+ 175:firmwares/fixedwing/main_fbw.c ****     link_mcu_received = FALSE;
+ 176:firmwares/fixedwing/main_fbw.c ****     inter_mcu_fill_fbw_state(); /** Prepares the next message for AP */
+ 177:firmwares/fixedwing/main_fbw.c ****     link_mcu_restart(); /** Prepares the next SPI communication */
+ 178:firmwares/fixedwing/main_fbw.c ****   }
+ 179:firmwares/fixedwing/main_fbw.c **** #endif /* MCU_SPI_LINK */
+ 180:firmwares/fixedwing/main_fbw.c **** #endif /* INTER_MCU */
+ 181:firmwares/fixedwing/main_fbw.c **** 
+ 182:firmwares/fixedwing/main_fbw.c **** }
+ 183:firmwares/fixedwing/main_fbw.c **** 
+ 184:firmwares/fixedwing/main_fbw.c **** 
+ 185:firmwares/fixedwing/main_fbw.c **** /************* PERIODIC ******************************************************/
+ 186:firmwares/fixedwing/main_fbw.c **** void periodic_task_fbw( void ) {
+ 631              		.loc 2 186 0
+ 632              		.cfi_startproc
+ 633              		@ args = 0, pretend = 0, frame = 0
+ 634              		@ frame_needed = 0, uses_anonymous_args = 0
+ 635 0000 2DE9F041 		push	{r4, r5, r6, r7, r8, lr}
+ 636              	.LCFI3:
+ 637              		.cfi_def_cfa_offset 24
+ 638              		.cfi_offset 14, -4
+ 639              		.cfi_offset 8, -8
+ 640              		.cfi_offset 7, -12
+ 641              		.cfi_offset 6, -16
+ 642              		.cfi_offset 5, -20
+ 643              		.cfi_offset 4, -24
+ 644              	.LBB95:
+ 645              	.LBB96:
+  74:./subsystems/radio_control.h **** }
+  75:./subsystems/radio_control.h **** 
+  76:./subsystems/radio_control.h **** /************* PERIODIC ******************************************************/
+  77:./subsystems/radio_control.h **** static inline void radio_control_periodic_task ( void ) {
+  78:./subsystems/radio_control.h ****   static uint8_t _1Hz;
+  79:./subsystems/radio_control.h ****   _1Hz++;
+ 646              		.loc 3 79 0
+ 647 0004 784A     		ldr	r2, .L85
+ 648 0006 1378     		ldrb	r3, [r2, #0]	@ zero_extendqisi2
+ 649 0008 0133     		adds	r3, r3, #1
+ 650 000a DBB2     		uxtb	r3, r3
+  80:./subsystems/radio_control.h **** 
+  81:./subsystems/radio_control.h ****   if (_1Hz >= 60) {
+ 651              		.loc 3 81 0
+ 652 000c 3B2B     		cmp	r3, #59
+  79:./subsystems/radio_control.h ****   _1Hz++;
+ 653              		.loc 3 79 0
+ 654 000e 1370     		strb	r3, [r2, #0]
+ 655 0010 764B     		ldr	r3, .L85+4
+ 656              		.loc 3 81 0
+ 657 0012 04D9     		bls	.L46
+  82:./subsystems/radio_control.h ****     _1Hz = 0;
+ 658              		.loc 3 82 0
+ 659 0014 0021     		movs	r1, #0
+ 660 0016 1170     		strb	r1, [r2, #0]
+  83:./subsystems/radio_control.h ****     radio_control.frame_rate = radio_control.frame_cpt;
+ 661              		.loc 3 83 0
+ 662 0018 1A79     		ldrb	r2, [r3, #4]	@ zero_extendqisi2
+  84:./subsystems/radio_control.h ****     radio_control.frame_cpt = 0;
+ 663              		.loc 3 84 0
+ 664 001a 1971     		strb	r1, [r3, #4]
+  83:./subsystems/radio_control.h ****     radio_control.frame_rate = radio_control.frame_cpt;
+ 665              		.loc 3 83 0
+ 666 001c DA70     		strb	r2, [r3, #3]
+ 667              	.L46:
+  85:./subsystems/radio_control.h ****   }
+  86:./subsystems/radio_control.h **** 
+  87:./subsystems/radio_control.h ****   if (radio_control.time_since_last_frame >= RC_REALLY_LOST_TIME) {
+ 668              		.loc 3 87 0
+ 669 001e 5B78     		ldrb	r3, [r3, #1]	@ zero_extendqisi2
+ 670 0020 724A     		ldr	r2, .L85+4
+ 671 0022 3B2B     		cmp	r3, #59
+ 672 0024 02D9     		bls	.L47
+  88:./subsystems/radio_control.h ****     radio_control.status = RC_REALLY_LOST;
+ 673              		.loc 3 88 0
+ 674 0026 0223     		movs	r3, #2
+ 675 0028 1370     		strb	r3, [r2, #0]
+ 676 002a 08E0     		b	.L48
+ 677              	.L47:
+  89:./subsystems/radio_control.h ****   } else {
+  90:./subsystems/radio_control.h ****     if (radio_control.time_since_last_frame >= RC_LOST_TIME) {
+ 678              		.loc 3 90 0
+ 679 002c 1D2B     		cmp	r3, #29
+ 680 002e 03D9     		bls	.L49
+  91:./subsystems/radio_control.h ****       radio_control.status = RC_LOST;
+ 681              		.loc 3 91 0
+ 682 0030 0121     		movs	r1, #1
+ 683 0032 1170     		strb	r1, [r2, #0]
+  92:./subsystems/radio_control.h ****       radio_control.radio_ok_cpt = RC_OK_CPT;
+ 684              		.loc 3 92 0
+ 685 0034 0F21     		movs	r1, #15
+ 686 0036 9170     		strb	r1, [r2, #2]
+ 687              	.L49:
+  93:./subsystems/radio_control.h ****     }
+  94:./subsystems/radio_control.h ****     radio_control.time_since_last_frame++;
+ 688              		.loc 3 94 0
+ 689 0038 6C4A     		ldr	r2, .L85+4
+ 690 003a 0133     		adds	r3, r3, #1
+ 691 003c 5370     		strb	r3, [r2, #1]
+ 692              	.L48:
+ 693              	.LBE96:
+ 694              	.LBE95:
+ 187:firmwares/fixedwing/main_fbw.c **** 
+ 188:firmwares/fixedwing/main_fbw.c **** #ifdef RADIO_CONTROL
+ 189:firmwares/fixedwing/main_fbw.c ****   radio_control_periodic_task();
+ 190:firmwares/fixedwing/main_fbw.c ****   if (fbw_mode == FBW_MODE_MANUAL && radio_control.status == RC_REALLY_LOST) {
+ 695              		.loc 2 190 0
+ 696 003e 6C4B     		ldr	r3, .L85+8
+ 697 0040 1A78     		ldrb	r2, [r3, #0]	@ zero_extendqisi2
+ 698 0042 2AB9     		cbnz	r2, .L50
+ 699              		.loc 2 190 0 is_stmt 0 discriminator 1
+ 700 0044 694A     		ldr	r2, .L85+4
+ 701 0046 1278     		ldrb	r2, [r2, #0]	@ zero_extendqisi2
+ 702 0048 022A     		cmp	r2, #2
+ 703 004a 01D1     		bne	.L50
+ 191:firmwares/fixedwing/main_fbw.c ****     fbw_mode = FBW_MODE_AUTO;
+ 704              		.loc 2 191 0 is_stmt 1
+ 705 004c 0122     		movs	r2, #1
+ 706 004e 1A70     		strb	r2, [r3, #0]
+ 707              	.L50:
+ 708              	.LBB97:
+ 709              	.LBB98:
+ 133:./inter_mcu.h **** }
+ 134:./inter_mcu.h **** 
+ 135:./inter_mcu.h **** /** Monitors AP. Set ::ap_ok to false if AP is down for a long time. */
+ 136:./inter_mcu.h **** static inline void inter_mcu_periodic_task(void) {
+ 137:./inter_mcu.h ****   if (time_since_last_ap >= AP_STALLED_TIME) {
+ 710              		.loc 1 137 0
+ 711 0050 684B     		ldr	r3, .L85+12
+ 712 0052 1A78     		ldrb	r2, [r3, #0]	@ zero_extendqisi2
+ 713 0054 1D2A     		cmp	r2, #29
+ 714 0056 05D9     		bls	.L51
+ 138:./inter_mcu.h ****     ap_ok = FALSE;
+ 715              		.loc 1 138 0
+ 716 0058 674B     		ldr	r3, .L85+16
+ 717 005a 0022     		movs	r2, #0
+ 718 005c 1A70     		strb	r2, [r3, #0]
+ 139:./inter_mcu.h **** #ifdef SINGLE_MCU
+ 140:./inter_mcu.h ****     // Keep filling the buffer even if no AP commands are received
+ 141:./inter_mcu.h ****     inter_mcu_fill_fbw_state();
+ 719              		.loc 1 141 0
+ 720 005e FFF7FEFF 		bl	inter_mcu_fill_fbw_state
+ 721 0062 01E0     		b	.L52
+ 722              	.L51:
+ 142:./inter_mcu.h **** #endif
+ 143:./inter_mcu.h **** 
+ 144:./inter_mcu.h ****   } else
+ 145:./inter_mcu.h ****     time_since_last_ap++;
+ 723              		.loc 1 145 0
+ 724 0064 0132     		adds	r2, r2, #1
+ 725 0066 1A70     		strb	r2, [r3, #0]
+ 726              	.L52:
+ 727              	.LBE98:
+ 728              	.LBE97:
+ 192:firmwares/fixedwing/main_fbw.c ****   }
+ 193:firmwares/fixedwing/main_fbw.c **** #endif
+ 194:firmwares/fixedwing/main_fbw.c **** 
+ 195:firmwares/fixedwing/main_fbw.c **** #ifdef INTER_MCU
+ 196:firmwares/fixedwing/main_fbw.c ****   inter_mcu_periodic_task();
+ 197:firmwares/fixedwing/main_fbw.c ****   if (fbw_mode == FBW_MODE_AUTO && !ap_ok)
+ 729              		.loc 2 197 0
+ 730 0068 614B     		ldr	r3, .L85+8
+ 731 006a 1978     		ldrb	r1, [r3, #0]	@ zero_extendqisi2
+ 732 006c 0129     		cmp	r1, #1
+ 733 006e 0ED1     		bne	.L53
+ 734              		.loc 2 197 0 is_stmt 0 discriminator 1
+ 735 0070 614A     		ldr	r2, .L85+16
+ 736 0072 1278     		ldrb	r2, [r2, #0]	@ zero_extendqisi2
+ 737 0074 5AB9     		cbnz	r2, .L53
+ 738              	.LBB99:
+ 739              	.LBB100:
+  98:firmwares/fixedwing/main_fbw.c ****   fbw_mode = FBW_MODE_FAILSAFE;
+ 740              		.loc 2 98 0 is_stmt 1
+ 741 0076 0222     		movs	r2, #2
+ 742 0078 1A70     		strb	r2, [r3, #0]
+ 743              	.LVL36:
+ 744              	.LBB101:
+  99:firmwares/fixedwing/main_fbw.c ****   SetCommands(commands_failsafe);
+ 745              		.loc 2 99 0
+ 746 007a 604A     		ldr	r2, .L85+20
+ 747 007c 604B     		ldr	r3, .L85+24
+ 748 007e 1088     		ldrh	r0, [r2, #0]
+ 749 0080 1880     		strh	r0, [r3, #0]	@ movhi
+ 750              	.LVL37:
+ 751 0082 5088     		ldrh	r0, [r2, #2]
+ 752 0084 9288     		ldrh	r2, [r2, #4]
+ 753 0086 5880     		strh	r0, [r3, #2]	@ movhi
+ 754              	.LVL38:
+ 755 0088 9A80     		strh	r2, [r3, #4]	@ movhi
+ 756              	.LVL39:
+ 757              	.LBE101:
+ 100:firmwares/fixedwing/main_fbw.c ****   fbw_new_actuators = 1;
+ 758              		.loc 2 100 0
+ 759 008a 5E4B     		ldr	r3, .L85+28
+ 760 008c 1970     		strb	r1, [r3, #0]
+ 761              	.LVL40:
+ 762              	.L53:
+ 763              	.LBE100:
+ 764              	.LBE99:
+ 765              	.LBB102:
+ 766              	.LBB103:
+ 767              		.file 4 "firmwares/fixedwing/fbw_downlink.h"
+   1:firmwares/fixedwing/fbw_downlink.h **** /*
+   2:firmwares/fixedwing/fbw_downlink.h ****  * Paparazzi $Id$
+   3:firmwares/fixedwing/fbw_downlink.h ****  *
+   4:firmwares/fixedwing/fbw_downlink.h ****  * Copyright (C) 2006- Pascal Brisset, Antoine Drouin
+   5:firmwares/fixedwing/fbw_downlink.h ****  *
+   6:firmwares/fixedwing/fbw_downlink.h ****  * This file is part of paparazzi.
+   7:firmwares/fixedwing/fbw_downlink.h ****  *
+   8:firmwares/fixedwing/fbw_downlink.h ****  * paparazzi is free software; you can redistribute it and/or modify
+   9:firmwares/fixedwing/fbw_downlink.h ****  * it under the terms of the GNU General Public License as published by
+  10:firmwares/fixedwing/fbw_downlink.h ****  * the Free Software Foundation; either version 2, or (at your option)
+  11:firmwares/fixedwing/fbw_downlink.h ****  * any later version.
+  12:firmwares/fixedwing/fbw_downlink.h ****  *
+  13:firmwares/fixedwing/fbw_downlink.h ****  * paparazzi is distributed in the hope that it will be useful,
+  14:firmwares/fixedwing/fbw_downlink.h ****  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  15:firmwares/fixedwing/fbw_downlink.h ****  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  16:firmwares/fixedwing/fbw_downlink.h ****  * GNU General Public License for more details.
+  17:firmwares/fixedwing/fbw_downlink.h ****  *
+  18:firmwares/fixedwing/fbw_downlink.h ****  * You should have received a copy of the GNU General Public License
+  19:firmwares/fixedwing/fbw_downlink.h ****  * along with paparazzi; see the file COPYING.  If not, write to
+  20:firmwares/fixedwing/fbw_downlink.h ****  * the Free Software Foundation, 59 Temple Place - Suite 330,
+  21:firmwares/fixedwing/fbw_downlink.h ****  * Boston, MA 02111-1307, USA.
+  22:firmwares/fixedwing/fbw_downlink.h ****  *
+  23:firmwares/fixedwing/fbw_downlink.h ****  */
+  24:firmwares/fixedwing/fbw_downlink.h **** 
+  25:firmwares/fixedwing/fbw_downlink.h **** /** \file fbw_downlink.h
+  26:firmwares/fixedwing/fbw_downlink.h ****  *  \brief Set of macros defining the periodic telemetry messages of FBW process
+  27:firmwares/fixedwing/fbw_downlink.h ****  *
+  28:firmwares/fixedwing/fbw_downlink.h ****  * The PeriodicSendAp() macro is generated from the telemetry description
+  29:firmwares/fixedwing/fbw_downlink.h ****  * (named in conf.xml, usually in conf/telemetry directory). This macro
+  30:firmwares/fixedwing/fbw_downlink.h ****  * is a sequence of calls to PERIODIC_SEND_message() which have to be defined
+  31:firmwares/fixedwing/fbw_downlink.h ****  * in the present file.
+  32:firmwares/fixedwing/fbw_downlink.h ****  *
+  33:firmwares/fixedwing/fbw_downlink.h ****  */
+  34:firmwares/fixedwing/fbw_downlink.h **** 
+  35:firmwares/fixedwing/fbw_downlink.h **** #ifndef FBW_DOWNLINK_H
+  36:firmwares/fixedwing/fbw_downlink.h **** #define FBW_DOWNLINK_H
+  37:firmwares/fixedwing/fbw_downlink.h **** 
+  38:firmwares/fixedwing/fbw_downlink.h **** #include <inttypes.h>
+  39:firmwares/fixedwing/fbw_downlink.h **** #include "messages.h"
+  40:firmwares/fixedwing/fbw_downlink.h **** #include "generated/periodic_telemetry.h"
+  41:firmwares/fixedwing/fbw_downlink.h **** #include "generated/airframe.h"
+  42:firmwares/fixedwing/fbw_downlink.h **** #include "commands.h"
+  43:firmwares/fixedwing/fbw_downlink.h **** #include "actuators.h"
+  44:firmwares/fixedwing/fbw_downlink.h **** 
+  45:firmwares/fixedwing/fbw_downlink.h **** #include "mcu_periph/uart.h"
+  46:firmwares/fixedwing/fbw_downlink.h **** #include "firmwares/fixedwing/main_fbw.h"
+  47:firmwares/fixedwing/fbw_downlink.h **** #include "subsystems/radio_control.h"
+  48:firmwares/fixedwing/fbw_downlink.h **** #include "subsystems/electrical.h"
+  49:firmwares/fixedwing/fbw_downlink.h **** #include "inter_mcu.h"
+  50:firmwares/fixedwing/fbw_downlink.h **** 
+  51:firmwares/fixedwing/fbw_downlink.h **** #ifndef DOWNLINK_DEVICE
+  52:firmwares/fixedwing/fbw_downlink.h **** #define DOWNLINK_DEVICE DOWNLINK_FBW_DEVICE
+  53:firmwares/fixedwing/fbw_downlink.h **** #endif
+  54:firmwares/fixedwing/fbw_downlink.h **** #include "subsystems/datalink/downlink.h"
+  55:firmwares/fixedwing/fbw_downlink.h **** 
+  56:firmwares/fixedwing/fbw_downlink.h **** #define PERIODIC_SEND_COMMANDS(_trans, _dev) DOWNLINK_SEND_COMMANDS(_trans, _dev, COMMANDS_NB, comm
+  57:firmwares/fixedwing/fbw_downlink.h **** 
+  58:firmwares/fixedwing/fbw_downlink.h **** #ifdef RADIO_CONTROL
+  59:firmwares/fixedwing/fbw_downlink.h **** #define PERIODIC_SEND_FBW_STATUS(_trans, _dev) DOWNLINK_SEND_FBW_STATUS(_trans, _dev, &(radio_contr
+  60:firmwares/fixedwing/fbw_downlink.h **** #ifdef RADIO_CONTROL_TYPE_PPM
+  61:firmwares/fixedwing/fbw_downlink.h **** #define PERIODIC_SEND_PPM(_trans, _dev) {                           \
+  62:firmwares/fixedwing/fbw_downlink.h ****   uint16_t ppm_pulses_usec[RADIO_CONTROL_NB_CHANNEL];        \
+  63:firmwares/fixedwing/fbw_downlink.h ****   for (int i=0;i<RADIO_CONTROL_NB_CHANNEL;i++)               \
+  64:firmwares/fixedwing/fbw_downlink.h ****     ppm_pulses_usec[i] = USEC_OF_RC_PPM_TICKS(ppm_pulses[i]); \
+  65:firmwares/fixedwing/fbw_downlink.h ****   DOWNLINK_SEND_PPM(_trans, _dev,                            \
+  66:firmwares/fixedwing/fbw_downlink.h ****                     &radio_control.frame_rate,               \
+  67:firmwares/fixedwing/fbw_downlink.h ****                     PPM_NB_CHANNEL,                          \
+  68:firmwares/fixedwing/fbw_downlink.h ****                     ppm_pulses_usec);                        \
+  69:firmwares/fixedwing/fbw_downlink.h **** }
+  70:firmwares/fixedwing/fbw_downlink.h **** #else
+  71:firmwares/fixedwing/fbw_downlink.h **** #define PERIODIC_SEND_PPM(_trans, _dev) {}
+  72:firmwares/fixedwing/fbw_downlink.h **** #endif
+  73:firmwares/fixedwing/fbw_downlink.h **** #define PERIODIC_SEND_RC(_trans, _dev) DOWNLINK_SEND_RC(_trans, _dev, RADIO_CONTROL_NB_CHANNEL, rad
+  74:firmwares/fixedwing/fbw_downlink.h **** #else // RADIO_CONTROL
+  75:firmwares/fixedwing/fbw_downlink.h **** #define PERIODIC_SEND_FBW_STATUS(_trans, _dev) { uint8_t dummy = 0; DOWNLINK_SEND_FBW_STATUS(_trans
+  76:firmwares/fixedwing/fbw_downlink.h **** #define PERIODIC_SEND_PPM(_trans, _dev) {}
+  77:firmwares/fixedwing/fbw_downlink.h **** #define PERIODIC_SEND_RC(_trans, _dev) {}
+  78:firmwares/fixedwing/fbw_downlink.h **** #endif // RADIO_CONTROL
+  79:firmwares/fixedwing/fbw_downlink.h **** 
+  80:firmwares/fixedwing/fbw_downlink.h **** #ifdef ACTUATORS
+  81:firmwares/fixedwing/fbw_downlink.h **** #define PERIODIC_SEND_ACTUATORS(_trans, _dev) DOWNLINK_SEND_ACTUATORS(_trans, _dev, SERVOS_NB, actu
+  82:firmwares/fixedwing/fbw_downlink.h **** #else
+  83:firmwares/fixedwing/fbw_downlink.h **** #define PERIODIC_SEND_ACTUATORS(_trans, _dev) {}
+  84:firmwares/fixedwing/fbw_downlink.h **** #endif
+  85:firmwares/fixedwing/fbw_downlink.h **** 
+  86:firmwares/fixedwing/fbw_downlink.h **** #ifdef BRICOLAGE_ADC
+  87:firmwares/fixedwing/fbw_downlink.h **** extern uint16_t adc0_val[];
+  88:firmwares/fixedwing/fbw_downlink.h **** 
+  89:firmwares/fixedwing/fbw_downlink.h **** #define PERIODIC_SEND_ADC(_trans, _dev) {			\
+  90:firmwares/fixedwing/fbw_downlink.h ****     static const uint8_t mcu = 0;			\
+  91:firmwares/fixedwing/fbw_downlink.h ****     DOWNLINK_SEND_ADC(_trans, _dev, &mcu, 8, adc0_val);	\
+  92:firmwares/fixedwing/fbw_downlink.h ****   }
+  93:firmwares/fixedwing/fbw_downlink.h **** #else
+  94:firmwares/fixedwing/fbw_downlink.h **** #define PERIODIC_SEND_ADC(_trans, _dev) {}
+  95:firmwares/fixedwing/fbw_downlink.h **** #endif
+  96:firmwares/fixedwing/fbw_downlink.h **** 
+  97:firmwares/fixedwing/fbw_downlink.h **** static inline void fbw_downlink_periodic_task(void) {
+  98:firmwares/fixedwing/fbw_downlink.h ****   PeriodicSendFbw(DefaultChannel,DefaultDevice)
+ 768              		.loc 4 98 0
+ 769 008e 5E4B     		ldr	r3, .L85+32
+ 770 0090 1A78     		ldrb	r2, [r3, #0]	@ zero_extendqisi2
+ 771 0092 002A     		cmp	r2, #0
+ 772 0094 40F08D81 		bne	.L54
+ 773              	.LBB104:
+ 774 0098 5C4B     		ldr	r3, .L85+36
+ 775 009a 1978     		ldrb	r1, [r3, #0]	@ zero_extendqisi2
+ 776 009c 0131     		adds	r1, r1, #1
+ 777 009e C9B2     		uxtb	r1, r1
+ 778 00a0 7729     		cmp	r1, #119
+ 779 00a2 1970     		strb	r1, [r3, #0]
+ 780 00a4 88BF     		it	hi
+ 781 00a6 1A70     		strbhi	r2, [r3, #0]
+ 782 00a8 594B     		ldr	r3, .L85+40
+ 783 00aa 1A88     		ldrh	r2, [r3, #0]
+ 784 00ac 0132     		adds	r2, r2, #1
+ 785 00ae 92B2     		uxth	r2, r2
+ 786 00b0 B2F5967F 		cmp	r2, #300
+ 787 00b4 1A80     		strh	r2, [r3, #0]	@ movhi
+ 788 00b6 01D3     		bcc	.L56
+ 789 00b8 0022     		movs	r2, #0
+ 790 00ba 1A80     		strh	r2, [r3, #0]	@ movhi
+ 791              	.L56:
+ 792 00bc 534B     		ldr	r3, .L85+36
+ 793 00be 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 794 00c0 002B     		cmp	r3, #0
+ 795 00c2 40F0B780 		bne	.L57
+ 796 00c6 5348     		ldr	r0, .L85+44
+ 797 00c8 0E21     		movs	r1, #14
+ 798 00ca FFF7FEFF 		bl	uart_check_free_space
+ 799 00ce 0028     		cmp	r0, #0
+ 800 00d0 00F0AC80 		beq	.L58
+ 801 00d4 504B     		ldr	r3, .L85+48
+ 802              	.LBB105:
+ 803 00d6 9921     		movs	r1, #153
+ 804              	.LBE105:
+ 805 00d8 1A88     		ldrh	r2, [r3, #0]
+ 806              	.LBB106:
+ 807 00da 4E48     		ldr	r0, .L85+44
+ 808              	.LBE106:
+ 809 00dc 0E32     		adds	r2, r2, #14
+ 810 00de 1A80     		strh	r2, [r3, #0]	@ movhi
+ 811 00e0 4E4B     		ldr	r3, .L85+52
+ 812 00e2 4F4D     		ldr	r5, .L85+56
+ 813 00e4 1A88     		ldrh	r2, [r3, #0]
+ 814 00e6 4F4C     		ldr	r4, .L85+60
+ 815 00e8 0132     		adds	r2, r2, #1
+ 816 00ea 1A80     		strh	r2, [r3, #0]	@ movhi
+ 817              	.LBB107:
+ 818 00ec FFF7FEFF 		bl	uart_transmit
+ 819              	.LVL41:
+ 820 00f0 0E21     		movs	r1, #14
+ 821 00f2 4848     		ldr	r0, .L85+44
+ 822 00f4 FFF7FEFF 		bl	uart_transmit
+ 823              	.LBE107:
+ 824 00f8 0F23     		movs	r3, #15
+ 825 00fa 2B70     		strb	r3, [r5, #0]
+ 826 00fc 0121     		movs	r1, #1
+ 827 00fe 1D23     		movs	r3, #29
+ 828 0100 4448     		ldr	r0, .L85+44
+ 829 0102 2370     		strb	r3, [r4, #0]
+ 830 0104 FFF7FEFF 		bl	uart_transmit
+ 831 0108 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 832 010a 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 833 010c 6733     		adds	r3, r3, #103
+ 834              	.LBB108:
+ 835 010e 374E     		ldr	r6, .L85+4
+ 836              	.LBE108:
+ 837 0110 DBB2     		uxtb	r3, r3
+ 838 0112 2B70     		strb	r3, [r5, #0]
+ 839 0114 6721     		movs	r1, #103
+ 840 0116 9B18     		adds	r3, r3, r2
+ 841 0118 3E48     		ldr	r0, .L85+44
+ 842 011a 2370     		strb	r3, [r4, #0]
+ 843 011c FFF7FEFF 		bl	uart_transmit
+ 844              	.LBB109:
+ 845 0120 3178     		ldrb	r1, [r6, #0]	@ zero_extendqisi2
+ 846              	.LVL42:
+ 847 0122 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 848 0124 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 849 0126 CB18     		adds	r3, r1, r3
+ 850 0128 DBB2     		uxtb	r3, r3
+ 851              	.LVL43:
+ 852 012a 2B70     		strb	r3, [r5, #0]
+ 853 012c 3948     		ldr	r0, .L85+44
+ 854 012e 9B18     		adds	r3, r3, r2
+ 855              	.LVL44:
+ 856 0130 2370     		strb	r3, [r4, #0]
+ 857 0132 FFF7FEFF 		bl	uart_transmit
+ 858              	.LVL45:
+ 859              	.LBE109:
+ 860              	.LBB110:
+ 861 0136 F178     		ldrb	r1, [r6, #3]	@ zero_extendqisi2
+ 862              	.LVL46:
+ 863 0138 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 864 013a 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 865 013c CB18     		adds	r3, r1, r3
+ 866 013e DBB2     		uxtb	r3, r3
+ 867              	.LVL47:
+ 868 0140 2B70     		strb	r3, [r5, #0]
+ 869 0142 3448     		ldr	r0, .L85+44
+ 870 0144 9B18     		adds	r3, r3, r2
+ 871              	.LVL48:
+ 872 0146 2370     		strb	r3, [r4, #0]
+ 873 0148 FFF7FEFF 		bl	uart_transmit
+ 874              	.LVL49:
+ 875              	.LBE110:
+ 876              	.LBB111:
+ 877 014c 284B     		ldr	r3, .L85+8
+ 878 014e 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 879 0150 1978     		ldrb	r1, [r3, #0]	@ zero_extendqisi2
+ 880              	.LVL50:
+ 881 0152 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 882              	.LBE111:
+ 883              	.LBB112:
+ 884 0154 344E     		ldr	r6, .L85+64
+ 885              	.LBE112:
+ 886              	.LBB113:
+ 887 0156 CB18     		adds	r3, r1, r3
+ 888 0158 DBB2     		uxtb	r3, r3
+ 889              	.LVL51:
+ 890 015a 2B70     		strb	r3, [r5, #0]
+ 891 015c 2D48     		ldr	r0, .L85+44
+ 892 015e 9B18     		adds	r3, r3, r2
+ 893              	.LVL52:
+ 894 0160 2370     		strb	r3, [r4, #0]
+ 895 0162 FFF7FEFF 		bl	uart_transmit
+ 896              	.LVL53:
+ 897              	.LBE113:
+ 898              	.LBB114:
+ 899 0166 3178     		ldrb	r1, [r6, #0]	@ zero_extendqisi2
+ 900              	.LVL54:
+ 901 0168 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 902 016a 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 903 016c CB18     		adds	r3, r1, r3
+ 904 016e DBB2     		uxtb	r3, r3
+ 905              	.LVL55:
+ 906 0170 2B70     		strb	r3, [r5, #0]
+ 907 0172 2848     		ldr	r0, .L85+44
+ 908 0174 9B18     		adds	r3, r3, r2
+ 909              	.LVL56:
+ 910 0176 2370     		strb	r3, [r4, #0]
+ 911 0178 FFF7FEFF 		bl	uart_transmit
+ 912              	.LVL57:
+ 913              	.LBE114:
+ 914              	.LBB115:
+ 915 017c 3179     		ldrb	r1, [r6, #4]	@ zero_extendqisi2
+ 916              	.LVL58:
+ 917 017e 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 918 0180 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 919 0182 CB18     		adds	r3, r1, r3
+ 920 0184 DBB2     		uxtb	r3, r3
+ 921              	.LVL59:
+ 922 0186 2B70     		strb	r3, [r5, #0]
+ 923 0188 2248     		ldr	r0, .L85+44
+ 924 018a 9B18     		adds	r3, r3, r2
+ 925              	.LVL60:
+ 926 018c 2370     		strb	r3, [r4, #0]
+ 927 018e FFF7FEFF 		bl	uart_transmit
+ 928              	.LVL61:
+ 929              	.LBE115:
+ 930              	.LBB116:
+ 931 0192 7179     		ldrb	r1, [r6, #5]	@ zero_extendqisi2
+ 932              	.LVL62:
+ 933 0194 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 934 0196 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 935 0198 CB18     		adds	r3, r1, r3
+ 936 019a DBB2     		uxtb	r3, r3
+ 937              	.LVL63:
+ 938 019c 2B70     		strb	r3, [r5, #0]
+ 939 019e 1D48     		ldr	r0, .L85+44
+ 940 01a0 9B18     		adds	r3, r3, r2
+ 941              	.LVL64:
+ 942 01a2 2370     		strb	r3, [r4, #0]
+ 943 01a4 FFF7FEFF 		bl	uart_transmit
+ 944              	.LVL65:
+ 945              	.LBE116:
+ 946              	.LBB117:
+ 947 01a8 B179     		ldrb	r1, [r6, #6]	@ zero_extendqisi2
+ 948              	.LVL66:
+ 949 01aa 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 950 01ac 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 951 01ae CB18     		adds	r3, r1, r3
+ 952 01b0 DBB2     		uxtb	r3, r3
+ 953              	.LVL67:
+ 954 01b2 2B70     		strb	r3, [r5, #0]
+ 955 01b4 1748     		ldr	r0, .L85+44
+ 956 01b6 9B18     		adds	r3, r3, r2
+ 957              	.LVL68:
+ 958 01b8 2370     		strb	r3, [r4, #0]
+ 959 01ba FFF7FEFF 		bl	uart_transmit
+ 960              	.LVL69:
+ 961              	.LBE117:
+ 962              	.LBB118:
+ 963 01be F179     		ldrb	r1, [r6, #7]	@ zero_extendqisi2
+ 964              	.LVL70:
+ 965 01c0 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 966 01c2 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 967 01c4 CB18     		adds	r3, r1, r3
+ 968 01c6 DBB2     		uxtb	r3, r3
+ 969              	.LVL71:
+ 970 01c8 2B70     		strb	r3, [r5, #0]
+ 971 01ca 1248     		ldr	r0, .L85+44
+ 972 01cc 9B18     		adds	r3, r3, r2
+ 973              	.LVL72:
+ 974 01ce 2370     		strb	r3, [r4, #0]
+ 975 01d0 FFF7FEFF 		bl	uart_transmit
+ 976              	.LVL73:
+ 977              	.LBE118:
+ 978 01d4 2978     		ldrb	r1, [r5, #0]	@ zero_extendqisi2
+ 979 01d6 0F48     		ldr	r0, .L85+44
+ 980 01d8 FFF7FEFF 		bl	uart_transmit
+ 981 01dc 0D48     		ldr	r0, .L85+44
+ 982 01de 2178     		ldrb	r1, [r4, #0]	@ zero_extendqisi2
+ 983 01e0 FFF7FEFF 		bl	uart_transmit
+ 984 01e4 26E0     		b	.L57
+ 985              	.L86:
+ 986 01e6 00BF     		.align	2
+ 987              	.L85:
+ 988 01e8 00000000 		.word	.LANCHOR4
+ 989 01ec 00000000 		.word	radio_control
+ 990 01f0 00000000 		.word	.LANCHOR0
+ 991 01f4 00000000 		.word	time_since_last_ap
+ 992 01f8 00000000 		.word	ap_ok
+ 993 01fc 00000000 		.word	commands_failsafe
+ 994 0200 00000000 		.word	commands
+ 995 0204 00000000 		.word	.LANCHOR1
+ 996 0208 00000000 		.word	telemetry_mode_Fbw
+ 997 020c 00000000 		.word	.LANCHOR5
+ 998 0210 00000000 		.word	.LANCHOR6
+ 999 0214 00000000 		.word	uart2
+ 1000 0218 00000000 		.word	downlink_nb_bytes
+ 1001 021c 00000000 		.word	downlink_nb_msgs
+ 1002 0220 00000000 		.word	ck_a
+ 1003 0224 00000000 		.word	ck_b
+ 1004 0228 00000000 		.word	electrical
+ 1005              	.LVL74:
+ 1006              	.L58:
+ 1007 022c A04B     		ldr	r3, .L87
+ 1008 022e 1A78     		ldrb	r2, [r3, #0]	@ zero_extendqisi2
+ 1009 0230 0132     		adds	r2, r2, #1
+ 1010 0232 1A70     		strb	r2, [r3, #0]
+ 1011              	.L57:
+ 1012 0234 9F4B     		ldr	r3, .L87+4
+ 1013 0236 1B88     		ldrh	r3, [r3, #0]
+ 1014 0238 062B     		cmp	r3, #6
+ 1015 023a 55D1     		bne	.L59
+ 1016 023c 9E48     		ldr	r0, .L87+8
+ 1017 023e 0D21     		movs	r1, #13
+ 1018 0240 FFF7FEFF 		bl	uart_check_free_space
+ 1019 0244 0028     		cmp	r0, #0
+ 1020 0246 00F0B080 		beq	.L62
+ 1021 024a 9C4B     		ldr	r3, .L87+12
+ 1022              	.LBB119:
+ 1023 024c 9A48     		ldr	r0, .L87+8
+ 1024              	.LBE119:
+ 1025 024e 1A88     		ldrh	r2, [r3, #0]
+ 1026              	.LBB120:
+ 1027 0250 9921     		movs	r1, #153
+ 1028              	.LBE120:
+ 1029 0252 0D32     		adds	r2, r2, #13
+ 1030 0254 1A80     		strh	r2, [r3, #0]	@ movhi
+ 1031 0256 9A4B     		ldr	r3, .L87+16
+ 1032 0258 9A4D     		ldr	r5, .L87+20
+ 1033 025a 1A88     		ldrh	r2, [r3, #0]
+ 1034 025c 9A4C     		ldr	r4, .L87+24
+ 1035 025e 0132     		adds	r2, r2, #1
+ 1036 0260 1A80     		strh	r2, [r3, #0]	@ movhi
+ 1037              	.LBB121:
+ 1038 0262 FFF7FEFF 		bl	uart_transmit
+ 1039              	.LVL75:
+ 1040 0266 9448     		ldr	r0, .L87+8
+ 1041 0268 0D21     		movs	r1, #13
+ 1042 026a FFF7FEFF 		bl	uart_transmit
+ 1043              	.LBE121:
+ 1044 026e 0E23     		movs	r3, #14
+ 1045 0270 2B70     		strb	r3, [r5, #0]
+ 1046 0272 9148     		ldr	r0, .L87+8
+ 1047 0274 1B23     		movs	r3, #27
+ 1048 0276 0121     		movs	r1, #1
+ 1049 0278 2370     		strb	r3, [r4, #0]
+ 1050 027a FFF7FEFF 		bl	uart_transmit
+ 1051 027e 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 1052 0280 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1053 0282 6633     		adds	r3, r3, #102
+ 1054 0284 DBB2     		uxtb	r3, r3
+ 1055 0286 2B70     		strb	r3, [r5, #0]
+ 1056 0288 8B48     		ldr	r0, .L87+8
+ 1057 028a 9B18     		adds	r3, r3, r2
+ 1058 028c 6621     		movs	r1, #102
+ 1059 028e 2370     		strb	r3, [r4, #0]
+ 1060 0290 FFF7FEFF 		bl	uart_transmit
+ 1061              	.LBB122:
+ 1062 0294 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 1063 0296 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1064 0298 0333     		adds	r3, r3, #3
+ 1065 029a DBB2     		uxtb	r3, r3
+ 1066 029c 2B70     		strb	r3, [r5, #0]
+ 1067 029e 8648     		ldr	r0, .L87+8
+ 1068 02a0 9B18     		adds	r3, r3, r2
+ 1069 02a2 0321     		movs	r1, #3
+ 1070 02a4 2370     		strb	r3, [r4, #0]
+ 1071 02a6 FFF7FEFF 		bl	uart_transmit
+ 1072              	.LVL76:
+ 1073 02aa 884E     		ldr	r6, .L87+28
+ 1074 02ac 0027     		movs	r7, #0
+ 1075              	.LBB123:
+ 1076 02ae B046     		mov	r8, r6
+ 1077              	.LVL77:
+ 1078              	.L61:
+ 1079 02b0 18F81710 		ldrb	r1, [r8, r7, lsl #1]	@ zero_extendqisi2
+ 1080              	.LVL78:
+ 1081 02b4 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 1082 02b6 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1083 02b8 CB18     		adds	r3, r1, r3
+ 1084 02ba DBB2     		uxtb	r3, r3
+ 1085              	.LVL79:
+ 1086 02bc 2B70     		strb	r3, [r5, #0]
+ 1087 02be 7E48     		ldr	r0, .L87+8
+ 1088 02c0 9B18     		adds	r3, r3, r2
+ 1089              	.LVL80:
+ 1090 02c2 2370     		strb	r3, [r4, #0]
+ 1091 02c4 FFF7FEFF 		bl	uart_transmit
+ 1092              	.LVL81:
+ 1093              	.LBE123:
+ 1094              	.LBB124:
+ 1095 02c8 7178     		ldrb	r1, [r6, #1]	@ zero_extendqisi2
+ 1096              	.LVL82:
+ 1097 02ca 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 1098 02cc 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1099 02ce CB18     		adds	r3, r1, r3
+ 1100 02d0 DBB2     		uxtb	r3, r3
+ 1101              	.LVL83:
+ 1102 02d2 2B70     		strb	r3, [r5, #0]
+ 1103 02d4 7848     		ldr	r0, .L87+8
+ 1104 02d6 9B18     		adds	r3, r3, r2
+ 1105              	.LVL84:
+ 1106 02d8 0137     		adds	r7, r7, #1
+ 1107 02da 2370     		strb	r3, [r4, #0]
+ 1108 02dc 0236     		adds	r6, r6, #2
+ 1109 02de FFF7FEFF 		bl	uart_transmit
+ 1110              	.LVL85:
+ 1111              	.LBE124:
+ 1112 02e2 032F     		cmp	r7, #3
+ 1113 02e4 E4D1     		bne	.L61
+ 1114 02e6 55E0     		b	.L83
+ 1115              	.LVL86:
+ 1116              	.L59:
+ 1117              	.LBE122:
+ 1118 02e8 0C2B     		cmp	r3, #12
+ 1119 02ea 62D1     		bne	.L54
+ 1120 02ec 7248     		ldr	r0, .L87+8
+ 1121 02ee 0D21     		movs	r1, #13
+ 1122 02f0 FFF7FEFF 		bl	uart_check_free_space
+ 1123 02f4 0028     		cmp	r0, #0
+ 1124 02f6 58D0     		beq	.L62
+ 1125 02f8 704B     		ldr	r3, .L87+12
+ 1126              	.LBB125:
+ 1127 02fa 6F48     		ldr	r0, .L87+8
+ 1128              	.LBE125:
+ 1129 02fc 1A88     		ldrh	r2, [r3, #0]
+ 1130              	.LBB126:
+ 1131 02fe 9921     		movs	r1, #153
+ 1132              	.LBE126:
+ 1133 0300 0D32     		adds	r2, r2, #13
+ 1134 0302 1A80     		strh	r2, [r3, #0]	@ movhi
+ 1135 0304 6E4B     		ldr	r3, .L87+16
+ 1136 0306 6F4D     		ldr	r5, .L87+20
+ 1137 0308 1A88     		ldrh	r2, [r3, #0]
+ 1138 030a 6F4C     		ldr	r4, .L87+24
+ 1139 030c 0132     		adds	r2, r2, #1
+ 1140 030e 1A80     		strh	r2, [r3, #0]	@ movhi
+ 1141              	.LBB127:
+ 1142 0310 FFF7FEFF 		bl	uart_transmit
+ 1143              	.LVL87:
+ 1144 0314 6848     		ldr	r0, .L87+8
+ 1145 0316 0D21     		movs	r1, #13
+ 1146 0318 FFF7FEFF 		bl	uart_transmit
+ 1147              	.LBE127:
+ 1148 031c 0E23     		movs	r3, #14
+ 1149 031e 2B70     		strb	r3, [r5, #0]
+ 1150 0320 6548     		ldr	r0, .L87+8
+ 1151 0322 1B23     		movs	r3, #27
+ 1152 0324 0121     		movs	r1, #1
+ 1153 0326 2370     		strb	r3, [r4, #0]
+ 1154 0328 FFF7FEFF 		bl	uart_transmit
+ 1155 032c 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 1156 032e 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1157 0330 6933     		adds	r3, r3, #105
+ 1158 0332 DBB2     		uxtb	r3, r3
+ 1159 0334 2B70     		strb	r3, [r5, #0]
+ 1160 0336 6048     		ldr	r0, .L87+8
+ 1161 0338 9B18     		adds	r3, r3, r2
+ 1162 033a 6921     		movs	r1, #105
+ 1163 033c 2370     		strb	r3, [r4, #0]
+ 1164 033e FFF7FEFF 		bl	uart_transmit
+ 1165              	.LBB128:
+ 1166 0342 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 1167 0344 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1168 0346 0333     		adds	r3, r3, #3
+ 1169 0348 DBB2     		uxtb	r3, r3
+ 1170 034a 2B70     		strb	r3, [r5, #0]
+ 1171 034c 5A48     		ldr	r0, .L87+8
+ 1172 034e 9B18     		adds	r3, r3, r2
+ 1173 0350 0321     		movs	r1, #3
+ 1174 0352 2370     		strb	r3, [r4, #0]
+ 1175 0354 FFF7FEFF 		bl	uart_transmit
+ 1176              	.LVL88:
+ 1177 0358 5D4E     		ldr	r6, .L87+32
+ 1178 035a 0027     		movs	r7, #0
+ 1179              	.LBB129:
+ 1180 035c B046     		mov	r8, r6
+ 1181              	.LVL89:
+ 1182              	.L63:
+ 1183 035e 18F81710 		ldrb	r1, [r8, r7, lsl #1]	@ zero_extendqisi2
+ 1184              	.LVL90:
+ 1185 0362 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 1186 0364 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1187 0366 CB18     		adds	r3, r1, r3
+ 1188 0368 DBB2     		uxtb	r3, r3
+ 1189              	.LVL91:
+ 1190 036a 2B70     		strb	r3, [r5, #0]
+ 1191 036c 5248     		ldr	r0, .L87+8
+ 1192 036e 9B18     		adds	r3, r3, r2
+ 1193              	.LVL92:
+ 1194 0370 2370     		strb	r3, [r4, #0]
+ 1195 0372 FFF7FEFF 		bl	uart_transmit
+ 1196              	.LVL93:
+ 1197              	.LBE129:
+ 1198              	.LBB130:
+ 1199 0376 7178     		ldrb	r1, [r6, #1]	@ zero_extendqisi2
+ 1200              	.LVL94:
+ 1201 0378 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 1202 037a 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1203 037c CB18     		adds	r3, r1, r3
+ 1204 037e DBB2     		uxtb	r3, r3
+ 1205              	.LVL95:
+ 1206 0380 2B70     		strb	r3, [r5, #0]
+ 1207 0382 4D48     		ldr	r0, .L87+8
+ 1208 0384 9B18     		adds	r3, r3, r2
+ 1209              	.LVL96:
+ 1210 0386 0137     		adds	r7, r7, #1
+ 1211 0388 2370     		strb	r3, [r4, #0]
+ 1212 038a 0236     		adds	r6, r6, #2
+ 1213 038c FFF7FEFF 		bl	uart_transmit
+ 1214              	.LVL97:
+ 1215              	.LBE130:
+ 1216 0390 032F     		cmp	r7, #3
+ 1217 0392 E4D1     		bne	.L63
+ 1218              	.LVL98:
+ 1219              	.L83:
+ 1220              	.LBE128:
+ 1221 0394 4B4B     		ldr	r3, .L87+20
+ 1222 0396 4848     		ldr	r0, .L87+8
+ 1223 0398 1978     		ldrb	r1, [r3, #0]	@ zero_extendqisi2
+ 1224 039a FFF7FEFF 		bl	uart_transmit
+ 1225 039e 4A4B     		ldr	r3, .L87+24
+ 1226 03a0 4548     		ldr	r0, .L87+8
+ 1227 03a2 1978     		ldrb	r1, [r3, #0]	@ zero_extendqisi2
+ 1228 03a4 FFF7FEFF 		bl	uart_transmit
+ 1229 03a8 03E0     		b	.L54
+ 1230              	.L62:
+ 1231 03aa 414B     		ldr	r3, .L87
+ 1232 03ac 1A78     		ldrb	r2, [r3, #0]	@ zero_extendqisi2
+ 1233 03ae 0132     		adds	r2, r2, #1
+ 1234 03b0 1A70     		strb	r2, [r3, #0]
+ 1235              	.L54:
+ 1236              	.LBE104:
+ 1237 03b2 484B     		ldr	r3, .L87+36
+ 1238 03b4 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1239 03b6 012B     		cmp	r3, #1
+ 1240 03b8 40F01282 		bne	.L45
+ 1241              	.LBB131:
+ 1242 03bc 464B     		ldr	r3, .L87+40
+ 1243 03be 1A78     		ldrb	r2, [r3, #0]	@ zero_extendqisi2
+ 1244 03c0 0132     		adds	r2, r2, #1
+ 1245 03c2 D2B2     		uxtb	r2, r2
+ 1246 03c4 1D2A     		cmp	r2, #29
+ 1247 03c6 1A70     		strb	r2, [r3, #0]
+ 1248 03c8 01D9     		bls	.L65
+ 1249 03ca 0022     		movs	r2, #0
+ 1250 03cc 1A70     		strb	r2, [r3, #0]
+ 1251              	.L65:
+ 1252 03ce 434B     		ldr	r3, .L87+44
+ 1253 03d0 1A78     		ldrb	r2, [r3, #0]	@ zero_extendqisi2
+ 1254 03d2 0132     		adds	r2, r2, #1
+ 1255 03d4 D2B2     		uxtb	r2, r2
+ 1256 03d6 3B2A     		cmp	r2, #59
+ 1257 03d8 1A70     		strb	r2, [r3, #0]
+ 1258 03da 01D9     		bls	.L66
+ 1259 03dc 0022     		movs	r2, #0
+ 1260 03de 1A70     		strb	r2, [r3, #0]
+ 1261              	.L66:
+ 1262 03e0 3F4B     		ldr	r3, .L87+48
+ 1263 03e2 1A88     		ldrh	r2, [r3, #0]
+ 1264 03e4 0132     		adds	r2, r2, #1
+ 1265 03e6 92B2     		uxth	r2, r2
+ 1266 03e8 B2F5967F 		cmp	r2, #300
+ 1267 03ec 1A80     		strh	r2, [r3, #0]	@ movhi
+ 1268 03ee 01D3     		bcc	.L67
+ 1269 03f0 0022     		movs	r2, #0
+ 1270 03f2 1A80     		strh	r2, [r3, #0]	@ movhi
+ 1271              	.L67:
+ 1272 03f4 384B     		ldr	r3, .L87+40
+ 1273 03f6 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1274 03f8 002B     		cmp	r3, #0
+ 1275 03fa 00F0DA80 		beq	.L68
+ 1276 03fe 062B     		cmp	r3, #6
+ 1277 0400 72D1     		bne	.L69
+ 1278 0402 2D48     		ldr	r0, .L87+8
+ 1279 0404 1F21     		movs	r1, #31
+ 1280 0406 FFF7FEFF 		bl	uart_check_free_space
+ 1281 040a 0028     		cmp	r0, #0
+ 1282 040c 00F0CD80 		beq	.L72
+ 1283 0410 2A4B     		ldr	r3, .L87+12
+ 1284              	.LBB132:
+ 1285 0412 2948     		ldr	r0, .L87+8
+ 1286              	.LBE132:
+ 1287 0414 1A88     		ldrh	r2, [r3, #0]
+ 1288              	.LBB133:
+ 1289 0416 9921     		movs	r1, #153
+ 1290              	.LBE133:
+ 1291 0418 1F32     		adds	r2, r2, #31
+ 1292 041a 1A80     		strh	r2, [r3, #0]	@ movhi
+ 1293 041c 284B     		ldr	r3, .L87+16
+ 1294 041e 294D     		ldr	r5, .L87+20
+ 1295 0420 1A88     		ldrh	r2, [r3, #0]
+ 1296 0422 294C     		ldr	r4, .L87+24
+ 1297 0424 0132     		adds	r2, r2, #1
+ 1298 0426 1A80     		strh	r2, [r3, #0]	@ movhi
+ 1299              	.LBB134:
+ 1300 0428 FFF7FEFF 		bl	uart_transmit
+ 1301              	.LVL99:
+ 1302 042c 2248     		ldr	r0, .L87+8
+ 1303 042e 1F21     		movs	r1, #31
+ 1304 0430 FFF7FEFF 		bl	uart_transmit
+ 1305              	.LBE134:
+ 1306 0434 2023     		movs	r3, #32
+ 1307 0436 2B70     		strb	r3, [r5, #0]
+ 1308 0438 1F48     		ldr	r0, .L87+8
+ 1309 043a 3F23     		movs	r3, #63
+ 1310 043c 0121     		movs	r1, #1
+ 1311 043e 2370     		strb	r3, [r4, #0]
+ 1312 0440 FFF7FEFF 		bl	uart_transmit
+ 1313 0444 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 1314 0446 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1315 0448 6533     		adds	r3, r3, #101
+ 1316 044a DBB2     		uxtb	r3, r3
+ 1317              	.LVL100:
+ 1318 044c 2B70     		strb	r3, [r5, #0]
+ 1319 044e 1A48     		ldr	r0, .L87+8
+ 1320 0450 9B18     		adds	r3, r3, r2
+ 1321              	.LVL101:
+ 1322 0452 6521     		movs	r1, #101
+ 1323 0454 2370     		strb	r3, [r4, #0]
+ 1324 0456 FFF7FEFF 		bl	uart_transmit
+ 1325              	.LBB135:
+ 1326 045a 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 1327 045c 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1328 045e 0C33     		adds	r3, r3, #12
+ 1329 0460 DBB2     		uxtb	r3, r3
+ 1330              	.LVL102:
+ 1331 0462 2B70     		strb	r3, [r5, #0]
+ 1332 0464 1448     		ldr	r0, .L87+8
+ 1333 0466 9B18     		adds	r3, r3, r2
+ 1334              	.LVL103:
+ 1335 0468 0C21     		movs	r1, #12
+ 1336 046a 2370     		strb	r3, [r4, #0]
+ 1337 046c FFF7FEFF 		bl	uart_transmit
+ 1338              	.LVL104:
+ 1339 0470 1C4E     		ldr	r6, .L87+52
+ 1340 0472 0027     		movs	r7, #0
+ 1341              	.LBB136:
+ 1342 0474 06F10608 		add	r8, r6, #6
+ 1343              	.LVL105:
+ 1344              	.L71:
+ 1345 0478 18F81710 		ldrb	r1, [r8, r7, lsl #1]	@ zero_extendqisi2
+ 1346              	.LVL106:
+ 1347 047c 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 1348 047e 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1349 0480 CB18     		adds	r3, r1, r3
+ 1350 0482 DBB2     		uxtb	r3, r3
+ 1351              	.LVL107:
+ 1352 0484 2B70     		strb	r3, [r5, #0]
+ 1353 0486 0C48     		ldr	r0, .L87+8
+ 1354 0488 9B18     		adds	r3, r3, r2
+ 1355              	.LVL108:
+ 1356 048a 2370     		strb	r3, [r4, #0]
+ 1357 048c FFF7FEFF 		bl	uart_transmit
+ 1358              	.LVL109:
+ 1359              	.LBE136:
+ 1360              	.LBB137:
+ 1361 0490 F179     		ldrb	r1, [r6, #7]	@ zero_extendqisi2
+ 1362              	.LVL110:
+ 1363 0492 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 1364 0494 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1365 0496 CB18     		adds	r3, r1, r3
+ 1366 0498 DBB2     		uxtb	r3, r3
+ 1367              	.LVL111:
+ 1368 049a 2B70     		strb	r3, [r5, #0]
+ 1369 049c 0648     		ldr	r0, .L87+8
+ 1370 049e 9B18     		adds	r3, r3, r2
+ 1371              	.LVL112:
+ 1372 04a0 0137     		adds	r7, r7, #1
+ 1373 04a2 2370     		strb	r3, [r4, #0]
+ 1374 04a4 0236     		adds	r6, r6, #2
+ 1375 04a6 FFF7FEFF 		bl	uart_transmit
+ 1376              	.LVL113:
+ 1377              	.LBE137:
+ 1378 04aa 0C2F     		cmp	r7, #12
+ 1379 04ac E4D1     		bne	.L71
+ 1380 04ae 71E0     		b	.L84
+ 1381              	.L88:
+ 1382              		.align	2
+ 1383              	.L87:
+ 1384 04b0 00000000 		.word	downlink_nb_ovrn
+ 1385 04b4 00000000 		.word	.LANCHOR6
+ 1386 04b8 00000000 		.word	uart2
+ 1387 04bc 00000000 		.word	downlink_nb_bytes
+ 1388 04c0 00000000 		.word	downlink_nb_msgs
+ 1389 04c4 00000000 		.word	ck_a
+ 1390 04c8 00000000 		.word	ck_b
+ 1391 04cc 00000000 		.word	commands
+ 1392 04d0 00000000 		.word	actuators
+ 1393 04d4 00000000 		.word	telemetry_mode_Fbw
+ 1394 04d8 00000000 		.word	.LANCHOR7
+ 1395 04dc 00000000 		.word	.LANCHOR8
+ 1396 04e0 00000000 		.word	.LANCHOR9
+ 1397 04e4 00000000 		.word	radio_control
+ 1398              	.LVL114:
+ 1399              	.L69:
+ 1400              	.LBE135:
+ 1401 04e8 0C2B     		cmp	r3, #12
+ 1402 04ea 62D1     		bne	.L68
+ 1403 04ec 7B48     		ldr	r0, .L89
+ 1404 04ee 0D21     		movs	r1, #13
+ 1405 04f0 FFF7FEFF 		bl	uart_check_free_space
+ 1406 04f4 0028     		cmp	r0, #0
+ 1407 04f6 58D0     		beq	.L72
+ 1408 04f8 794B     		ldr	r3, .L89+4
+ 1409              	.LBB138:
+ 1410 04fa 7848     		ldr	r0, .L89
+ 1411              	.LBE138:
+ 1412 04fc 1A88     		ldrh	r2, [r3, #0]
+ 1413              	.LBB139:
+ 1414 04fe 9921     		movs	r1, #153
+ 1415              	.LBE139:
+ 1416 0500 0D32     		adds	r2, r2, #13
+ 1417 0502 1A80     		strh	r2, [r3, #0]	@ movhi
+ 1418 0504 774B     		ldr	r3, .L89+8
+ 1419 0506 784D     		ldr	r5, .L89+12
+ 1420 0508 1A88     		ldrh	r2, [r3, #0]
+ 1421 050a 784C     		ldr	r4, .L89+16
+ 1422 050c 0132     		adds	r2, r2, #1
+ 1423 050e 1A80     		strh	r2, [r3, #0]	@ movhi
+ 1424              	.LBB140:
+ 1425 0510 FFF7FEFF 		bl	uart_transmit
+ 1426              	.LVL115:
+ 1427 0514 7148     		ldr	r0, .L89
+ 1428 0516 0D21     		movs	r1, #13
+ 1429 0518 FFF7FEFF 		bl	uart_transmit
+ 1430              	.LBE140:
+ 1431 051c 0E23     		movs	r3, #14
+ 1432 051e 2B70     		strb	r3, [r5, #0]
+ 1433 0520 6E48     		ldr	r0, .L89
+ 1434 0522 1B23     		movs	r3, #27
+ 1435 0524 0121     		movs	r1, #1
+ 1436 0526 2370     		strb	r3, [r4, #0]
+ 1437 0528 FFF7FEFF 		bl	uart_transmit
+ 1438 052c 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 1439 052e 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1440 0530 6633     		adds	r3, r3, #102
+ 1441 0532 DBB2     		uxtb	r3, r3
+ 1442 0534 2B70     		strb	r3, [r5, #0]
+ 1443 0536 6948     		ldr	r0, .L89
+ 1444 0538 9B18     		adds	r3, r3, r2
+ 1445 053a 6621     		movs	r1, #102
+ 1446 053c 2370     		strb	r3, [r4, #0]
+ 1447 053e FFF7FEFF 		bl	uart_transmit
+ 1448              	.LBB141:
+ 1449 0542 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 1450 0544 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1451 0546 0333     		adds	r3, r3, #3
+ 1452 0548 DBB2     		uxtb	r3, r3
+ 1453 054a 2B70     		strb	r3, [r5, #0]
+ 1454 054c 6348     		ldr	r0, .L89
+ 1455 054e 9B18     		adds	r3, r3, r2
+ 1456 0550 0321     		movs	r1, #3
+ 1457 0552 2370     		strb	r3, [r4, #0]
+ 1458 0554 FFF7FEFF 		bl	uart_transmit
+ 1459              	.LVL116:
+ 1460 0558 654E     		ldr	r6, .L89+20
+ 1461 055a 0027     		movs	r7, #0
+ 1462              	.LBB142:
+ 1463 055c B046     		mov	r8, r6
+ 1464              	.LVL117:
+ 1465              	.L73:
+ 1466 055e 18F81710 		ldrb	r1, [r8, r7, lsl #1]	@ zero_extendqisi2
+ 1467              	.LVL118:
+ 1468 0562 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 1469 0564 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1470 0566 CB18     		adds	r3, r1, r3
+ 1471 0568 DBB2     		uxtb	r3, r3
+ 1472              	.LVL119:
+ 1473 056a 2B70     		strb	r3, [r5, #0]
+ 1474 056c 5B48     		ldr	r0, .L89
+ 1475 056e 9B18     		adds	r3, r3, r2
+ 1476              	.LVL120:
+ 1477 0570 2370     		strb	r3, [r4, #0]
+ 1478 0572 FFF7FEFF 		bl	uart_transmit
+ 1479              	.LVL121:
+ 1480              	.LBE142:
+ 1481              	.LBB143:
+ 1482 0576 7178     		ldrb	r1, [r6, #1]	@ zero_extendqisi2
+ 1483              	.LVL122:
+ 1484 0578 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 1485 057a 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1486 057c CB18     		adds	r3, r1, r3
+ 1487 057e DBB2     		uxtb	r3, r3
+ 1488              	.LVL123:
+ 1489 0580 2B70     		strb	r3, [r5, #0]
+ 1490 0582 5648     		ldr	r0, .L89
+ 1491 0584 9B18     		adds	r3, r3, r2
+ 1492              	.LVL124:
+ 1493 0586 0137     		adds	r7, r7, #1
+ 1494 0588 2370     		strb	r3, [r4, #0]
+ 1495 058a 0236     		adds	r6, r6, #2
+ 1496 058c FFF7FEFF 		bl	uart_transmit
+ 1497              	.LVL125:
+ 1498              	.LBE143:
+ 1499 0590 032F     		cmp	r7, #3
+ 1500 0592 E4D1     		bne	.L73
+ 1501              	.LVL126:
+ 1502              	.L84:
+ 1503              	.LBE141:
+ 1504 0594 544B     		ldr	r3, .L89+12
+ 1505 0596 5148     		ldr	r0, .L89
+ 1506 0598 1978     		ldrb	r1, [r3, #0]	@ zero_extendqisi2
+ 1507 059a FFF7FEFF 		bl	uart_transmit
+ 1508 059e 534B     		ldr	r3, .L89+16
+ 1509 05a0 4E48     		ldr	r0, .L89
+ 1510 05a2 1978     		ldrb	r1, [r3, #0]	@ zero_extendqisi2
+ 1511 05a4 FFF7FEFF 		bl	uart_transmit
+ 1512 05a8 03E0     		b	.L68
+ 1513              	.L72:
+ 1514 05aa 524B     		ldr	r3, .L89+24
+ 1515 05ac 1A78     		ldrb	r2, [r3, #0]	@ zero_extendqisi2
+ 1516 05ae 0132     		adds	r2, r2, #1
+ 1517 05b0 1A70     		strb	r2, [r3, #0]
+ 1518              	.L68:
+ 1519 05b2 514B     		ldr	r3, .L89+28
+ 1520 05b4 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1521 05b6 122B     		cmp	r3, #18
+ 1522 05b8 40F0AA80 		bne	.L74
+ 1523 05bc 4748     		ldr	r0, .L89
+ 1524 05be 0E21     		movs	r1, #14
+ 1525 05c0 FFF7FEFF 		bl	uart_check_free_space
+ 1526 05c4 0028     		cmp	r0, #0
+ 1527 05c6 00F09F80 		beq	.L75
+ 1528 05ca 454B     		ldr	r3, .L89+4
+ 1529              	.LBB144:
+ 1530 05cc 9921     		movs	r1, #153
+ 1531              	.LBE144:
+ 1532 05ce 1A88     		ldrh	r2, [r3, #0]
+ 1533              	.LBB145:
+ 1534 05d0 4248     		ldr	r0, .L89
+ 1535              	.LBE145:
+ 1536 05d2 0E32     		adds	r2, r2, #14
+ 1537 05d4 1A80     		strh	r2, [r3, #0]	@ movhi
+ 1538 05d6 434B     		ldr	r3, .L89+8
+ 1539 05d8 434D     		ldr	r5, .L89+12
+ 1540 05da 1A88     		ldrh	r2, [r3, #0]
+ 1541 05dc 434C     		ldr	r4, .L89+16
+ 1542 05de 0132     		adds	r2, r2, #1
+ 1543 05e0 1A80     		strh	r2, [r3, #0]	@ movhi
+ 1544              	.LBB146:
+ 1545 05e2 FFF7FEFF 		bl	uart_transmit
+ 1546              	.LVL127:
+ 1547 05e6 0E21     		movs	r1, #14
+ 1548 05e8 3C48     		ldr	r0, .L89
+ 1549 05ea FFF7FEFF 		bl	uart_transmit
+ 1550              	.LBE146:
+ 1551 05ee 0F23     		movs	r3, #15
+ 1552 05f0 2B70     		strb	r3, [r5, #0]
+ 1553 05f2 0121     		movs	r1, #1
+ 1554 05f4 1D23     		movs	r3, #29
+ 1555 05f6 3948     		ldr	r0, .L89
+ 1556 05f8 2370     		strb	r3, [r4, #0]
+ 1557 05fa FFF7FEFF 		bl	uart_transmit
+ 1558 05fe 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 1559 0600 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1560 0602 6733     		adds	r3, r3, #103
+ 1561              	.LBB147:
+ 1562 0604 3D4E     		ldr	r6, .L89+32
+ 1563              	.LBE147:
+ 1564 0606 DBB2     		uxtb	r3, r3
+ 1565 0608 2B70     		strb	r3, [r5, #0]
+ 1566 060a 6721     		movs	r1, #103
+ 1567 060c 9B18     		adds	r3, r3, r2
+ 1568 060e 3348     		ldr	r0, .L89
+ 1569 0610 2370     		strb	r3, [r4, #0]
+ 1570 0612 FFF7FEFF 		bl	uart_transmit
+ 1571              	.LBB148:
+ 1572 0616 3178     		ldrb	r1, [r6, #0]	@ zero_extendqisi2
+ 1573              	.LVL128:
+ 1574 0618 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 1575 061a 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1576 061c CB18     		adds	r3, r1, r3
+ 1577 061e DBB2     		uxtb	r3, r3
+ 1578              	.LVL129:
+ 1579 0620 2B70     		strb	r3, [r5, #0]
+ 1580 0622 2E48     		ldr	r0, .L89
+ 1581 0624 9B18     		adds	r3, r3, r2
+ 1582              	.LVL130:
+ 1583 0626 2370     		strb	r3, [r4, #0]
+ 1584 0628 FFF7FEFF 		bl	uart_transmit
+ 1585              	.LVL131:
+ 1586              	.LBE148:
+ 1587              	.LBB149:
+ 1588 062c F178     		ldrb	r1, [r6, #3]	@ zero_extendqisi2
+ 1589              	.LVL132:
+ 1590 062e 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 1591 0630 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1592 0632 CB18     		adds	r3, r1, r3
+ 1593 0634 DBB2     		uxtb	r3, r3
+ 1594              	.LVL133:
+ 1595 0636 2B70     		strb	r3, [r5, #0]
+ 1596 0638 2848     		ldr	r0, .L89
+ 1597 063a 9B18     		adds	r3, r3, r2
+ 1598              	.LVL134:
+ 1599 063c 2370     		strb	r3, [r4, #0]
+ 1600 063e FFF7FEFF 		bl	uart_transmit
+ 1601              	.LVL135:
+ 1602              	.LBE149:
+ 1603              	.LBB150:
+ 1604 0642 2F4B     		ldr	r3, .L89+36
+ 1605 0644 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1606 0646 1978     		ldrb	r1, [r3, #0]	@ zero_extendqisi2
+ 1607              	.LVL136:
+ 1608 0648 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 1609              	.LBE150:
+ 1610              	.LBB151:
+ 1611 064a 2E4E     		ldr	r6, .L89+40
+ 1612              	.LBE151:
+ 1613              	.LBB152:
+ 1614 064c CB18     		adds	r3, r1, r3
+ 1615 064e DBB2     		uxtb	r3, r3
+ 1616              	.LVL137:
+ 1617 0650 2B70     		strb	r3, [r5, #0]
+ 1618 0652 2248     		ldr	r0, .L89
+ 1619 0654 9B18     		adds	r3, r3, r2
+ 1620              	.LVL138:
+ 1621 0656 2370     		strb	r3, [r4, #0]
+ 1622 0658 FFF7FEFF 		bl	uart_transmit
+ 1623              	.LVL139:
+ 1624              	.LBE152:
+ 1625              	.LBB153:
+ 1626 065c 3178     		ldrb	r1, [r6, #0]	@ zero_extendqisi2
+ 1627              	.LVL140:
+ 1628 065e 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 1629 0660 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1630 0662 CB18     		adds	r3, r1, r3
+ 1631 0664 DBB2     		uxtb	r3, r3
+ 1632              	.LVL141:
+ 1633 0666 2B70     		strb	r3, [r5, #0]
+ 1634 0668 1C48     		ldr	r0, .L89
+ 1635 066a 9B18     		adds	r3, r3, r2
+ 1636              	.LVL142:
+ 1637 066c 2370     		strb	r3, [r4, #0]
+ 1638 066e FFF7FEFF 		bl	uart_transmit
+ 1639              	.LVL143:
+ 1640              	.LBE153:
+ 1641              	.LBB154:
+ 1642 0672 3179     		ldrb	r1, [r6, #4]	@ zero_extendqisi2
+ 1643              	.LVL144:
+ 1644 0674 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 1645 0676 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1646 0678 CB18     		adds	r3, r1, r3
+ 1647 067a DBB2     		uxtb	r3, r3
+ 1648              	.LVL145:
+ 1649 067c 2B70     		strb	r3, [r5, #0]
+ 1650 067e 1748     		ldr	r0, .L89
+ 1651 0680 9B18     		adds	r3, r3, r2
+ 1652              	.LVL146:
+ 1653 0682 2370     		strb	r3, [r4, #0]
+ 1654 0684 FFF7FEFF 		bl	uart_transmit
+ 1655              	.LVL147:
+ 1656              	.LBE154:
+ 1657              	.LBB155:
+ 1658 0688 7179     		ldrb	r1, [r6, #5]	@ zero_extendqisi2
+ 1659              	.LVL148:
+ 1660 068a 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 1661 068c 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1662 068e CB18     		adds	r3, r1, r3
+ 1663 0690 DBB2     		uxtb	r3, r3
+ 1664              	.LVL149:
+ 1665 0692 2B70     		strb	r3, [r5, #0]
+ 1666 0694 1148     		ldr	r0, .L89
+ 1667 0696 9B18     		adds	r3, r3, r2
+ 1668              	.LVL150:
+ 1669 0698 2370     		strb	r3, [r4, #0]
+ 1670 069a FFF7FEFF 		bl	uart_transmit
+ 1671              	.LVL151:
+ 1672              	.LBE155:
+ 1673              	.LBB156:
+ 1674 069e B179     		ldrb	r1, [r6, #6]	@ zero_extendqisi2
+ 1675              	.LVL152:
+ 1676 06a0 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 1677 06a2 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1678 06a4 CB18     		adds	r3, r1, r3
+ 1679 06a6 DBB2     		uxtb	r3, r3
+ 1680              	.LVL153:
+ 1681 06a8 2B70     		strb	r3, [r5, #0]
+ 1682 06aa 0C48     		ldr	r0, .L89
+ 1683 06ac 9B18     		adds	r3, r3, r2
+ 1684              	.LVL154:
+ 1685 06ae 2370     		strb	r3, [r4, #0]
+ 1686 06b0 FFF7FEFF 		bl	uart_transmit
+ 1687              	.LVL155:
+ 1688              	.LBE156:
+ 1689              	.LBB157:
+ 1690 06b4 F179     		ldrb	r1, [r6, #7]	@ zero_extendqisi2
+ 1691              	.LVL156:
+ 1692 06b6 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 1693 06b8 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1694 06ba CB18     		adds	r3, r1, r3
+ 1695 06bc DBB2     		uxtb	r3, r3
+ 1696              	.LVL157:
+ 1697 06be 2B70     		strb	r3, [r5, #0]
+ 1698 06c0 0648     		ldr	r0, .L89
+ 1699 06c2 9B18     		adds	r3, r3, r2
+ 1700              	.LVL158:
+ 1701 06c4 2370     		strb	r3, [r4, #0]
+ 1702 06c6 FFF7FEFF 		bl	uart_transmit
+ 1703              	.LVL159:
+ 1704              	.LBE157:
+ 1705 06ca 2978     		ldrb	r1, [r5, #0]	@ zero_extendqisi2
+ 1706 06cc 0348     		ldr	r0, .L89
+ 1707 06ce FFF7FEFF 		bl	uart_transmit
+ 1708 06d2 0248     		ldr	r0, .L89
+ 1709 06d4 2178     		ldrb	r1, [r4, #0]	@ zero_extendqisi2
+ 1710 06d6 FFF7FEFF 		bl	uart_transmit
+ 1711 06da 19E0     		b	.L74
+ 1712              	.L90:
+ 1713              		.align	2
+ 1714              	.L89:
+ 1715 06dc 00000000 		.word	uart2
+ 1716 06e0 00000000 		.word	downlink_nb_bytes
+ 1717 06e4 00000000 		.word	downlink_nb_msgs
+ 1718 06e8 00000000 		.word	ck_a
+ 1719 06ec 00000000 		.word	ck_b
+ 1720 06f0 00000000 		.word	commands
+ 1721 06f4 00000000 		.word	downlink_nb_ovrn
+ 1722 06f8 00000000 		.word	.LANCHOR8
+ 1723 06fc 00000000 		.word	radio_control
+ 1724 0700 00000000 		.word	.LANCHOR0
+ 1725 0704 00000000 		.word	electrical
+ 1726              	.LVL160:
+ 1727              	.L75:
+ 1728 0708 364B     		ldr	r3, .L91
+ 1729 070a 1A78     		ldrb	r2, [r3, #0]	@ zero_extendqisi2
+ 1730 070c 0132     		adds	r2, r2, #1
+ 1731 070e 1A70     		strb	r2, [r3, #0]
+ 1732              	.L74:
+ 1733 0710 354B     		ldr	r3, .L91+4
+ 1734 0712 1B88     		ldrh	r3, [r3, #0]
+ 1735 0714 182B     		cmp	r3, #24
+ 1736 0716 63D1     		bne	.L45
+ 1737 0718 3448     		ldr	r0, .L91+8
+ 1738 071a 0D21     		movs	r1, #13
+ 1739 071c FFF7FEFF 		bl	uart_check_free_space
+ 1740 0720 0028     		cmp	r0, #0
+ 1741 0722 59D0     		beq	.L76
+ 1742 0724 324B     		ldr	r3, .L91+12
+ 1743              	.LBB158:
+ 1744 0726 3148     		ldr	r0, .L91+8
+ 1745              	.LBE158:
+ 1746 0728 1A88     		ldrh	r2, [r3, #0]
+ 1747              	.LBB159:
+ 1748 072a 9921     		movs	r1, #153
+ 1749              	.LBE159:
+ 1750 072c 0D32     		adds	r2, r2, #13
+ 1751 072e 1A80     		strh	r2, [r3, #0]	@ movhi
+ 1752 0730 304B     		ldr	r3, .L91+16
+ 1753 0732 314D     		ldr	r5, .L91+20
+ 1754 0734 1A88     		ldrh	r2, [r3, #0]
+ 1755 0736 314C     		ldr	r4, .L91+24
+ 1756 0738 0132     		adds	r2, r2, #1
+ 1757 073a 1A80     		strh	r2, [r3, #0]	@ movhi
+ 1758              	.LBB160:
+ 1759 073c FFF7FEFF 		bl	uart_transmit
+ 1760              	.LVL161:
+ 1761 0740 2A48     		ldr	r0, .L91+8
+ 1762 0742 0D21     		movs	r1, #13
+ 1763 0744 FFF7FEFF 		bl	uart_transmit
+ 1764              	.LBE160:
+ 1765 0748 0E23     		movs	r3, #14
+ 1766 074a 2B70     		strb	r3, [r5, #0]
+ 1767 074c 2748     		ldr	r0, .L91+8
+ 1768 074e 1B23     		movs	r3, #27
+ 1769 0750 0121     		movs	r1, #1
+ 1770 0752 2370     		strb	r3, [r4, #0]
+ 1771 0754 FFF7FEFF 		bl	uart_transmit
+ 1772 0758 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 1773 075a 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1774 075c 6933     		adds	r3, r3, #105
+ 1775 075e DBB2     		uxtb	r3, r3
+ 1776 0760 2B70     		strb	r3, [r5, #0]
+ 1777 0762 2248     		ldr	r0, .L91+8
+ 1778 0764 9B18     		adds	r3, r3, r2
+ 1779 0766 6921     		movs	r1, #105
+ 1780 0768 2370     		strb	r3, [r4, #0]
+ 1781 076a FFF7FEFF 		bl	uart_transmit
+ 1782              	.LBB161:
+ 1783 076e 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 1784 0770 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1785 0772 0333     		adds	r3, r3, #3
+ 1786 0774 DBB2     		uxtb	r3, r3
+ 1787 0776 2B70     		strb	r3, [r5, #0]
+ 1788 0778 1C48     		ldr	r0, .L91+8
+ 1789 077a 9B18     		adds	r3, r3, r2
+ 1790 077c 0321     		movs	r1, #3
+ 1791 077e 2370     		strb	r3, [r4, #0]
+ 1792 0780 FFF7FEFF 		bl	uart_transmit
+ 1793              	.LVL162:
+ 1794 0784 1E4E     		ldr	r6, .L91+28
+ 1795 0786 0027     		movs	r7, #0
+ 1796              	.LBB162:
+ 1797 0788 B046     		mov	r8, r6
+ 1798              	.LVL163:
+ 1799              	.L77:
+ 1800 078a 18F81710 		ldrb	r1, [r8, r7, lsl #1]	@ zero_extendqisi2
+ 1801              	.LVL164:
+ 1802 078e 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 1803 0790 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1804 0792 CB18     		adds	r3, r1, r3
+ 1805 0794 DBB2     		uxtb	r3, r3
+ 1806              	.LVL165:
+ 1807 0796 2B70     		strb	r3, [r5, #0]
+ 1808 0798 1448     		ldr	r0, .L91+8
+ 1809 079a 9B18     		adds	r3, r3, r2
+ 1810              	.LVL166:
+ 1811 079c 2370     		strb	r3, [r4, #0]
+ 1812 079e FFF7FEFF 		bl	uart_transmit
+ 1813              	.LVL167:
+ 1814              	.LBE162:
+ 1815              	.LBB163:
+ 1816 07a2 7178     		ldrb	r1, [r6, #1]	@ zero_extendqisi2
+ 1817              	.LVL168:
+ 1818 07a4 2B78     		ldrb	r3, [r5, #0]	@ zero_extendqisi2
+ 1819 07a6 2278     		ldrb	r2, [r4, #0]	@ zero_extendqisi2
+ 1820 07a8 CB18     		adds	r3, r1, r3
+ 1821 07aa DBB2     		uxtb	r3, r3
+ 1822              	.LVL169:
+ 1823 07ac 2B70     		strb	r3, [r5, #0]
+ 1824 07ae 0F48     		ldr	r0, .L91+8
+ 1825 07b0 9B18     		adds	r3, r3, r2
+ 1826              	.LVL170:
+ 1827 07b2 0137     		adds	r7, r7, #1
+ 1828 07b4 2370     		strb	r3, [r4, #0]
+ 1829 07b6 0236     		adds	r6, r6, #2
+ 1830 07b8 FFF7FEFF 		bl	uart_transmit
+ 1831              	.LVL171:
+ 1832              	.LBE163:
+ 1833 07bc 032F     		cmp	r7, #3
+ 1834 07be E4D1     		bne	.L77
+ 1835              	.LBE161:
+ 1836 07c0 0D4B     		ldr	r3, .L91+20
+ 1837 07c2 0A48     		ldr	r0, .L91+8
+ 1838 07c4 1978     		ldrb	r1, [r3, #0]	@ zero_extendqisi2
+ 1839 07c6 FFF7FEFF 		bl	uart_transmit
+ 1840 07ca 0C4B     		ldr	r3, .L91+24
+ 1841 07cc 0748     		ldr	r0, .L91+8
+ 1842 07ce 1978     		ldrb	r1, [r3, #0]	@ zero_extendqisi2
+ 1843              	.LBE131:
+ 1844              	.LBE103:
+ 1845              	.LBE102:
+ 198:firmwares/fixedwing/main_fbw.c ****   {
+ 199:firmwares/fixedwing/main_fbw.c ****     set_failsafe_mode();
+ 200:firmwares/fixedwing/main_fbw.c ****   }
+ 201:firmwares/fixedwing/main_fbw.c **** #endif
+ 202:firmwares/fixedwing/main_fbw.c **** 
+ 203:firmwares/fixedwing/main_fbw.c **** #ifdef DOWNLINK
+ 204:firmwares/fixedwing/main_fbw.c ****   fbw_downlink_periodic_task();
+ 205:firmwares/fixedwing/main_fbw.c **** #endif
+ 206:firmwares/fixedwing/main_fbw.c **** 
+ 207:firmwares/fixedwing/main_fbw.c **** }
+ 1846              		.loc 2 207 0
+ 1847 07d0 BDE8F041 		pop	{r4, r5, r6, r7, r8, lr}
+ 1848              	.LBB166:
+ 1849              	.LBB165:
+ 1850              	.LBB164:
+ 1851              		.loc 4 98 0
+ 1852 07d4 FFF7FEBF 		b	uart_transmit
+ 1853              	.LVL172:
+ 1854              	.L76:
+ 1855 07d8 024B     		ldr	r3, .L91
+ 1856 07da 1A78     		ldrb	r2, [r3, #0]	@ zero_extendqisi2
+ 1857 07dc 0132     		adds	r2, r2, #1
+ 1858 07de 1A70     		strb	r2, [r3, #0]
+ 1859              	.L45:
+ 1860 07e0 BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
+ 1861              	.L92:
+ 1862              		.align	2
+ 1863              	.L91:
+ 1864 07e4 00000000 		.word	downlink_nb_ovrn
+ 1865 07e8 00000000 		.word	.LANCHOR9
+ 1866 07ec 00000000 		.word	uart2
+ 1867 07f0 00000000 		.word	downlink_nb_bytes
+ 1868 07f4 00000000 		.word	downlink_nb_msgs
+ 1869 07f8 00000000 		.word	ck_a
+ 1870 07fc 00000000 		.word	ck_b
+ 1871 0800 00000000 		.word	actuators
+ 1872              	.LBE164:
+ 1873              	.LBE165:
+ 1874              	.LBE166:
+ 1875              		.cfi_endproc
+ 1876              	.LFE43:
+ 1878              		.section	.text.handle_periodic_tasks_fbw,"ax",%progbits
+ 1879              		.align	1
+ 1880              		.global	handle_periodic_tasks_fbw
+ 1881              		.thumb
+ 1882              		.thumb_func
+ 1884              	handle_periodic_tasks_fbw:
+ 1885              	.LFB44:
+ 208:firmwares/fixedwing/main_fbw.c **** 
+ 209:firmwares/fixedwing/main_fbw.c **** void handle_periodic_tasks_fbw(void) {
+ 1886              		.loc 2 209 0
+ 1887              		.cfi_startproc
+ 1888              		@ args = 0, pretend = 0, frame = 0
+ 1889              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1890              	.LVL173:
+ 1891 0000 10B5     		push	{r4, lr}
+ 1892              	.LCFI4:
+ 1893              		.cfi_def_cfa_offset 8
+ 1894              		.cfi_offset 14, -4
+ 1895              		.cfi_offset 4, -8
+ 1896              	.LBB167:
+ 1897              	.LBB168:
+ 1898              		.file 5 "./mcu_periph/sys_time.h"
+   1:./mcu_periph/sys_time.h **** /*
+   2:./mcu_periph/sys_time.h ****  *
+   3:./mcu_periph/sys_time.h ****  * Copyright (C) 2009-2011 The Paparazzi Team
+   4:./mcu_periph/sys_time.h ****  *
+   5:./mcu_periph/sys_time.h ****  * This file is part of paparazzi.
+   6:./mcu_periph/sys_time.h ****  *
+   7:./mcu_periph/sys_time.h ****  * paparazzi is free software; you can redistribute it and/or modify
+   8:./mcu_periph/sys_time.h ****  * it under the terms of the GNU General Public License as published by
+   9:./mcu_periph/sys_time.h ****  * the Free Software Foundation; either version 2, or (at your option)
+  10:./mcu_periph/sys_time.h ****  * any later version.
+  11:./mcu_periph/sys_time.h ****  *
+  12:./mcu_periph/sys_time.h ****  * paparazzi is distributed in the hope that it will be useful,
+  13:./mcu_periph/sys_time.h ****  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  14:./mcu_periph/sys_time.h ****  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  15:./mcu_periph/sys_time.h ****  * GNU General Public License for more details.
+  16:./mcu_periph/sys_time.h ****  *
+  17:./mcu_periph/sys_time.h ****  * You should have received a copy of the GNU General Public License
+  18:./mcu_periph/sys_time.h ****  * along with paparazzi; see the file COPYING.  If not, write to
+  19:./mcu_periph/sys_time.h ****  * the Free Software Foundation, 59 Temple Place - Suite 330,
+  20:./mcu_periph/sys_time.h ****  * Boston, MA 02111-1307, USA.
+  21:./mcu_periph/sys_time.h ****  *
+  22:./mcu_periph/sys_time.h ****  */
+  23:./mcu_periph/sys_time.h **** 
+  24:./mcu_periph/sys_time.h **** /**
+  25:./mcu_periph/sys_time.h ****  * @file mcu_periph/sys_time.h
+  26:./mcu_periph/sys_time.h ****  * @brief Architecture independent timing functions.
+  27:./mcu_periph/sys_time.h ****  *
+  28:./mcu_periph/sys_time.h ****  */
+  29:./mcu_periph/sys_time.h **** 
+  30:./mcu_periph/sys_time.h **** #ifndef SYS_TIME_H
+  31:./mcu_periph/sys_time.h **** #define SYS_TIME_H
+  32:./mcu_periph/sys_time.h **** 
+  33:./mcu_periph/sys_time.h **** #include <inttypes.h>
+  34:./mcu_periph/sys_time.h **** #include <stdlib.h>
+  35:./mcu_periph/sys_time.h **** #include "std.h"
+  36:./mcu_periph/sys_time.h **** 
+  37:./mcu_periph/sys_time.h **** #include BOARD_CONFIG
+  38:./mcu_periph/sys_time.h **** 
+  39:./mcu_periph/sys_time.h **** #ifndef SYS_TIME_NB_TIMER
+  40:./mcu_periph/sys_time.h **** #define SYS_TIME_NB_TIMER 8
+  41:./mcu_periph/sys_time.h **** #endif
+  42:./mcu_periph/sys_time.h **** 
+  43:./mcu_periph/sys_time.h **** typedef uint8_t tid_t; ///< sys_time timer id type
+  44:./mcu_periph/sys_time.h **** typedef void (*sys_time_cb) (uint8_t id);
+  45:./mcu_periph/sys_time.h **** 
+  46:./mcu_periph/sys_time.h **** struct sys_time_timer {
+  47:./mcu_periph/sys_time.h ****   bool_t          in_use;
+  48:./mcu_periph/sys_time.h ****   sys_time_cb     cb;
+  49:./mcu_periph/sys_time.h ****   volatile bool_t elapsed;
+  50:./mcu_periph/sys_time.h ****   uint32_t        end_time; ///< in SYS_TICKS
+  51:./mcu_periph/sys_time.h ****   uint32_t        duration; ///< in SYS_TICKS
+  52:./mcu_periph/sys_time.h **** };
+  53:./mcu_periph/sys_time.h **** 
+  54:./mcu_periph/sys_time.h **** struct sys_time {
+  55:./mcu_periph/sys_time.h ****   volatile uint32_t nb_sec;       ///< full seconds since startup
+  56:./mcu_periph/sys_time.h ****   volatile uint32_t nb_sec_rem;   ///< remainder of second in CPU_TICKS
+  57:./mcu_periph/sys_time.h ****   volatile uint32_t nb_tick;      ///< in SYS_TICKS with SYS_TIME_RESOLUTION
+  58:./mcu_periph/sys_time.h ****   struct sys_time_timer timer[SYS_TIME_NB_TIMER];
+  59:./mcu_periph/sys_time.h **** };
+  60:./mcu_periph/sys_time.h **** 
+  61:./mcu_periph/sys_time.h **** extern struct sys_time sys_time;
+  62:./mcu_periph/sys_time.h **** 
+  63:./mcu_periph/sys_time.h **** //FIXME temporary hack
+  64:./mcu_periph/sys_time.h **** #define cpu_time_sec sys_time.nb_sec
+  65:./mcu_periph/sys_time.h **** #define cpu_time_ticks sys_time.nb_sec_rem
+  66:./mcu_periph/sys_time.h **** 
+  67:./mcu_periph/sys_time.h **** extern void sys_time_init(void);
+  68:./mcu_periph/sys_time.h **** 
+  69:./mcu_periph/sys_time.h **** /**
+  70:./mcu_periph/sys_time.h ****  * Register a new system timer.
+  71:./mcu_periph/sys_time.h ****  * @param duration Duration in seconds until the timer elapses.
+  72:./mcu_periph/sys_time.h ****  * @param cb Callback function that is called from the ISR when timer elapses, or NULL
+  73:./mcu_periph/sys_time.h ****  * @return -1 if it failed, the timer id otherwise
+  74:./mcu_periph/sys_time.h ****  */
+  75:./mcu_periph/sys_time.h **** extern int sys_time_register_timer(float duration, sys_time_cb cb);
+  76:./mcu_periph/sys_time.h **** 
+  77:./mcu_periph/sys_time.h **** /**
+  78:./mcu_periph/sys_time.h ****  * Cancel a system timer by id.
+  79:./mcu_periph/sys_time.h ****  * @param id Timer id.
+  80:./mcu_periph/sys_time.h ****  */
+  81:./mcu_periph/sys_time.h **** extern void sys_time_cancel_timer(tid_t id);
+  82:./mcu_periph/sys_time.h **** 
+  83:./mcu_periph/sys_time.h **** /**
+  84:./mcu_periph/sys_time.h ****  * Update the duration until a timer elapses.
+  85:./mcu_periph/sys_time.h ****  * @param id Timer id
+  86:./mcu_periph/sys_time.h ****  * @param duration Duration in seconds until the timer elapses.
+  87:./mcu_periph/sys_time.h ****  */
+  88:./mcu_periph/sys_time.h **** extern void sys_time_update_timer(tid_t id, float duration);
+  89:./mcu_periph/sys_time.h **** 
+  90:./mcu_periph/sys_time.h **** static inline bool_t sys_time_check_and_ack_timer(tid_t id) {
+  91:./mcu_periph/sys_time.h ****   if (sys_time.timer[id].elapsed) {
+ 1899              		.loc 5 91 0
+ 1900 0002 0E4B     		ldr	r3, .L96
+ 1901 0004 1421     		movs	r1, #20
+ 1902 0006 1A78     		ldrb	r2, [r3, #0]	@ zero_extendqisi2
+ 1903 0008 0D4B     		ldr	r3, .L96+4
+ 1904 000a 01FB0232 		mla	r2, r1, r2, r3
+ 1905 000e 117D     		ldrb	r1, [r2, #20]	@ zero_extendqisi2
+ 1906 0010 1C46     		mov	r4, r3
+ 1907 0012 1032     		adds	r2, r2, #16
+ 1908 0014 19B1     		cbz	r1, .L94
+  92:./mcu_periph/sys_time.h ****     sys_time.timer[id].elapsed = FALSE;
+ 1909              		.loc 5 92 0
+ 1910 0016 0023     		movs	r3, #0
+ 1911 0018 1371     		strb	r3, [r2, #4]
+ 1912              	.LBE168:
+ 1913              	.LBE167:
+ 210:firmwares/fixedwing/main_fbw.c **** 
+ 211:firmwares/fixedwing/main_fbw.c ****   if (sys_time_check_and_ack_timer(fbw_periodic_tid))
+ 212:firmwares/fixedwing/main_fbw.c ****     periodic_task_fbw();
+ 1914              		.loc 2 212 0
+ 1915 001a FFF7FEFF 		bl	periodic_task_fbw
+ 1916              	.LVL174:
+ 1917              	.L94:
+ 1918              	.LBB169:
+ 1919              	.LBB170:
+  91:./mcu_periph/sys_time.h ****   if (sys_time.timer[id].elapsed) {
+ 1920              		.loc 5 91 0
+ 1921 001e 094B     		ldr	r3, .L96+8
+ 1922 0020 1422     		movs	r2, #20
+ 1923 0022 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 1924 0024 02FB0343 		mla	r3, r2, r3, r4
+ 1925 0028 1A7D     		ldrb	r2, [r3, #20]	@ zero_extendqisi2
+ 1926 002a 1033     		adds	r3, r3, #16
+ 1927 002c 2AB1     		cbz	r2, .L93
+ 1928              		.loc 5 92 0
+ 1929 002e 0022     		movs	r2, #0
+ 1930 0030 1A71     		strb	r2, [r3, #4]
+ 1931              	.LBE170:
+ 1932              	.LBE169:
+ 213:firmwares/fixedwing/main_fbw.c **** 
+ 214:firmwares/fixedwing/main_fbw.c ****   if (sys_time_check_and_ack_timer(electrical_tid))
+ 215:firmwares/fixedwing/main_fbw.c ****     electrical_periodic();
+ 216:firmwares/fixedwing/main_fbw.c **** 
+ 217:firmwares/fixedwing/main_fbw.c **** }
+ 1933              		.loc 2 217 0
+ 1934 0032 BDE81040 		pop	{r4, lr}
+ 215:firmwares/fixedwing/main_fbw.c ****     electrical_periodic();
+ 1935              		.loc 2 215 0
+ 1936 0036 FFF7FEBF 		b	electrical_periodic
+ 1937              	.LVL175:
+ 1938              	.L93:
+ 1939 003a 10BD     		pop	{r4, pc}
+ 1940              	.L97:
+ 1941              		.align	2
+ 1942              	.L96:
+ 1943 003c 00000000 		.word	.LANCHOR2
+ 1944 0040 00000000 		.word	sys_time
+ 1945 0044 00000000 		.word	.LANCHOR3
+ 1946              		.cfi_endproc
+ 1947              	.LFE44:
+ 1949              		.global	electrical_tid
+ 1950              		.global	fbw_periodic_tid
+ 1951              		.global	fbw_new_actuators
+ 1952              		.global	fbw_mode
+ 1953              		.section	.bss.i300.3605,"aw",%nobits
+ 1954              		.align	1
+ 1955              		.set	.LANCHOR9,. + 0
+ 1958              	i300.3605:
+ 1959 0000 0000     		.space	2
+ 1960              		.section	.bss.i60.3604,"aw",%nobits
+ 1961              		.set	.LANCHOR8,. + 0
+ 1964              	i60.3604:
+ 1965 0000 00       		.space	1
+ 1966              		.section	.bss.i120.3578,"aw",%nobits
+ 1967              		.set	.LANCHOR5,. + 0
+ 1970              	i120.3578:
+ 1971 0000 00       		.space	1
+ 1972              		.section	.bss.fbw_mode,"aw",%nobits
+ 1973              		.set	.LANCHOR0,. + 0
+ 1976              	fbw_mode:
+ 1977 0000 00       		.space	1
+ 1978              		.section	.bss.fbw_periodic_tid,"aw",%nobits
+ 1979              		.set	.LANCHOR2,. + 0
+ 1982              	fbw_periodic_tid:
+ 1983 0000 00       		.space	1
+ 1984              		.section	.bss._1Hz.3375,"aw",%nobits
+ 1985              		.set	.LANCHOR4,. + 0
+ 1988              	_1Hz.3375:
+ 1989 0000 00       		.space	1
+ 1990              		.section	.bss.fbw_new_actuators,"aw",%nobits
+ 1991              		.set	.LANCHOR1,. + 0
+ 1994              	fbw_new_actuators:
+ 1995 0000 00       		.space	1
+ 1996              		.section	.bss.i300.3579,"aw",%nobits
+ 1997              		.align	1
+ 1998              		.set	.LANCHOR6,. + 0
+ 2001              	i300.3579:
+ 2002 0000 0000     		.space	2
+ 2003              		.section	.bss.i30.3603,"aw",%nobits
+ 2004              		.set	.LANCHOR7,. + 0
+ 2007              	i30.3603:
+ 2008 0000 00       		.space	1
+ 2009              		.section	.bss.electrical_tid,"aw",%nobits
+ 2010              		.set	.LANCHOR3,. + 0
+ 2013              	electrical_tid:
+ 2014 0000 00       		.space	1
+ 2015              		.text
+ 2016              	.Letext0:
+ 2017              		.file 6 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+ 2018              		.file 7 "/home/mav/paparazzi/sw/include/std.h"
+ 2019              		.file 8 "./paparazzi.h"
+ 2020              		.file 9 "./subsystems/electrical.h"
+ 2021              		.file 10 "./mcu_periph/uart.h"
+ 2022              		.file 11 "./firmwares/fixedwing/main_fbw.h"
+ 2023              		.file 12 "./commands.h"
+ 2024              		.file 13 "./firmwares/fixedwing/actuators.h"
+ 2025              		.file 14 "/home/mav/paparazzi/sw/airborne/arch/stm32/servos_direct_hw.h"
+ 2026              		.file 15 "./firmwares/fixedwing/autopilot.h"
+ 2027              		.file 16 "/home/mav/paparazzi/var/Radian/generated/periodic_telemetry.h"
+ 2028              		.file 17 "./subsystems/datalink/datalink.h"
+ 2029              		.file 18 "./subsystems/datalink/pprz_transport.h"
+ 2030              		.file 19 "./subsystems/datalink/xbee.h"
+ 2031              		.file 20 "./subsystems/datalink/downlink.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 main_fbw.c
+     /tmp/ccfAEVXD.s:18     .text.inter_mcu_fill_fbw_state:00000000 $t
+     /tmp/ccfAEVXD.s:22     .text.inter_mcu_fill_fbw_state:00000000 inter_mcu_fill_fbw_state
+     /tmp/ccfAEVXD.s:116    .text.inter_mcu_fill_fbw_state:00000064 $d
+     /tmp/ccfAEVXD.s:125    .text.handle_rc_frame:00000000 $t
+     /tmp/ccfAEVXD.s:129    .text.handle_rc_frame:00000000 handle_rc_frame
+     /tmp/ccfAEVXD.s:167    .text.handle_rc_frame:0000002c $d
+     /tmp/ccfAEVXD.s:177    .text.init_fbw:00000000 $t
+     /tmp/ccfAEVXD.s:182    .text.init_fbw:00000000 init_fbw
+     /tmp/ccfAEVXD.s:317    .text.init_fbw:00000078 $d
+     /tmp/ccfAEVXD.s:338    .text.event_task_fbw:00000000 $t
+     /tmp/ccfAEVXD.s:343    .text.event_task_fbw:00000000 event_task_fbw
+     /tmp/ccfAEVXD.s:603    .text.event_task_fbw:00000190 $d
+     /tmp/ccfAEVXD.s:624    .text.periodic_task_fbw:00000000 $t
+     /tmp/ccfAEVXD.s:629    .text.periodic_task_fbw:00000000 periodic_task_fbw
+     /tmp/ccfAEVXD.s:988    .text.periodic_task_fbw:000001e8 $d
+     /tmp/ccfAEVXD.s:1007   .text.periodic_task_fbw:0000022c $t
+     /tmp/ccfAEVXD.s:1384   .text.periodic_task_fbw:000004b0 $d
+     /tmp/ccfAEVXD.s:1401   .text.periodic_task_fbw:000004e8 $t
+     /tmp/ccfAEVXD.s:1715   .text.periodic_task_fbw:000006dc $d
+     /tmp/ccfAEVXD.s:1728   .text.periodic_task_fbw:00000708 $t
+     /tmp/ccfAEVXD.s:1864   .text.periodic_task_fbw:000007e4 $d
+     /tmp/ccfAEVXD.s:1879   .text.handle_periodic_tasks_fbw:00000000 $t
+     /tmp/ccfAEVXD.s:1884   .text.handle_periodic_tasks_fbw:00000000 handle_periodic_tasks_fbw
+     /tmp/ccfAEVXD.s:1943   .text.handle_periodic_tasks_fbw:0000003c $d
+     /tmp/ccfAEVXD.s:2013   .bss.electrical_tid:00000000 electrical_tid
+     /tmp/ccfAEVXD.s:1982   .bss.fbw_periodic_tid:00000000 fbw_periodic_tid
+     /tmp/ccfAEVXD.s:1994   .bss.fbw_new_actuators:00000000 fbw_new_actuators
+     /tmp/ccfAEVXD.s:1976   .bss.fbw_mode:00000000 fbw_mode
+     /tmp/ccfAEVXD.s:1954   .bss.i300.3605:00000000 $d
+     /tmp/ccfAEVXD.s:1958   .bss.i300.3605:00000000 i300.3605
+     /tmp/ccfAEVXD.s:1964   .bss.i60.3604:00000000 i60.3604
+     /tmp/ccfAEVXD.s:1965   .bss.i60.3604:00000000 $d
+     /tmp/ccfAEVXD.s:1970   .bss.i120.3578:00000000 i120.3578
+     /tmp/ccfAEVXD.s:1971   .bss.i120.3578:00000000 $d
+     /tmp/ccfAEVXD.s:1977   .bss.fbw_mode:00000000 $d
+     /tmp/ccfAEVXD.s:1983   .bss.fbw_periodic_tid:00000000 $d
+     /tmp/ccfAEVXD.s:1988   .bss._1Hz.3375:00000000 _1Hz.3375
+     /tmp/ccfAEVXD.s:1989   .bss._1Hz.3375:00000000 $d
+     /tmp/ccfAEVXD.s:1995   .bss.fbw_new_actuators:00000000 $d
+     /tmp/ccfAEVXD.s:1997   .bss.i300.3579:00000000 $d
+     /tmp/ccfAEVXD.s:2001   .bss.i300.3579:00000000 i300.3579
+     /tmp/ccfAEVXD.s:2007   .bss.i30.3603:00000000 i30.3603
+     /tmp/ccfAEVXD.s:2008   .bss.i30.3603:00000000 $d
+     /tmp/ccfAEVXD.s:2014   .bss.electrical_tid:00000000 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+fbw_state
+radio_control
+electrical
+inter_mcu_received_fbw
+commands
+mcu_init
+electrical_init
+actuators_init
+radio_control_impl_init
+sys_time_register_timer
+commands_failsafe
+ap_ok
+__aeabi_i2f
+__aeabi_f2d
+__aeabi_fcmpgt
+__aeabi_dmul
+__aeabi_d2f
+__aeabi_f2iz
+RadioControlEventImp
+i2c_event
+actuators_pwm_commit
+inter_mcu_received_ap
+time_since_last_ap
+ap_state
+command_roll_trim
+command_pitch_trim
+actuators
+actuators_pwm_values
+uart_check_free_space
+uart_transmit
+telemetry_mode_Fbw
+uart2
+downlink_nb_bytes
+downlink_nb_msgs
+ck_a
+ck_b
+downlink_nb_ovrn
+electrical_periodic
+sys_time

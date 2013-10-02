@@ -1,0 +1,66 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 18, 4
+  12              		.thumb
+  13              		.file	"servos_direct_hw.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.actuators_init,"ax",%progbits
+  18              		.align	1
+  19              		.global	actuators_init
+  20              		.thumb
+  21              		.thumb_func
+  23              	actuators_init:
+  24              	.LFB0:
+  25              		.file 1 "arch/stm32/servos_direct_hw.c"
+   1:arch/stm32/servos_direct_hw.c **** #include "std.h"
+   2:arch/stm32/servos_direct_hw.c **** #include "actuators.h"
+   3:arch/stm32/servos_direct_hw.c **** #include "servos_direct_hw.h"
+   4:arch/stm32/servos_direct_hw.c **** 
+   5:arch/stm32/servos_direct_hw.c **** int32_t actuators_pwm_values[ACTUATORS_PWM_NB];
+   6:arch/stm32/servos_direct_hw.c **** 
+   7:arch/stm32/servos_direct_hw.c **** void actuators_init ( void ) {
+  26              		.loc 1 7 0
+  27              		.cfi_startproc
+  28              		@ args = 0, pretend = 0, frame = 0
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  30              		@ link register save eliminated.
+   8:arch/stm32/servos_direct_hw.c ****   actuators_pwm_arch_init();
+   9:arch/stm32/servos_direct_hw.c **** }
+  31              		.loc 1 9 0
+   8:arch/stm32/servos_direct_hw.c ****   actuators_pwm_arch_init();
+  32              		.loc 1 8 0
+  33 0000 FFF7FEBF 		b	actuators_pwm_arch_init
+  34              		.cfi_endproc
+  35              	.LFE0:
+  37              		.global	actuators_pwm_values
+  38              		.section	.bss.actuators_pwm_values,"aw",%nobits
+  39              		.align	2
+  42              	actuators_pwm_values:
+  43 0000 00000000 		.space	24
+  43      00000000 
+  43      00000000 
+  43      00000000 
+  43      00000000 
+  44              		.text
+  45              	.Letext0:
+  46              		.file 2 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+DEFINED SYMBOLS
+                            *ABS*:00000000 servos_direct_hw.c
+     /tmp/ccs2U9dM.s:18     .text.actuators_init:00000000 $t
+     /tmp/ccs2U9dM.s:23     .text.actuators_init:00000000 actuators_init
+     /tmp/ccs2U9dM.s:42     .bss.actuators_pwm_values:00000000 actuators_pwm_values
+     /tmp/ccs2U9dM.s:39     .bss.actuators_pwm_values:00000000 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+actuators_pwm_arch_init

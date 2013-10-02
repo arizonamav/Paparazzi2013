@@ -1,0 +1,1618 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 18, 4
+  12              		.thumb
+  13              		.file	"nav_survey_rectangle.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.global	__aeabi_fcmplt
+  18              		.global	__aeabi_fcmpgt
+  19              		.global	__aeabi_f2d
+  20              		.global	__aeabi_dmul
+  21              		.global	__aeabi_dadd
+  22              		.global	__aeabi_dcmpgt
+  23              		.global	__aeabi_dsub
+  24              		.global	__aeabi_dcmplt
+  25              		.global	__aeabi_d2f
+  26              		.section	.text.nav_survey_rectangle_init,"ax",%progbits
+  27              		.align	1
+  28              		.global	nav_survey_rectangle_init
+  29              		.thumb
+  30              		.thumb_func
+  32              	nav_survey_rectangle_init:
+  33              	.LFB0:
+  34              		.file 1 "subsystems/navigation/nav_survey_rectangle.c"
+   1:subsystems/navigation/nav_survey_rectangle.c **** #include "subsystems/navigation/nav_survey_rectangle.h"
+   2:subsystems/navigation/nav_survey_rectangle.c **** #include "estimator.h"
+   3:subsystems/navigation/nav_survey_rectangle.c **** 
+   4:subsystems/navigation/nav_survey_rectangle.c **** static struct point survey_from;
+   5:subsystems/navigation/nav_survey_rectangle.c **** static struct point survey_to;
+   6:subsystems/navigation/nav_survey_rectangle.c **** static bool_t survey_uturn __attribute__ ((unused)) = FALSE;
+   7:subsystems/navigation/nav_survey_rectangle.c **** static survey_orientation_t survey_orientation = NS;
+   8:subsystems/navigation/nav_survey_rectangle.c **** 
+   9:subsystems/navigation/nav_survey_rectangle.c **** #define SurveyGoingNorth() ((survey_orientation == NS) && (survey_to.y > survey_from.y))
+  10:subsystems/navigation/nav_survey_rectangle.c **** #define SurveyGoingSouth() ((survey_orientation == NS) && (survey_to.y < survey_from.y))
+  11:subsystems/navigation/nav_survey_rectangle.c **** #define SurveyGoingEast() ((survey_orientation == WE) && (survey_to.x > survey_from.x))
+  12:subsystems/navigation/nav_survey_rectangle.c **** #define SurveyGoingWest() ((survey_orientation == WE) && (survey_to.x < survey_from.x))
+  13:subsystems/navigation/nav_survey_rectangle.c **** 
+  14:subsystems/navigation/nav_survey_rectangle.c **** #include "generated/flight_plan.h"
+  15:subsystems/navigation/nav_survey_rectangle.c **** 
+  16:subsystems/navigation/nav_survey_rectangle.c **** #ifndef LINE_START_FUNCTION
+  17:subsystems/navigation/nav_survey_rectangle.c **** #define LINE_START_FUNCTION {}
+  18:subsystems/navigation/nav_survey_rectangle.c **** #endif
+  19:subsystems/navigation/nav_survey_rectangle.c **** #ifndef LINE_STOP_FUNCTION
+  20:subsystems/navigation/nav_survey_rectangle.c **** #define LINE_STOP_FUNCTION {}
+  21:subsystems/navigation/nav_survey_rectangle.c **** #endif
+  22:subsystems/navigation/nav_survey_rectangle.c **** 
+  23:subsystems/navigation/nav_survey_rectangle.c **** 
+  24:subsystems/navigation/nav_survey_rectangle.c **** void nav_survey_rectangle_init(uint8_t wp1, uint8_t wp2, float grid, survey_orientation_t so) {
+  35              		.loc 1 24 0
+  36              		.cfi_startproc
+  37              		@ args = 0, pretend = 0, frame = 24
+  38              		@ frame_needed = 0, uses_anonymous_args = 0
+  39              	.LVL0:
+  40 0000 2DE9F047 		push	{r4, r5, r6, r7, r8, r9, sl, lr}
+  41              	.LCFI0:
+  42              		.cfi_def_cfa_offset 32
+  43              		.cfi_offset 14, -4
+  44              		.cfi_offset 10, -8
+  45              		.cfi_offset 9, -12
+  46              		.cfi_offset 8, -16
+  47              		.cfi_offset 7, -20
+  48              		.cfi_offset 6, -24
+  49              		.cfi_offset 5, -28
+  50              		.cfi_offset 4, -32
+  51 0004 0D46     		mov	r5, r1
+  52 0006 9246     		mov	sl, r2
+  25:subsystems/navigation/nav_survey_rectangle.c ****   nav_survey_west = Min(WaypointX(wp1), WaypointX(wp2));
+  53              		.loc 1 25 0
+  54 0008 0C22     		movs	r2, #12
+  55              	.LVL1:
+  56 000a 02FB00F1 		mul	r1, r2, r0
+  57              	.LVL2:
+  58 000e 6A43     		muls	r2, r5, r2
+  24:subsystems/navigation/nav_survey_rectangle.c **** void nav_survey_rectangle_init(uint8_t wp1, uint8_t wp2, float grid, survey_orientation_t so) {
+  59              		.loc 1 24 0
+  60 0010 9946     		mov	r9, r3
+  61              		.loc 1 25 0
+  62 0012 8D4B     		ldr	r3, .L50+24
+  63              	.LVL3:
+  24:subsystems/navigation/nav_survey_rectangle.c **** void nav_survey_rectangle_init(uint8_t wp1, uint8_t wp2, float grid, survey_orientation_t so) {
+  64              		.loc 1 24 0
+  65 0014 0646     		mov	r6, r0
+  66              		.loc 1 25 0
+  67 0016 53F80180 		ldr	r8, [r3, r1]	@ float
+  68 001a 9C58     		ldr	r4, [r3, r2]	@ float
+  24:subsystems/navigation/nav_survey_rectangle.c **** void nav_survey_rectangle_init(uint8_t wp1, uint8_t wp2, float grid, survey_orientation_t so) {
+  69              		.loc 1 24 0
+  70 001c 86B0     		sub	sp, sp, #24
+  71              	.LCFI1:
+  72              		.cfi_def_cfa_offset 56
+  73              		.loc 1 25 0
+  74 001e 4046     		mov	r0, r8
+  75              	.LVL4:
+  76 0020 2146     		mov	r1, r4
+  77 0022 FFF7FEFF 		bl	__aeabi_fcmplt
+  78 0026 08B1     		cbz	r0, .L42
+  79 0028 4746     		mov	r7, r8
+  80 002a 00E0     		b	.L2
+  81              	.L42:
+  82 002c 2746     		mov	r7, r4
+  83              	.L2:
+  84              		.loc 1 25 0 is_stmt 0 discriminator 3
+  85 002e 874B     		ldr	r3, .L50+28
+  26:subsystems/navigation/nav_survey_rectangle.c ****   nav_survey_east = Max(WaypointX(wp1), WaypointX(wp2));
+  86              		.loc 1 26 0 is_stmt 1 discriminator 3
+  87 0030 4046     		mov	r0, r8
+  25:subsystems/navigation/nav_survey_rectangle.c ****   nav_survey_west = Min(WaypointX(wp1), WaypointX(wp2));
+  88              		.loc 1 25 0 discriminator 3
+  89 0032 1F60     		str	r7, [r3, #0]	@ float
+  90              		.loc 1 26 0 discriminator 3
+  91 0034 2146     		mov	r1, r4
+  92 0036 FFF7FEFF 		bl	__aeabi_fcmpgt
+  93 003a 00B1     		cbz	r0, .L4
+  94              		.loc 1 26 0 is_stmt 0
+  95 003c 4446     		mov	r4, r8
+  96              	.L4:
+  97              		.loc 1 26 0 discriminator 3
+  98 003e 844B     		ldr	r3, .L50+32
+  27:subsystems/navigation/nav_survey_rectangle.c ****   nav_survey_south = Min(WaypointY(wp1), WaypointY(wp2));
+  99              		.loc 1 27 0 is_stmt 1 discriminator 3
+ 100 0040 0C22     		movs	r2, #12
+  26:subsystems/navigation/nav_survey_rectangle.c ****   nav_survey_east = Max(WaypointX(wp1), WaypointX(wp2));
+ 101              		.loc 1 26 0 discriminator 3
+ 102 0042 1C60     		str	r4, [r3, #0]	@ float
+ 103              		.loc 1 27 0 discriminator 3
+ 104 0044 804B     		ldr	r3, .L50+24
+ 105 0046 02FB0636 		mla	r6, r2, r6, r3
+ 106 004a 02FB0535 		mla	r5, r2, r5, r3
+ 107 004e 7668     		ldr	r6, [r6, #4]	@ float
+ 108 0050 6D68     		ldr	r5, [r5, #4]	@ float
+ 109 0052 3046     		mov	r0, r6
+ 110 0054 2946     		mov	r1, r5
+ 111 0056 FFF7FEFF 		bl	__aeabi_fcmplt
+ 112 005a 08B1     		cbz	r0, .L43
+ 113              		.loc 1 27 0 is_stmt 0
+ 114 005c B046     		mov	r8, r6
+ 115 005e 00E0     		b	.L6
+ 116              	.L43:
+ 117 0060 A846     		mov	r8, r5
+ 118              	.L6:
+ 119              		.loc 1 27 0 discriminator 3
+ 120 0062 7C4B     		ldr	r3, .L50+36
+  28:subsystems/navigation/nav_survey_rectangle.c ****   nav_survey_north = Max(WaypointY(wp1), WaypointY(wp2));
+ 121              		.loc 1 28 0 is_stmt 1 discriminator 3
+ 122 0064 3046     		mov	r0, r6
+  27:subsystems/navigation/nav_survey_rectangle.c ****   nav_survey_south = Min(WaypointY(wp1), WaypointY(wp2));
+ 123              		.loc 1 27 0 discriminator 3
+ 124 0066 C3F80080 		str	r8, [r3, #0]	@ float
+ 125              		.loc 1 28 0 discriminator 3
+ 126 006a 2946     		mov	r1, r5
+ 127 006c FFF7FEFF 		bl	__aeabi_fcmpgt
+ 128 0070 00B1     		cbz	r0, .L8
+ 129              		.loc 1 28 0 is_stmt 0
+ 130 0072 3546     		mov	r5, r6
+ 131              	.L8:
+ 132              		.loc 1 28 0 discriminator 3
+ 133 0074 784B     		ldr	r3, .L50+40
+ 134 0076 1D60     		str	r5, [r3, #0]	@ float
+  29:subsystems/navigation/nav_survey_rectangle.c ****   survey_orientation = so;
+ 135              		.loc 1 29 0 is_stmt 1 discriminator 3
+ 136 0078 784B     		ldr	r3, .L50+44
+ 137 007a 83F80090 		strb	r9, [r3, #0]
+  30:subsystems/navigation/nav_survey_rectangle.c **** 
+  31:subsystems/navigation/nav_survey_rectangle.c ****   if (survey_orientation == NS) {
+ 138              		.loc 1 31 0 discriminator 3
+ 139 007e B9F1000F 		cmp	r9, #0
+ 140 0082 6FD1     		bne	.L10
+  32:subsystems/navigation/nav_survey_rectangle.c ****     survey_from.x = survey_to.x = Min(Max(estimator_x, nav_survey_west+grid/2.), nav_survey_east-gr
+ 141              		.loc 1 32 0
+ 142 0084 764B     		ldr	r3, .L50+48
+ 143 0086 1E68     		ldr	r6, [r3, #0]	@ float
+ 144 0088 3046     		mov	r0, r6
+ 145 008a FFF7FEFF 		bl	__aeabi_f2d
+ 146 008e CDE90201 		strd	r0, [sp, #8]
+ 147 0092 5046     		mov	r0, sl
+ 148 0094 FFF7FEFF 		bl	__aeabi_f2d
+ 149 0098 0022     		movs	r2, #0
+ 150 009a 724B     		ldr	r3, .L50+52
+ 151 009c FFF7FEFF 		bl	__aeabi_dmul
+ 152 00a0 CDE90001 		strd	r0, [sp]
+ 153 00a4 3846     		mov	r0, r7
+ 154 00a6 FFF7FEFF 		bl	__aeabi_f2d
+ 155 00aa DDE90023 		ldrd	r2, [sp]
+ 156 00ae FFF7FEFF 		bl	__aeabi_dadd
+ 157 00b2 CDE90401 		strd	r0, [sp, #16]
+ 158 00b6 DDE90423 		ldrd	r2, [sp, #16]
+ 159 00ba DDE90201 		ldrd	r0, [sp, #8]
+ 160 00be 0127     		movs	r7, #1
+ 161 00c0 FFF7FEFF 		bl	__aeabi_dcmpgt
+ 162 00c4 00B9     		cbnz	r0, .L11
+ 163 00c6 4F46     		mov	r7, r9
+ 164              	.L11:
+ 165 00c8 FFB2     		uxtb	r7, r7
+ 166 00ca 1FB9     		cbnz	r7, .L12
+ 167 00cc DDE90423 		ldrd	r2, [sp, #16]
+ 168 00d0 CDE90223 		strd	r2, [sp, #8]
+ 169              	.L12:
+ 170              		.loc 1 32 0 is_stmt 0 discriminator 3
+ 171 00d4 2046     		mov	r0, r4
+ 172 00d6 FFF7FEFF 		bl	__aeabi_f2d
+ 173 00da DDE90023 		ldrd	r2, [sp]
+ 174 00de FFF7FEFF 		bl	__aeabi_dsub
+ 175 00e2 CDE90001 		strd	r0, [sp]
+ 176 00e6 DDE90023 		ldrd	r2, [sp]
+ 177 00ea DDE90201 		ldrd	r0, [sp, #8]
+ 178 00ee FFF7FEFF 		bl	__aeabi_dcmplt
+ 179 00f2 18B1     		cbz	r0, .L44
+ 180              		.loc 1 32 0 discriminator 1
+ 181 00f4 3FB9     		cbnz	r7, .L15
+ 182              		.loc 1 32 0 discriminator 4
+ 183 00f6 DDE90401 		ldrd	r0, [sp, #16]
+ 184 00fa 01E0     		b	.L46
+ 185              	.L44:
+ 186              		.loc 1 32 0 discriminator 2
+ 187 00fc DDE90001 		ldrd	r0, [sp]
+ 188              	.L46:
+ 189 0100 FFF7FEFF 		bl	__aeabi_d2f
+ 190 0104 0646     		mov	r6, r0
+ 191              	.L15:
+ 192              		.loc 1 32 0 discriminator 6
+ 193 0106 584B     		ldr	r3, .L50+56
+  33:subsystems/navigation/nav_survey_rectangle.c ****     if (estimator_y > nav_survey_north || (estimator_y > nav_survey_south && estimator_hspeed_dir >
+ 194              		.loc 1 33 0 is_stmt 1 discriminator 6
+ 195 0108 2946     		mov	r1, r5
+  32:subsystems/navigation/nav_survey_rectangle.c ****     survey_from.x = survey_to.x = Min(Max(estimator_x, nav_survey_west+grid/2.), nav_survey_east-gr
+ 196              		.loc 1 32 0 discriminator 6
+ 197 010a 1E60     		str	r6, [r3, #0]	@ float
+ 198 010c 574B     		ldr	r3, .L50+60
+ 199 010e 1E60     		str	r6, [r3, #0]	@ float
+ 200              		.loc 1 33 0 discriminator 6
+ 201 0110 574B     		ldr	r3, .L50+64
+ 202 0112 1C68     		ldr	r4, [r3, #0]	@ float
+ 203 0114 2046     		mov	r0, r4
+ 204 0116 FFF7FEFF 		bl	__aeabi_fcmpgt
+ 205 011a C0B9     		cbnz	r0, .L16
+ 206              		.loc 1 33 0 is_stmt 0 discriminator 1
+ 207 011c 2046     		mov	r0, r4
+ 208 011e 4146     		mov	r1, r8
+ 209 0120 FFF7FEFF 		bl	__aeabi_fcmpgt
+ 210 0124 C0B1     		cbz	r0, .L17
+ 211 0126 534B     		ldr	r3, .L50+68
+ 212 0128 1868     		ldr	r0, [r3, #0]	@ float
+ 213 012a FFF7FEFF 		bl	__aeabi_f2d
+ 214 012e 40A3     		adr	r3, .L50
+ 215 0130 D3E90023 		ldrd	r2, [r3]
+ 216 0134 0646     		mov	r6, r0
+ 217 0136 0F46     		mov	r7, r1
+ 218 0138 FFF7FEFF 		bl	__aeabi_dcmpgt
+ 219 013c 60B1     		cbz	r0, .L17
+ 220 013e 3046     		mov	r0, r6
+ 221 0140 3946     		mov	r1, r7
+ 222 0142 3DA3     		adr	r3, .L50+8
+ 223 0144 D3E90023 		ldrd	r2, [r3]
+ 224 0148 FFF7FEFF 		bl	__aeabi_dcmplt
+ 225 014c 20B1     		cbz	r0, .L17
+ 226              	.L16:
+  34:subsystems/navigation/nav_survey_rectangle.c ****       survey_to.y = nav_survey_south;
+ 227              		.loc 1 34 0 is_stmt 1
+ 228 014e 464B     		ldr	r3, .L50+56
+ 229 0150 C3F80480 		str	r8, [r3, #4]	@ float
+  35:subsystems/navigation/nav_survey_rectangle.c ****       survey_from.y = nav_survey_north;
+ 230              		.loc 1 35 0
+ 231 0154 454B     		ldr	r3, .L50+60
+ 232 0156 03E0     		b	.L48
+ 233              	.L17:
+  36:subsystems/navigation/nav_survey_rectangle.c ****     } else {
+  37:subsystems/navigation/nav_survey_rectangle.c ****       survey_from.y = nav_survey_south;
+ 234              		.loc 1 37 0
+ 235 0158 444B     		ldr	r3, .L50+60
+ 236 015a C3F80480 		str	r8, [r3, #4]	@ float
+  38:subsystems/navigation/nav_survey_rectangle.c ****       survey_to.y = nav_survey_north;
+ 237              		.loc 1 38 0
+ 238 015e 424B     		ldr	r3, .L50+56
+ 239              	.L48:
+ 240 0160 5D60     		str	r5, [r3, #4]	@ float
+ 241 0162 8DE0     		b	.L21
+ 242              	.L10:
+  39:subsystems/navigation/nav_survey_rectangle.c ****     }
+  40:subsystems/navigation/nav_survey_rectangle.c ****   } else { /* survey_orientation == WE */
+  41:subsystems/navigation/nav_survey_rectangle.c ****     survey_from.y = survey_to.y = Min(Max(estimator_y, nav_survey_south+grid/2.), nav_survey_north-
+ 243              		.loc 1 41 0
+ 244 0164 424B     		ldr	r3, .L50+64
+ 245 0166 1E68     		ldr	r6, [r3, #0]	@ float
+ 246 0168 3046     		mov	r0, r6
+ 247 016a FFF7FEFF 		bl	__aeabi_f2d
+ 248 016e CDE90201 		strd	r0, [sp, #8]
+ 249 0172 5046     		mov	r0, sl
+ 250 0174 FFF7FEFF 		bl	__aeabi_f2d
+ 251 0178 0022     		movs	r2, #0
+ 252 017a 3A4B     		ldr	r3, .L50+52
+ 253 017c FFF7FEFF 		bl	__aeabi_dmul
+ 254 0180 CDE90001 		strd	r0, [sp]
+ 255 0184 4046     		mov	r0, r8
+ 256 0186 FFF7FEFF 		bl	__aeabi_f2d
+ 257 018a DDE90023 		ldrd	r2, [sp]
+ 258 018e FFF7FEFF 		bl	__aeabi_dadd
+ 259 0192 CDE90401 		strd	r0, [sp, #16]
+ 260 0196 DDE90423 		ldrd	r2, [sp, #16]
+ 261 019a DDE90201 		ldrd	r0, [sp, #8]
+ 262 019e 4FF00108 		mov	r8, #1
+ 263 01a2 FFF7FEFF 		bl	__aeabi_dcmpgt
+ 264 01a6 08B9     		cbnz	r0, .L22
+ 265 01a8 4FF00008 		mov	r8, #0
+ 266              	.L22:
+ 267 01ac 5FFA88F8 		uxtb	r8, r8
+ 268 01b0 B8F1000F 		cmp	r8, #0
+ 269 01b4 03D1     		bne	.L23
+ 270 01b6 DDE90423 		ldrd	r2, [sp, #16]
+ 271 01ba CDE90223 		strd	r2, [sp, #8]
+ 272              	.L23:
+ 273              		.loc 1 41 0 is_stmt 0 discriminator 3
+ 274 01be 2846     		mov	r0, r5
+ 275 01c0 FFF7FEFF 		bl	__aeabi_f2d
+ 276 01c4 DDE90023 		ldrd	r2, [sp]
+ 277 01c8 FFF7FEFF 		bl	__aeabi_dsub
+ 278 01cc CDE90001 		strd	r0, [sp]
+ 279 01d0 DDE90023 		ldrd	r2, [sp]
+ 280 01d4 DDE90201 		ldrd	r0, [sp, #8]
+ 281 01d8 FFF7FEFF 		bl	__aeabi_dcmplt
+ 282 01dc 28B1     		cbz	r0, .L45
+ 283              		.loc 1 41 0 discriminator 1
+ 284 01de B8F1000F 		cmp	r8, #0
+ 285 01e2 07D1     		bne	.L26
+ 286              		.loc 1 41 0 discriminator 4
+ 287 01e4 DDE90401 		ldrd	r0, [sp, #16]
+ 288 01e8 01E0     		b	.L47
+ 289              	.L45:
+ 290              		.loc 1 41 0 discriminator 2
+ 291 01ea DDE90001 		ldrd	r0, [sp]
+ 292              	.L47:
+ 293 01ee FFF7FEFF 		bl	__aeabi_d2f
+ 294 01f2 0646     		mov	r6, r0
+ 295              	.L26:
+ 296              		.loc 1 41 0 discriminator 6
+ 297 01f4 1C4B     		ldr	r3, .L50+56
+  42:subsystems/navigation/nav_survey_rectangle.c ****     if (estimator_x > nav_survey_east || (estimator_x > nav_survey_west && estimator_hspeed_dir > M
+ 298              		.loc 1 42 0 is_stmt 1 discriminator 6
+ 299 01f6 2146     		mov	r1, r4
+  41:subsystems/navigation/nav_survey_rectangle.c ****     survey_from.y = survey_to.y = Min(Max(estimator_y, nav_survey_south+grid/2.), nav_survey_north-
+ 300              		.loc 1 41 0 discriminator 6
+ 301 01f8 5E60     		str	r6, [r3, #4]	@ float
+ 302 01fa 1C4B     		ldr	r3, .L50+60
+ 303 01fc 5E60     		str	r6, [r3, #4]	@ float
+ 304              		.loc 1 42 0 discriminator 6
+ 305 01fe 184B     		ldr	r3, .L50+48
+ 306 0200 1D68     		ldr	r5, [r3, #0]	@ float
+ 307 0202 2846     		mov	r0, r5
+ 308 0204 FFF7FEFF 		bl	__aeabi_fcmpgt
+ 309 0208 70B9     		cbnz	r0, .L27
+ 310              		.loc 1 42 0 is_stmt 0 discriminator 1
+ 311 020a 2846     		mov	r0, r5
+ 312 020c 3946     		mov	r1, r7
+ 313 020e FFF7FEFF 		bl	__aeabi_fcmpgt
+ 314 0212 88B3     		cbz	r0, .L28
+ 315 0214 174B     		ldr	r3, .L50+68
+ 316 0216 1868     		ldr	r0, [r3, #0]	@ float
+ 317 0218 FFF7FEFF 		bl	__aeabi_f2d
+ 318 021c 08A3     		adr	r3, .L50+16
+ 319 021e D3E90023 		ldrd	r2, [r3]
+ 320 0222 FFF7FEFF 		bl	__aeabi_dcmpgt
+ 321 0226 38B3     		cbz	r0, .L28
+ 322              	.L27:
+  43:subsystems/navigation/nav_survey_rectangle.c ****       survey_to.x = nav_survey_west;
+ 323              		.loc 1 43 0 is_stmt 1
+ 324 0228 0F4B     		ldr	r3, .L50+56
+ 325 022a 1F60     		str	r7, [r3, #0]	@ float
+  44:subsystems/navigation/nav_survey_rectangle.c ****       survey_from.x = nav_survey_east;
+ 326              		.loc 1 44 0
+ 327 022c 0F4B     		ldr	r3, .L50+60
+ 328 022e 26E0     		b	.L49
+ 329              	.L51:
+ 330              		.align	3
+ 331              	.L50:
+ 332 0230 182D4454 		.word	1413754136
+ 333 0234 FB21F93F 		.word	1073291771
+ 334 0238 D221337F 		.word	2134057426
+ 335 023c 7CD91240 		.word	1074977148
+ 336 0240 182D4454 		.word	1413754136
+ 337 0244 FB210940 		.word	1074340347
+ 338 0248 00000000 		.word	waypoints
+ 339 024c 00000000 		.word	nav_survey_west
+ 340 0250 00000000 		.word	nav_survey_east
+ 341 0254 00000000 		.word	nav_survey_south
+ 342 0258 00000000 		.word	nav_survey_north
+ 343 025c 00000000 		.word	.LANCHOR0
+ 344 0260 00000000 		.word	estimator_x
+ 345 0264 0000E03F 		.word	1071644672
+ 346 0268 00000000 		.word	.LANCHOR1
+ 347 026c 00000000 		.word	.LANCHOR2
+ 348 0270 00000000 		.word	estimator_y
+ 349 0274 00000000 		.word	estimator_hspeed_dir
+ 350              	.L28:
+  45:subsystems/navigation/nav_survey_rectangle.c ****     } else {
+  46:subsystems/navigation/nav_survey_rectangle.c ****       survey_from.x = nav_survey_west;
+ 351              		.loc 1 46 0
+ 352 0278 064B     		ldr	r3, .L52
+ 353 027a 1F60     		str	r7, [r3, #0]	@ float
+  47:subsystems/navigation/nav_survey_rectangle.c ****       survey_to.x = nav_survey_east;
+ 354              		.loc 1 47 0
+ 355 027c 064B     		ldr	r3, .L52+4
+ 356              	.L49:
+ 357 027e 1C60     		str	r4, [r3, #0]	@ float
+ 358              	.L21:
+  48:subsystems/navigation/nav_survey_rectangle.c ****     }
+  49:subsystems/navigation/nav_survey_rectangle.c ****   }
+  50:subsystems/navigation/nav_survey_rectangle.c ****   nav_survey_shift = grid;
+ 359              		.loc 1 50 0
+ 360 0280 064B     		ldr	r3, .L52+8
+  51:subsystems/navigation/nav_survey_rectangle.c ****   survey_uturn = FALSE;
+ 361              		.loc 1 51 0
+ 362 0282 0022     		movs	r2, #0
+  50:subsystems/navigation/nav_survey_rectangle.c ****   nav_survey_shift = grid;
+ 363              		.loc 1 50 0
+ 364 0284 C3F800A0 		str	sl, [r3, #0]	@ float
+ 365              		.loc 1 51 0
+ 366 0288 054B     		ldr	r3, .L52+12
+ 367 028a 1A70     		strb	r2, [r3, #0]
+  52:subsystems/navigation/nav_survey_rectangle.c ****   LINE_START_FUNCTION;
+  53:subsystems/navigation/nav_survey_rectangle.c **** }
+ 368              		.loc 1 53 0
+ 369 028c 06B0     		add	sp, sp, #24
+ 370 028e BDE8F087 		pop	{r4, r5, r6, r7, r8, r9, sl, pc}
+ 371              	.L53:
+ 372 0292 00BF     		.align	2
+ 373              	.L52:
+ 374 0294 00000000 		.word	.LANCHOR2
+ 375 0298 00000000 		.word	.LANCHOR1
+ 376 029c 00000000 		.word	nav_survey_shift
+ 377 02a0 00000000 		.word	.LANCHOR3
+ 378              		.cfi_endproc
+ 379              	.LFE0:
+ 381              		.global	__aeabi_fadd
+ 382              		.global	__aeabi_fmul
+ 383              		.global	__aeabi_fsub
+ 384              		.global	__aeabi_fcmpge
+ 385 02a4 AFF30080 		.section	.text.nav_survey_rectangle,"ax",%progbits
+ 386              		.align	1
+ 387              		.global	nav_survey_rectangle
+ 388              		.thumb
+ 389              		.thumb_func
+ 391              	nav_survey_rectangle:
+ 392              	.LFB1:
+  54:subsystems/navigation/nav_survey_rectangle.c **** 
+  55:subsystems/navigation/nav_survey_rectangle.c **** 
+  56:subsystems/navigation/nav_survey_rectangle.c **** void nav_survey_rectangle(uint8_t wp1, uint8_t wp2) {
+ 393              		.loc 1 56 0
+ 394              		.cfi_startproc
+ 395              		@ args = 0, pretend = 0, frame = 0
+ 396              		@ frame_needed = 0, uses_anonymous_args = 0
+ 397              	.LVL5:
+ 398 0000 2DE9F84F 		push	{r3, r4, r5, r6, r7, r8, r9, sl, fp, lr}
+ 399              	.LCFI2:
+ 400              		.cfi_def_cfa_offset 40
+ 401              		.cfi_offset 14, -4
+ 402              		.cfi_offset 11, -8
+ 403              		.cfi_offset 10, -12
+ 404              		.cfi_offset 9, -16
+ 405              		.cfi_offset 8, -20
+ 406              		.cfi_offset 7, -24
+ 407              		.cfi_offset 6, -28
+ 408              		.cfi_offset 5, -32
+ 409              		.cfi_offset 4, -36
+ 410              		.cfi_offset 3, -40
+  57:subsystems/navigation/nav_survey_rectangle.c ****   static float survey_radius;
+  58:subsystems/navigation/nav_survey_rectangle.c **** 
+  59:subsystems/navigation/nav_survey_rectangle.c ****   nav_survey_active = TRUE;
+ 411              		.loc 1 59 0
+ 412 0004 8C4B     		ldr	r3, .L168
+ 413 0006 0122     		movs	r2, #1
+ 414 0008 1A70     		strb	r2, [r3, #0]
+  56:subsystems/navigation/nav_survey_rectangle.c **** void nav_survey_rectangle(uint8_t wp1, uint8_t wp2) {
+ 415              		.loc 1 56 0
+ 416 000a 0E46     		mov	r6, r1
+  60:subsystems/navigation/nav_survey_rectangle.c **** 
+  61:subsystems/navigation/nav_survey_rectangle.c ****   nav_survey_west = Min(WaypointX(wp1), WaypointX(wp2));
+ 417              		.loc 1 61 0
+ 418 000c 0C22     		movs	r2, #12
+ 419 000e 02FB00F1 		mul	r1, r2, r0
+ 420              	.LVL6:
+ 421 0012 7243     		muls	r2, r6, r2
+ 422 0014 894B     		ldr	r3, .L168+4
+  56:subsystems/navigation/nav_survey_rectangle.c **** void nav_survey_rectangle(uint8_t wp1, uint8_t wp2) {
+ 423              		.loc 1 56 0
+ 424 0016 8146     		mov	r9, r0
+ 425              		.loc 1 61 0
+ 426 0018 5D58     		ldr	r5, [r3, r1]	@ float
+ 427 001a 9C58     		ldr	r4, [r3, r2]	@ float
+ 428 001c 2846     		mov	r0, r5
+ 429              	.LVL7:
+ 430 001e 2146     		mov	r1, r4
+ 431 0020 FFF7FEFF 		bl	__aeabi_fcmplt
+ 432 0024 08B1     		cbz	r0, .L159
+ 433 0026 2F46     		mov	r7, r5
+ 434 0028 00E0     		b	.L55
+ 435              	.L159:
+ 436 002a 2746     		mov	r7, r4
+ 437              	.L55:
+ 438              		.loc 1 61 0 is_stmt 0 discriminator 3
+ 439 002c 844B     		ldr	r3, .L168+8
+  62:subsystems/navigation/nav_survey_rectangle.c ****   nav_survey_east = Max(WaypointX(wp1), WaypointX(wp2));
+ 440              		.loc 1 62 0 is_stmt 1 discriminator 3
+ 441 002e 2846     		mov	r0, r5
+  61:subsystems/navigation/nav_survey_rectangle.c ****   nav_survey_west = Min(WaypointX(wp1), WaypointX(wp2));
+ 442              		.loc 1 61 0 discriminator 3
+ 443 0030 1F60     		str	r7, [r3, #0]	@ float
+ 444              		.loc 1 62 0 discriminator 3
+ 445 0032 2146     		mov	r1, r4
+ 446 0034 FFF7FEFF 		bl	__aeabi_fcmpgt
+ 447 0038 00B1     		cbz	r0, .L57
+ 448              		.loc 1 62 0 is_stmt 0
+ 449 003a 2C46     		mov	r4, r5
+ 450              	.L57:
+ 451              		.loc 1 62 0 discriminator 3
+ 452 003c 814B     		ldr	r3, .L168+12
+  63:subsystems/navigation/nav_survey_rectangle.c ****   nav_survey_south = Min(WaypointY(wp1), WaypointY(wp2));
+ 453              		.loc 1 63 0 is_stmt 1 discriminator 3
+ 454 003e 0C22     		movs	r2, #12
+  62:subsystems/navigation/nav_survey_rectangle.c ****   nav_survey_east = Max(WaypointX(wp1), WaypointX(wp2));
+ 455              		.loc 1 62 0 discriminator 3
+ 456 0040 1C60     		str	r4, [r3, #0]	@ float
+ 457              		.loc 1 63 0 discriminator 3
+ 458 0042 7E4B     		ldr	r3, .L168+4
+ 459 0044 02FB0931 		mla	r1, r2, r9, r3
+ 460 0048 02FB0636 		mla	r6, r2, r6, r3
+ 461 004c 4D68     		ldr	r5, [r1, #4]	@ float
+ 462 004e 7668     		ldr	r6, [r6, #4]	@ float
+ 463 0050 2846     		mov	r0, r5
+ 464 0052 3146     		mov	r1, r6
+ 465 0054 FFF7FEFF 		bl	__aeabi_fcmplt
+ 466 0058 08B1     		cbz	r0, .L160
+ 467              		.loc 1 63 0 is_stmt 0
+ 468 005a A846     		mov	r8, r5
+ 469 005c 00E0     		b	.L59
+ 470              	.L160:
+ 471 005e B046     		mov	r8, r6
+ 472              	.L59:
+ 473              		.loc 1 63 0 discriminator 3
+ 474 0060 794B     		ldr	r3, .L168+16
+  64:subsystems/navigation/nav_survey_rectangle.c ****   nav_survey_north = Max(WaypointY(wp1), WaypointY(wp2));
+ 475              		.loc 1 64 0 is_stmt 1 discriminator 3
+ 476 0062 2846     		mov	r0, r5
+  63:subsystems/navigation/nav_survey_rectangle.c ****   nav_survey_south = Min(WaypointY(wp1), WaypointY(wp2));
+ 477              		.loc 1 63 0 discriminator 3
+ 478 0064 C3F80080 		str	r8, [r3, #0]	@ float
+ 479              		.loc 1 64 0 discriminator 3
+ 480 0068 3146     		mov	r1, r6
+ 481 006a FFF7FEFF 		bl	__aeabi_fcmpgt
+ 482 006e 00B1     		cbz	r0, .L61
+ 483              		.loc 1 64 0 is_stmt 0
+ 484 0070 2E46     		mov	r6, r5
+ 485              	.L61:
+ 486              		.loc 1 64 0 discriminator 3
+ 487 0072 764B     		ldr	r3, .L168+20
+ 488 0074 1E60     		str	r6, [r3, #0]	@ float
+  65:subsystems/navigation/nav_survey_rectangle.c **** 
+  66:subsystems/navigation/nav_survey_rectangle.c ****   /* Update the current segment from corners' coordinates*/
+  67:subsystems/navigation/nav_survey_rectangle.c ****   if (SurveyGoingNorth()) {
+ 489              		.loc 1 67 0 is_stmt 1 discriminator 3
+ 490 0076 764B     		ldr	r3, .L168+24
+ 491 0078 1D78     		ldrb	r5, [r3, #0]	@ zero_extendqisi2
+ 492 007a BDB9     		cbnz	r5, .L63
+ 493              		.loc 1 67 0 is_stmt 0 discriminator 1
+ 494 007c 754F     		ldr	r7, .L168+28
+ 495 007e 764C     		ldr	r4, .L168+32
+ 496 0080 D7F804B0 		ldr	fp, [r7, #4]	@ float
+ 497 0084 D4F804A0 		ldr	sl, [r4, #4]	@ float
+ 498 0088 5846     		mov	r0, fp
+ 499 008a 5146     		mov	r1, sl
+ 500 008c FFF7FEFF 		bl	__aeabi_fcmpgt
+ 501 0090 18B1     		cbz	r0, .L161
+  68:subsystems/navigation/nav_survey_rectangle.c ****     survey_to.y = nav_survey_north;
+ 502              		.loc 1 68 0 is_stmt 1
+ 503 0092 7E60     		str	r6, [r7, #4]	@ float
+  69:subsystems/navigation/nav_survey_rectangle.c ****     survey_from.y = nav_survey_south;
+ 504              		.loc 1 69 0
+ 505 0094 C4F80480 		str	r8, [r4, #4]	@ float
+ 506 0098 22E0     		b	.L66
+ 507              	.L161:
+  70:subsystems/navigation/nav_survey_rectangle.c ****   } else if (SurveyGoingSouth()) {
+ 508              		.loc 1 70 0 discriminator 1
+ 509 009a 5846     		mov	r0, fp
+ 510 009c 5146     		mov	r1, sl
+ 511 009e FFF7FEFF 		bl	__aeabi_fcmplt
+ 512 00a2 E8B1     		cbz	r0, .L66
+  71:subsystems/navigation/nav_survey_rectangle.c ****     survey_to.y = nav_survey_south;
+ 513              		.loc 1 71 0
+ 514 00a4 C7F80480 		str	r8, [r7, #4]	@ float
+  72:subsystems/navigation/nav_survey_rectangle.c ****     survey_from.y = nav_survey_north;
+ 515              		.loc 1 72 0
+ 516 00a8 6660     		str	r6, [r4, #4]	@ float
+ 517 00aa 19E0     		b	.L66
+ 518              	.L63:
+  73:subsystems/navigation/nav_survey_rectangle.c ****   } else if (SurveyGoingEast()) {
+ 519              		.loc 1 73 0
+ 520 00ac 012D     		cmp	r5, #1
+ 521 00ae 17D1     		bne	.L66
+ 522              		.loc 1 73 0 is_stmt 0 discriminator 1
+ 523 00b0 DFF8A081 		ldr	r8, .L168+28
+ 524 00b4 684E     		ldr	r6, .L168+32
+ 525 00b6 D8F800B0 		ldr	fp, [r8, #0]	@ float
+ 526 00ba D6F800A0 		ldr	sl, [r6, #0]	@ float
+ 527 00be 5846     		mov	r0, fp
+ 528 00c0 5146     		mov	r1, sl
+ 529 00c2 FFF7FEFF 		bl	__aeabi_fcmpgt
+ 530 00c6 18B1     		cbz	r0, .L162
+  74:subsystems/navigation/nav_survey_rectangle.c ****     survey_to.x = nav_survey_east;
+ 531              		.loc 1 74 0 is_stmt 1
+ 532 00c8 C8F80040 		str	r4, [r8, #0]	@ float
+  75:subsystems/navigation/nav_survey_rectangle.c ****     survey_from.x = nav_survey_west;
+ 533              		.loc 1 75 0
+ 534 00cc 3760     		str	r7, [r6, #0]	@ float
+ 535 00ce 07E0     		b	.L66
+ 536              	.L162:
+  76:subsystems/navigation/nav_survey_rectangle.c ****   } else if (SurveyGoingWest()) {
+ 537              		.loc 1 76 0 discriminator 1
+ 538 00d0 5846     		mov	r0, fp
+ 539 00d2 5146     		mov	r1, sl
+ 540 00d4 FFF7FEFF 		bl	__aeabi_fcmplt
+ 541 00d8 10B1     		cbz	r0, .L66
+  77:subsystems/navigation/nav_survey_rectangle.c ****     survey_to.x = nav_survey_west;
+ 542              		.loc 1 77 0
+ 543 00da C8F80070 		str	r7, [r8, #0]	@ float
+  78:subsystems/navigation/nav_survey_rectangle.c ****     survey_from.x = nav_survey_east;
+ 544              		.loc 1 78 0
+ 545 00de 3460     		str	r4, [r6, #0]	@ float
+ 546              	.L66:
+  79:subsystems/navigation/nav_survey_rectangle.c ****   }
+  80:subsystems/navigation/nav_survey_rectangle.c **** 
+  81:subsystems/navigation/nav_survey_rectangle.c ****   if (! survey_uturn) { /* S-N, N-S, W-E or E-W straight route */
+ 547              		.loc 1 81 0
+ 548 00e0 5E4B     		ldr	r3, .L168+36
+ 549 00e2 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 550 00e4 002B     		cmp	r3, #0
+ 551 00e6 40F02481 		bne	.L71
+  82:subsystems/navigation/nav_survey_rectangle.c ****     if ((estimator_y < nav_survey_north && SurveyGoingNorth()) ||
+ 552              		.loc 1 82 0
+ 553 00ea 5D4B     		ldr	r3, .L168+40
+ 554 00ec 1C68     		ldr	r4, [r3, #0]	@ float
+ 555 00ee 574B     		ldr	r3, .L168+20
+ 556 00f0 2046     		mov	r0, r4
+ 557 00f2 1F68     		ldr	r7, [r3, #0]	@ float
+ 558 00f4 3946     		mov	r1, r7
+ 559 00f6 FFF7FEFF 		bl	__aeabi_fcmplt
+ 560 00fa 40B1     		cbz	r0, .L72
+ 561              		.loc 1 82 0 is_stmt 0 discriminator 1
+ 562 00fc 3DB9     		cbnz	r5, .L72
+ 563 00fe 554B     		ldr	r3, .L168+28
+ 564 0100 5868     		ldr	r0, [r3, #4]	@ float
+ 565 0102 554B     		ldr	r3, .L168+32
+ 566 0104 5968     		ldr	r1, [r3, #4]	@ float
+ 567 0106 FFF7FEFF 		bl	__aeabi_fcmpgt
+ 568 010a 0028     		cmp	r0, #0
+ 569 010c 33D1     		bne	.L74
+ 570              	.L72:
+  83:subsystems/navigation/nav_survey_rectangle.c ****         (estimator_y > nav_survey_south && SurveyGoingSouth()) ||
+ 571              		.loc 1 83 0 is_stmt 1 discriminator 2
+ 572 010e 4E4B     		ldr	r3, .L168+16
+  82:subsystems/navigation/nav_survey_rectangle.c ****     if ((estimator_y < nav_survey_north && SurveyGoingNorth()) ||
+ 573              		.loc 1 82 0 discriminator 2
+ 574 0110 2046     		mov	r0, r4
+ 575              		.loc 1 83 0 discriminator 2
+ 576 0112 D3F80080 		ldr	r8, [r3, #0]	@ float
+  82:subsystems/navigation/nav_survey_rectangle.c ****     if ((estimator_y < nav_survey_north && SurveyGoingNorth()) ||
+ 577              		.loc 1 82 0 discriminator 2
+ 578 0116 4146     		mov	r1, r8
+ 579 0118 FFF7FEFF 		bl	__aeabi_fcmpgt
+ 580 011c 38B1     		cbz	r0, .L75
+ 581              		.loc 1 83 0
+ 582 011e 35B9     		cbnz	r5, .L75
+ 583              		.loc 1 83 0 is_stmt 0 discriminator 1
+ 584 0120 4C4B     		ldr	r3, .L168+28
+ 585 0122 5868     		ldr	r0, [r3, #4]	@ float
+ 586 0124 4C4B     		ldr	r3, .L168+32
+ 587 0126 5968     		ldr	r1, [r3, #4]	@ float
+ 588 0128 FFF7FEFF 		bl	__aeabi_fcmplt
+ 589 012c 18BB     		cbnz	r0, .L74
+ 590              	.L75:
+  84:subsystems/navigation/nav_survey_rectangle.c ****     (estimator_x < nav_survey_east && SurveyGoingEast()) ||
+ 591              		.loc 1 84 0 is_stmt 1 discriminator 2
+ 592 012e 4D4B     		ldr	r3, .L168+44
+ 593 0130 1C68     		ldr	r4, [r3, #0]	@ float
+ 594 0132 444B     		ldr	r3, .L168+12
+  83:subsystems/navigation/nav_survey_rectangle.c ****         (estimator_y > nav_survey_south && SurveyGoingSouth()) ||
+ 595              		.loc 1 83 0 discriminator 2
+ 596 0134 2046     		mov	r0, r4
+ 597              		.loc 1 84 0 discriminator 2
+ 598 0136 1E68     		ldr	r6, [r3, #0]	@ float
+  83:subsystems/navigation/nav_survey_rectangle.c ****         (estimator_y > nav_survey_south && SurveyGoingSouth()) ||
+ 599              		.loc 1 83 0 discriminator 2
+ 600 0138 3146     		mov	r1, r6
+ 601 013a FFF7FEFF 		bl	__aeabi_fcmplt
+ 602 013e 40B1     		cbz	r0, .L77
+ 603              		.loc 1 84 0
+ 604 0140 012D     		cmp	r5, #1
+ 605 0142 06D1     		bne	.L77
+ 606              		.loc 1 84 0 is_stmt 0 discriminator 1
+ 607 0144 434B     		ldr	r3, .L168+28
+ 608 0146 1868     		ldr	r0, [r3, #0]	@ float
+ 609 0148 434B     		ldr	r3, .L168+32
+ 610 014a 1968     		ldr	r1, [r3, #0]	@ float
+ 611 014c FFF7FEFF 		bl	__aeabi_fcmpgt
+ 612 0150 88B9     		cbnz	r0, .L74
+ 613              	.L77:
+  85:subsystems/navigation/nav_survey_rectangle.c ****         (estimator_x > nav_survey_west && SurveyGoingWest())) {
+ 614              		.loc 1 85 0 is_stmt 1 discriminator 2
+ 615 0152 3B4B     		ldr	r3, .L168+8
+  84:subsystems/navigation/nav_survey_rectangle.c ****     (estimator_x < nav_survey_east && SurveyGoingEast()) ||
+ 616              		.loc 1 84 0 discriminator 2
+ 617 0154 2046     		mov	r0, r4
+ 618              		.loc 1 85 0 discriminator 2
+ 619 0156 D3F800A0 		ldr	sl, [r3, #0]	@ float
+  84:subsystems/navigation/nav_survey_rectangle.c ****     (estimator_x < nav_survey_east && SurveyGoingEast()) ||
+ 620              		.loc 1 84 0 discriminator 2
+ 621 015a 5146     		mov	r1, sl
+ 622 015c FFF7FEFF 		bl	__aeabi_fcmpgt
+ 623 0160 3D4B     		ldr	r3, .L168+32
+ 624 0162 88B1     		cbz	r0, .L79
+ 625              		.loc 1 85 0
+ 626 0164 012D     		cmp	r5, #1
+ 627 0166 0FD1     		bne	.L79
+ 628              		.loc 1 85 0 is_stmt 0 discriminator 1
+ 629 0168 3A4A     		ldr	r2, .L168+28
+ 630 016a 1968     		ldr	r1, [r3, #0]	@ float
+ 631 016c 1068     		ldr	r0, [r2, #0]	@ float
+ 632 016e FFF7FEFF 		bl	__aeabi_fcmplt
+ 633 0172 0028     		cmp	r0, #0
+ 634 0174 7ED0     		beq	.L81
+ 635              	.L74:
+  86:subsystems/navigation/nav_survey_rectangle.c ****       /* Continue ... */
+  87:subsystems/navigation/nav_survey_rectangle.c ****       nav_route_xy(survey_from.x, survey_from.y, survey_to.x, survey_to.y);
+ 636              		.loc 1 87 0 is_stmt 1
+ 637 0176 384A     		ldr	r2, .L168+32
+ 638 0178 364B     		ldr	r3, .L168+28
+ 639 017a 1068     		ldr	r0, [r2, #0]	@ float
+ 640 017c 5168     		ldr	r1, [r2, #4]	@ float
+ 641 017e 1A68     		ldr	r2, [r3, #0]	@ float
+ 642 0180 5B68     		ldr	r3, [r3, #4]	@ float
+ 643 0182 FFF7FEFF 		bl	nav_route_xy
+ 644 0186 22E2     		b	.L83
+ 645              	.L79:
+  88:subsystems/navigation/nav_survey_rectangle.c ****     } else {
+  89:subsystems/navigation/nav_survey_rectangle.c ****       if (survey_orientation == NS) {
+ 646              		.loc 1 89 0
+ 647 0188 002D     		cmp	r5, #0
+ 648 018a 73D1     		bne	.L81
+ 649              	.LBB2:
+  90:subsystems/navigation/nav_survey_rectangle.c ****     /* North or South limit reached, prepare U-turn and next leg */
+  91:subsystems/navigation/nav_survey_rectangle.c ****     float x0 = survey_from.x; /* Current longitude */
+ 650              		.loc 1 91 0
+ 651 018c 1C68     		ldr	r4, [r3, #0]	@ float
+ 652              	.LVL8:
+  92:subsystems/navigation/nav_survey_rectangle.c ****     if (x0+nav_survey_shift < nav_survey_west || x0+nav_survey_shift > nav_survey_east) {
+ 653              		.loc 1 92 0
+ 654 018e 364B     		ldr	r3, .L168+48
+ 655 0190 2046     		mov	r0, r4
+ 656 0192 1D68     		ldr	r5, [r3, #0]	@ float
+ 657 0194 2946     		mov	r1, r5
+ 658 0196 FFF7FEFF 		bl	__aeabi_fadd
+ 659              	.LVL9:
+ 660 019a 5146     		mov	r1, sl
+ 661 019c 0746     		mov	r7, r0
+ 662 019e FFF7FEFF 		bl	__aeabi_fcmplt
+ 663 01a2 20B9     		cbnz	r0, .L84
+ 664              		.loc 1 92 0 is_stmt 0 discriminator 1
+ 665 01a4 3846     		mov	r0, r7
+ 666 01a6 3146     		mov	r1, r6
+ 667 01a8 FFF7FEFF 		bl	__aeabi_fcmpgt
+ 668 01ac 68B1     		cbz	r0, .L85
+ 669              	.L84:
+  93:subsystems/navigation/nav_survey_rectangle.c ****       x0 += nav_survey_shift / 2;
+ 670              		.loc 1 93 0 is_stmt 1
+ 671 01ae 2846     		mov	r0, r5
+ 672 01b0 4FF07C51 		mov	r1, #1056964608
+ 673 01b4 FFF7FEFF 		bl	__aeabi_fmul
+ 674 01b8 0146     		mov	r1, r0
+ 675 01ba 2046     		mov	r0, r4
+ 676 01bc FFF7FEFF 		bl	__aeabi_fadd
+  94:subsystems/navigation/nav_survey_rectangle.c ****       nav_survey_shift = -nav_survey_shift;
+ 677              		.loc 1 94 0
+ 678 01c0 294B     		ldr	r3, .L168+48
+ 679 01c2 05F10045 		add	r5, r5, #-2147483648
+  93:subsystems/navigation/nav_survey_rectangle.c ****       x0 += nav_survey_shift / 2;
+ 680              		.loc 1 93 0
+ 681 01c6 0446     		mov	r4, r0
+ 682              	.LVL10:
+ 683              		.loc 1 94 0
+ 684 01c8 1D60     		str	r5, [r3, #0]	@ float
+ 685              	.LVL11:
+ 686              	.L85:
+  95:subsystems/navigation/nav_survey_rectangle.c ****     }
+  96:subsystems/navigation/nav_survey_rectangle.c **** 
+  97:subsystems/navigation/nav_survey_rectangle.c ****     x0 = x0 + nav_survey_shift; /* Longitude of next leg */
+ 687              		.loc 1 97 0
+ 688 01ca 274B     		ldr	r3, .L168+48
+ 689 01cc 2046     		mov	r0, r4
+ 690 01ce 1D68     		ldr	r5, [r3, #0]	@ float
+  98:subsystems/navigation/nav_survey_rectangle.c ****     survey_from.x = survey_to.x = x0;
+  99:subsystems/navigation/nav_survey_rectangle.c **** 
+ 100:subsystems/navigation/nav_survey_rectangle.c ****     /* Swap South and North extremities */
+ 101:subsystems/navigation/nav_survey_rectangle.c ****     float tmp = survey_from.y;
+ 102:subsystems/navigation/nav_survey_rectangle.c ****     survey_from.y = survey_to.y;
+ 103:subsystems/navigation/nav_survey_rectangle.c ****     survey_to.y = tmp;
+ 104:subsystems/navigation/nav_survey_rectangle.c **** 
+ 105:subsystems/navigation/nav_survey_rectangle.c ****     /** Do half a circle around WP 0 */
+ 106:subsystems/navigation/nav_survey_rectangle.c ****     waypoints[0].x = x0 - nav_survey_shift/2.;
+ 691              		.loc 1 106 0
+ 692 01d0 1A4C     		ldr	r4, .L168+4
+ 693              	.LVL12:
+  97:subsystems/navigation/nav_survey_rectangle.c ****     x0 = x0 + nav_survey_shift; /* Longitude of next leg */
+ 694              		.loc 1 97 0
+ 695 01d2 2946     		mov	r1, r5
+ 696 01d4 FFF7FEFF 		bl	__aeabi_fadd
+ 697              	.LVL13:
+  98:subsystems/navigation/nav_survey_rectangle.c ****     survey_from.x = survey_to.x = x0;
+ 698              		.loc 1 98 0
+ 699 01d8 1E4B     		ldr	r3, .L168+28
+ 700 01da 1F4A     		ldr	r2, .L168+32
+ 102:subsystems/navigation/nav_survey_rectangle.c ****     survey_from.y = survey_to.y;
+ 701              		.loc 1 102 0
+ 702 01dc 5E68     		ldr	r6, [r3, #4]	@ float
+ 101:subsystems/navigation/nav_survey_rectangle.c ****     float tmp = survey_from.y;
+ 703              		.loc 1 101 0
+ 704 01de 5768     		ldr	r7, [r2, #4]	@ float
+ 705              	.LVL14:
+  98:subsystems/navigation/nav_survey_rectangle.c ****     survey_from.x = survey_to.x = x0;
+ 706              		.loc 1 98 0
+ 707 01e0 1860     		str	r0, [r3, #0]	@ float
+ 708 01e2 1060     		str	r0, [r2, #0]	@ float
+ 102:subsystems/navigation/nav_survey_rectangle.c ****     survey_from.y = survey_to.y;
+ 709              		.loc 1 102 0
+ 710 01e4 5660     		str	r6, [r2, #4]	@ float
+ 103:subsystems/navigation/nav_survey_rectangle.c ****     survey_to.y = tmp;
+ 711              		.loc 1 103 0
+ 712 01e6 5F60     		str	r7, [r3, #4]	@ float
+ 713              		.loc 1 106 0
+ 714 01e8 FFF7FEFF 		bl	__aeabi_f2d
+ 715              	.LVL15:
+ 716 01ec 8246     		mov	sl, r0
+ 717 01ee 2846     		mov	r0, r5
+ 718 01f0 8B46     		mov	fp, r1
+ 719 01f2 FFF7FEFF 		bl	__aeabi_f2d
+ 720 01f6 0022     		movs	r2, #0
+ 721 01f8 1C4B     		ldr	r3, .L168+52
+ 722 01fa FFF7FEFF 		bl	__aeabi_dmul
+ 723 01fe 0246     		mov	r2, r0
+ 724 0200 0B46     		mov	r3, r1
+ 725 0202 5046     		mov	r0, sl
+ 726 0204 5946     		mov	r1, fp
+ 727 0206 FFF7FEFF 		bl	__aeabi_dsub
+ 728 020a FFF7FEFF 		bl	__aeabi_d2f
+ 107:subsystems/navigation/nav_survey_rectangle.c ****     waypoints[0].y = survey_from.y;
+ 729              		.loc 1 107 0
+ 730 020e 6660     		str	r6, [r4, #4]	@ float
+ 106:subsystems/navigation/nav_survey_rectangle.c ****     waypoints[0].x = x0 - nav_survey_shift/2.;
+ 731              		.loc 1 106 0
+ 732 0210 2060     		str	r0, [r4, #0]	@ float
+ 108:subsystems/navigation/nav_survey_rectangle.c **** 
+ 109:subsystems/navigation/nav_survey_rectangle.c ****       /* Computes the right direction for the circle */
+ 110:subsystems/navigation/nav_survey_rectangle.c ****     survey_radius = nav_survey_shift / 2.;
+ 733              		.loc 1 110 0
+ 734 0212 4FF07C51 		mov	r1, #1056964608
+ 735 0216 2846     		mov	r0, r5
+ 736 0218 FFF7FEFF 		bl	__aeabi_fmul
+ 737 021c 144C     		ldr	r4, .L168+56
+ 738 021e 0546     		mov	r5, r0
+ 739 0220 2060     		str	r0, [r4, #0]	@ float
+ 111:subsystems/navigation/nav_survey_rectangle.c ****     if (SurveyGoingNorth()) {
+ 740              		.loc 1 111 0
+ 741 0222 3146     		mov	r1, r6
+ 742 0224 3846     		mov	r0, r7
+ 743 0226 FFF7FEFF 		bl	__aeabi_fcmpgt
+ 744 022a 0028     		cmp	r0, #0
+ 745 022c 7AD0     		beq	.L87
+ 112:subsystems/navigation/nav_survey_rectangle.c ****       survey_radius = -survey_radius;
+ 746              		.loc 1 112 0
+ 747 022e 05F10045 		add	r5, r5, #-2147483648
+ 748 0232 2560     		str	r5, [r4, #0]	@ float
+ 749 0234 76E0     		b	.L87
+ 750              	.L169:
+ 751 0236 00BF     		.align	2
+ 752              	.L168:
+ 753 0238 00000000 		.word	nav_survey_active
+ 754 023c 00000000 		.word	waypoints
+ 755 0240 00000000 		.word	nav_survey_west
+ 756 0244 00000000 		.word	nav_survey_east
+ 757 0248 00000000 		.word	nav_survey_south
+ 758 024c 00000000 		.word	nav_survey_north
+ 759 0250 00000000 		.word	.LANCHOR0
+ 760 0254 00000000 		.word	.LANCHOR1
+ 761 0258 00000000 		.word	.LANCHOR2
+ 762 025c 00000000 		.word	.LANCHOR3
+ 763 0260 00000000 		.word	estimator_y
+ 764 0264 00000000 		.word	estimator_x
+ 765 0268 00000000 		.word	nav_survey_shift
+ 766 026c 0000E03F 		.word	1071644672
+ 767 0270 00000000 		.word	.LANCHOR4
+ 768              	.LVL16:
+ 769              	.L81:
+ 770              	.LBE2:
+ 771              	.LBB3:
+ 113:subsystems/navigation/nav_survey_rectangle.c ****     }
+ 114:subsystems/navigation/nav_survey_rectangle.c ****       } else { /* (survey_orientation == WE) */
+ 115:subsystems/navigation/nav_survey_rectangle.c ****     /* East or West limit reached, prepare U-turn and next leg */
+ 116:subsystems/navigation/nav_survey_rectangle.c ****     /* There is a y0 declared in math.h (for ARM) !!! */
+ 117:subsystems/navigation/nav_survey_rectangle.c ****     float my_y0 = survey_from.y; /* Current latitude */
+ 772              		.loc 1 117 0
+ 773 0274 924B     		ldr	r3, .L170+8
+ 774 0276 5C68     		ldr	r4, [r3, #4]	@ float
+ 775              	.LVL17:
+ 118:subsystems/navigation/nav_survey_rectangle.c ****     if (my_y0+nav_survey_shift < nav_survey_south || my_y0+nav_survey_shift > nav_survey_north) {
+ 776              		.loc 1 118 0
+ 777 0278 924B     		ldr	r3, .L170+12
+ 778 027a 2046     		mov	r0, r4
+ 779 027c 1E68     		ldr	r6, [r3, #0]	@ float
+ 780 027e 3146     		mov	r1, r6
+ 781 0280 FFF7FEFF 		bl	__aeabi_fadd
+ 782              	.LVL18:
+ 783 0284 4146     		mov	r1, r8
+ 784 0286 8246     		mov	sl, r0
+ 785 0288 FFF7FEFF 		bl	__aeabi_fcmplt
+ 786 028c 20B9     		cbnz	r0, .L89
+ 787              		.loc 1 118 0 is_stmt 0 discriminator 1
+ 788 028e 5046     		mov	r0, sl
+ 789 0290 3946     		mov	r1, r7
+ 790 0292 FFF7FEFF 		bl	__aeabi_fcmpgt
+ 791 0296 68B1     		cbz	r0, .L90
+ 792              	.L89:
+ 119:subsystems/navigation/nav_survey_rectangle.c ****       my_y0 += nav_survey_shift / 2;
+ 793              		.loc 1 119 0 is_stmt 1
+ 794 0298 3046     		mov	r0, r6
+ 795 029a 4FF07C51 		mov	r1, #1056964608
+ 796 029e FFF7FEFF 		bl	__aeabi_fmul
+ 797 02a2 0146     		mov	r1, r0
+ 798 02a4 2046     		mov	r0, r4
+ 799 02a6 FFF7FEFF 		bl	__aeabi_fadd
+ 120:subsystems/navigation/nav_survey_rectangle.c ****       nav_survey_shift = -nav_survey_shift;
+ 800              		.loc 1 120 0
+ 801 02aa 864B     		ldr	r3, .L170+12
+ 802 02ac 06F10046 		add	r6, r6, #-2147483648
+ 119:subsystems/navigation/nav_survey_rectangle.c ****       my_y0 += nav_survey_shift / 2;
+ 803              		.loc 1 119 0
+ 804 02b0 0446     		mov	r4, r0
+ 805              	.LVL19:
+ 806              		.loc 1 120 0
+ 807 02b2 1E60     		str	r6, [r3, #0]	@ float
+ 808              	.LVL20:
+ 809              	.L90:
+ 121:subsystems/navigation/nav_survey_rectangle.c ****     }
+ 122:subsystems/navigation/nav_survey_rectangle.c **** 
+ 123:subsystems/navigation/nav_survey_rectangle.c ****     my_y0 = my_y0 + nav_survey_shift; /* Longitude of next leg */
+ 810              		.loc 1 123 0
+ 811 02b4 834B     		ldr	r3, .L170+12
+ 812 02b6 2046     		mov	r0, r4
+ 813 02b8 1E68     		ldr	r6, [r3, #0]	@ float
+ 124:subsystems/navigation/nav_survey_rectangle.c ****     survey_from.y = survey_to.y = my_y0;
+ 125:subsystems/navigation/nav_survey_rectangle.c **** 
+ 126:subsystems/navigation/nav_survey_rectangle.c ****     /* Swap West and East extremities */
+ 127:subsystems/navigation/nav_survey_rectangle.c ****     float tmp = survey_from.x;
+ 128:subsystems/navigation/nav_survey_rectangle.c ****     survey_from.x = survey_to.x;
+ 129:subsystems/navigation/nav_survey_rectangle.c ****     survey_to.x = tmp;
+ 130:subsystems/navigation/nav_survey_rectangle.c **** 
+ 131:subsystems/navigation/nav_survey_rectangle.c ****     /** Do half a circle around WP 0 */
+ 132:subsystems/navigation/nav_survey_rectangle.c ****     waypoints[0].x = survey_from.x;
+ 814              		.loc 1 132 0
+ 815 02ba 834C     		ldr	r4, .L170+16
+ 816              	.LVL21:
+ 123:subsystems/navigation/nav_survey_rectangle.c ****     my_y0 = my_y0 + nav_survey_shift; /* Longitude of next leg */
+ 817              		.loc 1 123 0
+ 818 02bc 3146     		mov	r1, r6
+ 819 02be FFF7FEFF 		bl	__aeabi_fadd
+ 820              	.LVL22:
+ 124:subsystems/navigation/nav_survey_rectangle.c ****     survey_from.y = survey_to.y = my_y0;
+ 821              		.loc 1 124 0
+ 822 02c2 824B     		ldr	r3, .L170+20
+ 823 02c4 7E4A     		ldr	r2, .L170+8
+ 128:subsystems/navigation/nav_survey_rectangle.c ****     survey_from.x = survey_to.x;
+ 824              		.loc 1 128 0
+ 825 02c6 1F68     		ldr	r7, [r3, #0]	@ float
+ 127:subsystems/navigation/nav_survey_rectangle.c ****     float tmp = survey_from.x;
+ 826              		.loc 1 127 0
+ 827 02c8 D2F80080 		ldr	r8, [r2, #0]	@ float
+ 828              	.LVL23:
+ 124:subsystems/navigation/nav_survey_rectangle.c ****     survey_from.y = survey_to.y = my_y0;
+ 829              		.loc 1 124 0
+ 830 02cc 5860     		str	r0, [r3, #4]	@ float
+ 128:subsystems/navigation/nav_survey_rectangle.c ****     survey_from.x = survey_to.x;
+ 831              		.loc 1 128 0
+ 832 02ce 1760     		str	r7, [r2, #0]	@ float
+ 129:subsystems/navigation/nav_survey_rectangle.c ****     survey_to.x = tmp;
+ 833              		.loc 1 129 0
+ 834 02d0 C3F80080 		str	r8, [r3, #0]	@ float
+ 124:subsystems/navigation/nav_survey_rectangle.c ****     survey_from.y = survey_to.y = my_y0;
+ 835              		.loc 1 124 0
+ 836 02d4 5060     		str	r0, [r2, #4]	@ float
+ 837              		.loc 1 132 0
+ 838 02d6 2760     		str	r7, [r4, #0]	@ float
+ 133:subsystems/navigation/nav_survey_rectangle.c ****     waypoints[0].y = my_y0 - nav_survey_shift/2.;
+ 839              		.loc 1 133 0
+ 840 02d8 FFF7FEFF 		bl	__aeabi_f2d
+ 841              	.LVL24:
+ 842 02dc 8246     		mov	sl, r0
+ 843 02de 3046     		mov	r0, r6
+ 844 02e0 8B46     		mov	fp, r1
+ 845 02e2 FFF7FEFF 		bl	__aeabi_f2d
+ 846 02e6 0022     		movs	r2, #0
+ 847 02e8 794B     		ldr	r3, .L170+24
+ 848 02ea FFF7FEFF 		bl	__aeabi_dmul
+ 849 02ee 0246     		mov	r2, r0
+ 850 02f0 0B46     		mov	r3, r1
+ 851 02f2 5046     		mov	r0, sl
+ 852 02f4 5946     		mov	r1, fp
+ 853 02f6 FFF7FEFF 		bl	__aeabi_dsub
+ 854 02fa FFF7FEFF 		bl	__aeabi_d2f
+ 134:subsystems/navigation/nav_survey_rectangle.c **** 
+ 135:subsystems/navigation/nav_survey_rectangle.c ****       /* Computes the right direction for the circle */
+ 136:subsystems/navigation/nav_survey_rectangle.c ****     survey_radius = nav_survey_shift / 2.;
+ 855              		.loc 1 136 0
+ 856 02fe 4FF07C51 		mov	r1, #1056964608
+ 133:subsystems/navigation/nav_survey_rectangle.c ****     waypoints[0].y = my_y0 - nav_survey_shift/2.;
+ 857              		.loc 1 133 0
+ 858 0302 6060     		str	r0, [r4, #4]	@ float
+ 859              		.loc 1 136 0
+ 860 0304 3046     		mov	r0, r6
+ 861 0306 FFF7FEFF 		bl	__aeabi_fmul
+ 862 030a 724C     		ldr	r4, .L170+28
+ 137:subsystems/navigation/nav_survey_rectangle.c ****     if (SurveyGoingWest()) {
+ 863              		.loc 1 137 0
+ 864 030c 012D     		cmp	r5, #1
+ 136:subsystems/navigation/nav_survey_rectangle.c ****     survey_radius = nav_survey_shift / 2.;
+ 865              		.loc 1 136 0
+ 866 030e 0646     		mov	r6, r0
+ 867 0310 2060     		str	r0, [r4, #0]	@ float
+ 868              		.loc 1 137 0
+ 869 0312 07D1     		bne	.L87
+ 870              		.loc 1 137 0 is_stmt 0 discriminator 1
+ 871 0314 4046     		mov	r0, r8
+ 872 0316 3946     		mov	r1, r7
+ 873 0318 FFF7FEFF 		bl	__aeabi_fcmplt
+ 874 031c 10B1     		cbz	r0, .L87
+ 138:subsystems/navigation/nav_survey_rectangle.c ****       survey_radius = -survey_radius;
+ 875              		.loc 1 138 0 is_stmt 1
+ 876 031e 06F10046 		add	r6, r6, #-2147483648
+ 877 0322 2660     		str	r6, [r4, #0]	@ float
+ 878              	.LVL25:
+ 879              	.L87:
+ 880              	.LBE3:
+ 139:subsystems/navigation/nav_survey_rectangle.c ****     }
+ 140:subsystems/navigation/nav_survey_rectangle.c ****       }
+ 141:subsystems/navigation/nav_survey_rectangle.c **** 
+ 142:subsystems/navigation/nav_survey_rectangle.c ****       nav_in_segment = FALSE;
+ 881              		.loc 1 142 0
+ 882 0324 6C4B     		ldr	r3, .L170+32
+ 883 0326 0022     		movs	r2, #0
+ 884 0328 1A70     		strb	r2, [r3, #0]
+ 143:subsystems/navigation/nav_survey_rectangle.c ****       survey_uturn = TRUE;
+ 885              		.loc 1 143 0
+ 886 032a 6C4B     		ldr	r3, .L170+36
+ 887 032c 0122     		movs	r2, #1
+ 888 032e 1A70     		strb	r2, [r3, #0]
+ 889 0330 4DE1     		b	.L83
+ 890              	.L71:
+ 144:subsystems/navigation/nav_survey_rectangle.c ****       LINE_STOP_FUNCTION;
+ 145:subsystems/navigation/nav_survey_rectangle.c ****     }
+ 146:subsystems/navigation/nav_survey_rectangle.c ****   } else { /* U-turn */
+ 147:subsystems/navigation/nav_survey_rectangle.c ****     if ((SurveyGoingNorth() && NavCourseCloseTo(0)) ||
+ 891              		.loc 1 147 0
+ 892 0332 002D     		cmp	r5, #0
+ 893 0334 40F08A80 		bne	.L93
+ 894              		.loc 1 147 0 is_stmt 0 discriminator 1
+ 895 0338 644B     		ldr	r3, .L170+20
+ 896 033a 5C68     		ldr	r4, [r3, #4]	@ float
+ 897 033c 604B     		ldr	r3, .L170+8
+ 898 033e 2046     		mov	r0, r4
+ 899 0340 5E68     		ldr	r6, [r3, #4]	@ float
+ 900 0342 3146     		mov	r1, r6
+ 901 0344 FFF7FEFF 		bl	__aeabi_fcmpgt
+ 902 0348 0028     		cmp	r0, #0
+ 903 034a 42D0     		beq	.L94
+ 904              	.LBB4:
+ 905 034c 644B     		ldr	r3, .L170+40
+ 906              	.LBB5:
+ 907 034e A846     		mov	r8, r5
+ 908              	.LBE5:
+ 909 0350 1868     		ldr	r0, [r3, #0]	@ float
+ 910 0352 FFF7FEFF 		bl	__aeabi_f2d
+ 911 0356 58A3     		adr	r3, .L170
+ 912 0358 D3E90023 		ldrd	r2, [r3]
+ 913 035c FFF7FEFF 		bl	__aeabi_dmul
+ 914 0360 0246     		mov	r2, r0
+ 915 0362 0B46     		mov	r3, r1
+ 916 0364 0020     		movs	r0, #0
+ 917 0366 0021     		movs	r1, #0
+ 918 0368 FFF7FEFF 		bl	__aeabi_dsub
+ 919 036c FFF7FEFF 		bl	__aeabi_d2f
+ 920 0370 0746     		mov	r7, r0
+ 921              	.LVL26:
+ 922              	.LBB6:
+ 923 0372 04E0     		b	.L96
+ 924              	.LVL27:
+ 925              	.L99:
+ 926              		.loc 1 147 0 discriminator 4
+ 927 0374 3846     		mov	r0, r7
+ 928 0376 5B49     		ldr	r1, .L170+44
+ 929 0378 FFF7FEFF 		bl	__aeabi_fadd
+ 930 037c 0746     		mov	r7, r0
+ 931              	.LVL28:
+ 932              	.L96:
+ 933              		.loc 1 147 0 discriminator 1
+ 934 037e 3846     		mov	r0, r7
+ 935              	.LVL29:
+ 936 0380 0021     		movs	r1, #0
+ 937 0382 5FFA88F5 		uxtb	r5, r8
+ 938 0386 FFF7FEFF 		bl	__aeabi_fcmplt
+ 939 038a 58B1     		cbz	r0, .L163
+ 940              		.loc 1 147 0 discriminator 2
+ 941 038c 08F10108 		add	r8, r8, #1
+ 942 0390 B8F5807F 		cmp	r8, #256
+ 943 0394 EED1     		bne	.L99
+ 944              		.loc 1 147 0
+ 945 0396 0025     		movs	r5, #0
+ 946 0398 04E0     		b	.L163
+ 947              	.LVL30:
+ 948              	.L103:
+ 949              		.loc 1 147 0 discriminator 8
+ 950 039a 3846     		mov	r0, r7
+ 951 039c 5149     		ldr	r1, .L170+44
+ 952 039e FFF7FEFF 		bl	__aeabi_fsub
+ 953 03a2 0746     		mov	r7, r0
+ 954              	.LVL31:
+ 955              	.L163:
+ 956              		.loc 1 147 0 discriminator 5
+ 957 03a4 3846     		mov	r0, r7
+ 958 03a6 4F49     		ldr	r1, .L170+44
+ 959 03a8 FFF7FEFF 		bl	__aeabi_fcmpge
+ 960 03ac 18B1     		cbz	r0, .L101
+ 961              		.loc 1 147 0 discriminator 6
+ 962 03ae 0135     		adds	r5, r5, #1
+ 963              	.LVL32:
+ 964 03b0 EDB2     		uxtb	r5, r5
+ 965              	.LVL33:
+ 966 03b2 002D     		cmp	r5, #0
+ 967 03b4 F1D1     		bne	.L103
+ 968              	.LVL34:
+ 969              	.L101:
+ 970              	.LBE6:
+ 971              		.loc 1 147 0 discriminator 7
+ 972 03b6 3846     		mov	r0, r7
+ 973 03b8 4B49     		ldr	r1, .L170+48
+ 974 03ba FFF7FEFF 		bl	__aeabi_fcmpgt
+ 975 03be 0028     		cmp	r0, #0
+ 976 03c0 40F0F880 		bne	.L104
+ 977              		.loc 1 147 0 discriminator 10
+ 978 03c4 3846     		mov	r0, r7
+ 979 03c6 4949     		ldr	r1, .L170+52
+ 980 03c8 FFF7FEFF 		bl	__aeabi_fcmplt
+ 981 03cc 0028     		cmp	r0, #0
+ 982 03ce 40F0F180 		bne	.L104
+ 983              	.LVL35:
+ 984              	.L94:
+ 985              	.LBE4:
+ 148:subsystems/navigation/nav_survey_rectangle.c ****     (SurveyGoingSouth() && NavCourseCloseTo(180)) ||
+ 986              		.loc 1 148 0 is_stmt 1
+ 987 03d2 2046     		mov	r0, r4
+ 988 03d4 3146     		mov	r1, r6
+ 989 03d6 FFF7FEFF 		bl	__aeabi_fcmplt
+ 990 03da 0028     		cmp	r0, #0
+ 991 03dc 00F0F080 		beq	.L105
+ 992              	.LBB7:
+ 993              		.loc 1 148 0 is_stmt 0 discriminator 1
+ 994 03e0 3F4B     		ldr	r3, .L170+40
+ 995              	.LBB8:
+ 996 03e2 0026     		movs	r6, #0
+ 997              	.LBE8:
+ 998 03e4 1868     		ldr	r0, [r3, #0]	@ float
+ 999 03e6 FFF7FEFF 		bl	__aeabi_f2d
+ 1000 03ea 33A3     		adr	r3, .L170
+ 1001 03ec D3E90023 		ldrd	r2, [r3]
+ 1002 03f0 FFF7FEFF 		bl	__aeabi_dmul
+ 1003 03f4 0246     		mov	r2, r0
+ 1004 03f6 0B46     		mov	r3, r1
+ 1005 03f8 0020     		movs	r0, #0
+ 1006 03fa 3D49     		ldr	r1, .L170+56
+ 1007 03fc FFF7FEFF 		bl	__aeabi_dsub
+ 1008 0400 FFF7FEFF 		bl	__aeabi_d2f
+ 1009 0404 0446     		mov	r4, r0
+ 1010              	.LVL36:
+ 1011              	.LBB9:
+ 1012 0406 04E0     		b	.L107
+ 1013              	.LVL37:
+ 1014              	.L110:
+ 1015              		.loc 1 148 0 discriminator 4
+ 1016 0408 2046     		mov	r0, r4
+ 1017 040a 3649     		ldr	r1, .L170+44
+ 1018 040c FFF7FEFF 		bl	__aeabi_fadd
+ 1019 0410 0446     		mov	r4, r0
+ 1020              	.LVL38:
+ 1021              	.L107:
+ 1022              		.loc 1 148 0 discriminator 1
+ 1023 0412 2046     		mov	r0, r4
+ 1024              	.LVL39:
+ 1025 0414 0021     		movs	r1, #0
+ 1026 0416 F5B2     		uxtb	r5, r6
+ 1027 0418 FFF7FEFF 		bl	__aeabi_fcmplt
+ 1028 041c 50B1     		cbz	r0, .L164
+ 1029              		.loc 1 148 0 discriminator 2
+ 1030 041e 0136     		adds	r6, r6, #1
+ 1031 0420 B6F5807F 		cmp	r6, #256
+ 1032 0424 F0D1     		bne	.L110
+ 1033              		.loc 1 148 0
+ 1034 0426 0025     		movs	r5, #0
+ 1035 0428 04E0     		b	.L164
+ 1036              	.LVL40:
+ 1037              	.L114:
+ 1038              		.loc 1 148 0 discriminator 8
+ 1039 042a 2046     		mov	r0, r4
+ 1040 042c 2D49     		ldr	r1, .L170+44
+ 1041 042e FFF7FEFF 		bl	__aeabi_fsub
+ 1042 0432 0446     		mov	r4, r0
+ 1043              	.LVL41:
+ 1044              	.L164:
+ 1045              		.loc 1 148 0 discriminator 5
+ 1046 0434 2046     		mov	r0, r4
+ 1047 0436 2B49     		ldr	r1, .L170+44
+ 1048 0438 FFF7FEFF 		bl	__aeabi_fcmpge
+ 1049 043c 0028     		cmp	r0, #0
+ 1050 043e 00F0AF80 		beq	.L131
+ 1051              		.loc 1 148 0 discriminator 6
+ 1052 0442 0135     		adds	r5, r5, #1
+ 1053              	.LVL42:
+ 1054 0444 EDB2     		uxtb	r5, r5
+ 1055              	.LVL43:
+ 1056 0446 002D     		cmp	r5, #0
+ 1057 0448 EFD1     		bne	.L114
+ 1058 044a A9E0     		b	.L131
+ 1059              	.LVL44:
+ 1060              	.L93:
+ 1061              	.LBE9:
+ 1062              	.LBE7:
+ 1063              		.loc 1 148 0 discriminator 2
+ 1064 044c 012D     		cmp	r5, #1
+ 1065 044e 40F0B780 		bne	.L105
+ 149:subsystems/navigation/nav_survey_rectangle.c ****     (SurveyGoingEast() && NavCourseCloseTo(90)) ||
+ 1066              		.loc 1 149 0 is_stmt 1
+ 1067 0452 1E4B     		ldr	r3, .L170+20
+ 1068 0454 1D68     		ldr	r5, [r3, #0]	@ float
+ 1069 0456 1A4B     		ldr	r3, .L170+8
+ 1070 0458 2846     		mov	r0, r5
+ 1071 045a 1C68     		ldr	r4, [r3, #0]	@ float
+ 1072 045c 2146     		mov	r1, r4
+ 1073 045e FFF7FEFF 		bl	__aeabi_fcmpgt
+ 1074 0462 0028     		cmp	r0, #0
+ 1075 0464 62D0     		beq	.L115
+ 1076              	.LBB10:
+ 1077              		.loc 1 149 0 is_stmt 0 discriminator 1
+ 1078 0466 1E4B     		ldr	r3, .L170+40
+ 1079              	.LBB11:
+ 1080 0468 4FF00008 		mov	r8, #0
+ 1081              	.LBE11:
+ 1082 046c 1868     		ldr	r0, [r3, #0]	@ float
+ 1083 046e FFF7FEFF 		bl	__aeabi_f2d
+ 1084 0472 11A3     		adr	r3, .L170
+ 1085 0474 D3E90023 		ldrd	r2, [r3]
+ 1086 0478 FFF7FEFF 		bl	__aeabi_dmul
+ 1087 047c 0246     		mov	r2, r0
+ 1088 047e 0B46     		mov	r3, r1
+ 1089 0480 0020     		movs	r0, #0
+ 1090 0482 1C49     		ldr	r1, .L170+60
+ 1091 0484 FFF7FEFF 		bl	__aeabi_dsub
+ 1092 0488 FFF7FEFF 		bl	__aeabi_d2f
+ 1093 048c 0646     		mov	r6, r0
+ 1094              	.LVL45:
+ 1095              	.LBB12:
+ 1096 048e 04E0     		b	.L117
+ 1097              	.LVL46:
+ 1098              	.L120:
+ 1099              		.loc 1 149 0 discriminator 4
+ 1100 0490 3046     		mov	r0, r6
+ 1101 0492 1449     		ldr	r1, .L170+44
+ 1102 0494 FFF7FEFF 		bl	__aeabi_fadd
+ 1103 0498 0646     		mov	r6, r0
+ 1104              	.LVL47:
+ 1105              	.L117:
+ 1106              		.loc 1 149 0 discriminator 1
+ 1107 049a 3046     		mov	r0, r6
+ 1108              	.LVL48:
+ 1109 049c 0021     		movs	r1, #0
+ 1110 049e 5FFA88F7 		uxtb	r7, r8
+ 1111 04a2 FFF7FEFF 		bl	__aeabi_fcmplt
+ 1112 04a6 60B3     		cbz	r0, .L165
+ 1113              		.loc 1 149 0 discriminator 2
+ 1114 04a8 08F10108 		add	r8, r8, #1
+ 1115 04ac B8F5807F 		cmp	r8, #256
+ 1116 04b0 EED1     		bne	.L120
+ 1117              		.loc 1 149 0
+ 1118 04b2 0027     		movs	r7, #0
+ 1119 04b4 25E0     		b	.L165
+ 1120              	.L171:
+ 1121 04b6 00BF     		.align	3
+ 1122              	.L170:
+ 1123 04b8 F8C1631A 		.word	442745336
+ 1124 04bc DCA54C40 		.word	1078765020
+ 1125 04c0 00000000 		.word	.LANCHOR2
+ 1126 04c4 00000000 		.word	nav_survey_shift
+ 1127 04c8 00000000 		.word	waypoints
+ 1128 04cc 00000000 		.word	.LANCHOR1
+ 1129 04d0 0000E03F 		.word	1071644672
+ 1130 04d4 00000000 		.word	.LANCHOR4
+ 1131 04d8 00000000 		.word	nav_in_segment
+ 1132 04dc 00000000 		.word	.LANCHOR3
+ 1133 04e0 00000000 		.word	estimator_hspeed_dir
+ 1134 04e4 0000B443 		.word	1135869952
+ 1135 04e8 0000AF43 		.word	1135542272
+ 1136 04ec 00002041 		.word	1092616192
+ 1137 04f0 00806640 		.word	1080459264
+ 1138 04f4 00805640 		.word	1079410688
+ 1139              	.LVL49:
+ 1140              	.L124:
+ 1141              		.loc 1 149 0 discriminator 8
+ 1142 04f8 3046     		mov	r0, r6
+ 1143 04fa 4349     		ldr	r1, .L172+16
+ 1144 04fc FFF7FEFF 		bl	__aeabi_fsub
+ 1145 0500 0646     		mov	r6, r0
+ 1146              	.LVL50:
+ 1147              	.L165:
+ 1148              		.loc 1 149 0 discriminator 5
+ 1149 0502 3046     		mov	r0, r6
+ 1150 0504 4049     		ldr	r1, .L172+16
+ 1151 0506 FFF7FEFF 		bl	__aeabi_fcmpge
+ 1152 050a 18B1     		cbz	r0, .L122
+ 1153              		.loc 1 149 0 discriminator 6
+ 1154 050c 0137     		adds	r7, r7, #1
+ 1155              	.LVL51:
+ 1156 050e FFB2     		uxtb	r7, r7
+ 1157              	.LVL52:
+ 1158 0510 002F     		cmp	r7, #0
+ 1159 0512 F1D1     		bne	.L124
+ 1160              	.LVL53:
+ 1161              	.L122:
+ 1162              	.LBE12:
+ 1163              		.loc 1 149 0 discriminator 7
+ 1164 0514 3046     		mov	r0, r6
+ 1165 0516 3D49     		ldr	r1, .L172+20
+ 1166 0518 FFF7FEFF 		bl	__aeabi_fcmpgt
+ 1167 051c 0028     		cmp	r0, #0
+ 1168 051e 49D1     		bne	.L104
+ 1169              		.loc 1 149 0 discriminator 10
+ 1170 0520 3046     		mov	r0, r6
+ 1171 0522 3B49     		ldr	r1, .L172+24
+ 1172 0524 FFF7FEFF 		bl	__aeabi_fcmplt
+ 1173 0528 0028     		cmp	r0, #0
+ 1174 052a 43D1     		bne	.L104
+ 1175              	.LVL54:
+ 1176              	.L115:
+ 1177              	.LBE10:
+ 150:subsystems/navigation/nav_survey_rectangle.c ****     (SurveyGoingWest() && NavCourseCloseTo(270))) {
+ 1178              		.loc 1 150 0 is_stmt 1
+ 1179 052c 2846     		mov	r0, r5
+ 1180 052e 2146     		mov	r1, r4
+ 1181 0530 FFF7FEFF 		bl	__aeabi_fcmplt
+ 1182 0534 0028     		cmp	r0, #0
+ 1183 0536 43D0     		beq	.L105
+ 1184              	.LBB13:
+ 1185              		.loc 1 150 0 is_stmt 0 discriminator 1
+ 1186 0538 364B     		ldr	r3, .L172+28
+ 1187              	.LBB14:
+ 1188 053a 0026     		movs	r6, #0
+ 1189              	.LBE14:
+ 1190 053c 1868     		ldr	r0, [r3, #0]	@ float
+ 1191 053e FFF7FEFF 		bl	__aeabi_f2d
+ 1192 0542 2DA3     		adr	r3, .L172
+ 1193 0544 D3E90023 		ldrd	r2, [r3]
+ 1194 0548 FFF7FEFF 		bl	__aeabi_dmul
+ 1195 054c 0246     		mov	r2, r0
+ 1196 054e 0B46     		mov	r3, r1
+ 1197 0550 2BA1     		adr	r1, .L172+8
+ 1198 0552 D1E90001 		ldrd	r0, [r1]
+ 1199 0556 FFF7FEFF 		bl	__aeabi_dsub
+ 1200 055a FFF7FEFF 		bl	__aeabi_d2f
+ 1201 055e 0446     		mov	r4, r0
+ 1202              	.LVL55:
+ 1203              	.LBB15:
+ 1204 0560 04E0     		b	.L126
+ 1205              	.LVL56:
+ 1206              	.L129:
+ 1207              		.loc 1 150 0 discriminator 4
+ 1208 0562 2046     		mov	r0, r4
+ 1209 0564 2849     		ldr	r1, .L172+16
+ 1210 0566 FFF7FEFF 		bl	__aeabi_fadd
+ 1211 056a 0446     		mov	r4, r0
+ 1212              	.LVL57:
+ 1213              	.L126:
+ 1214              		.loc 1 150 0 discriminator 1
+ 1215 056c 2046     		mov	r0, r4
+ 1216              	.LVL58:
+ 1217 056e 0021     		movs	r1, #0
+ 1218 0570 F5B2     		uxtb	r5, r6
+ 1219 0572 FFF7FEFF 		bl	__aeabi_fcmplt
+ 1220 0576 50B1     		cbz	r0, .L166
+ 1221              		.loc 1 150 0 discriminator 2
+ 1222 0578 0136     		adds	r6, r6, #1
+ 1223 057a B6F5807F 		cmp	r6, #256
+ 1224 057e F0D1     		bne	.L129
+ 1225              		.loc 1 150 0
+ 1226 0580 0025     		movs	r5, #0
+ 1227 0582 04E0     		b	.L166
+ 1228              	.LVL59:
+ 1229              	.L133:
+ 1230              		.loc 1 150 0 discriminator 8
+ 1231 0584 2046     		mov	r0, r4
+ 1232 0586 2049     		ldr	r1, .L172+16
+ 1233 0588 FFF7FEFF 		bl	__aeabi_fsub
+ 1234 058c 0446     		mov	r4, r0
+ 1235              	.LVL60:
+ 1236              	.L166:
+ 1237              		.loc 1 150 0 discriminator 5
+ 1238 058e 2046     		mov	r0, r4
+ 1239 0590 1D49     		ldr	r1, .L172+16
+ 1240 0592 FFF7FEFF 		bl	__aeabi_fcmpge
+ 1241 0596 18B1     		cbz	r0, .L131
+ 1242              		.loc 1 150 0 discriminator 6
+ 1243 0598 0135     		adds	r5, r5, #1
+ 1244              	.LVL61:
+ 1245 059a EDB2     		uxtb	r5, r5
+ 1246              	.LVL62:
+ 1247 059c 002D     		cmp	r5, #0
+ 1248 059e F1D1     		bne	.L133
+ 1249              	.LVL63:
+ 1250              	.L131:
+ 1251              	.LBE15:
+ 1252              		.loc 1 150 0 discriminator 7
+ 1253 05a0 2046     		mov	r0, r4
+ 1254 05a2 1A49     		ldr	r1, .L172+20
+ 1255 05a4 FFF7FEFF 		bl	__aeabi_fcmpgt
+ 1256 05a8 20B9     		cbnz	r0, .L104
+ 1257              		.loc 1 150 0 discriminator 10
+ 1258 05aa 2046     		mov	r0, r4
+ 1259 05ac 1849     		ldr	r1, .L172+24
+ 1260 05ae FFF7FEFF 		bl	__aeabi_fcmplt
+ 1261 05b2 28B1     		cbz	r0, .L105
+ 1262              	.L104:
+ 1263              	.LBE13:
+ 151:subsystems/navigation/nav_survey_rectangle.c ****       /* U-turn finished, back on a segment */
+ 152:subsystems/navigation/nav_survey_rectangle.c ****       survey_uturn = FALSE;
+ 1264              		.loc 1 152 0 is_stmt 1
+ 1265 05b4 184A     		ldr	r2, .L172+32
+ 1266 05b6 0023     		movs	r3, #0
+ 1267 05b8 1370     		strb	r3, [r2, #0]
+ 153:subsystems/navigation/nav_survey_rectangle.c ****       nav_in_circle = FALSE;
+ 1268              		.loc 1 153 0
+ 1269 05ba 184A     		ldr	r2, .L172+36
+ 1270 05bc 1370     		strb	r3, [r2, #0]
+ 1271 05be 06E0     		b	.L83
+ 1272              	.L105:
+ 154:subsystems/navigation/nav_survey_rectangle.c ****       LINE_START_FUNCTION;
+ 155:subsystems/navigation/nav_survey_rectangle.c ****     } else {
+ 156:subsystems/navigation/nav_survey_rectangle.c ****       NavCircleWaypoint(0, survey_radius);
+ 1273              		.loc 1 156 0
+ 1274 05c0 174B     		ldr	r3, .L172+40
+ 1275 05c2 1868     		ldr	r0, [r3, #0]	@ float
+ 1276 05c4 5968     		ldr	r1, [r3, #4]	@ float
+ 1277 05c6 174B     		ldr	r3, .L172+44
+ 1278 05c8 1A68     		ldr	r2, [r3, #0]	@ float
+ 1279 05ca FFF7FEFF 		bl	nav_circle_XY
+ 1280              	.L83:
+ 157:subsystems/navigation/nav_survey_rectangle.c ****     }
+ 158:subsystems/navigation/nav_survey_rectangle.c ****   }
+ 159:subsystems/navigation/nav_survey_rectangle.c ****   NavVerticalAutoThrottleMode(0.); /* No pitch */
+ 1281              		.loc 1 159 0
+ 1282 05ce 164B     		ldr	r3, .L172+48
+ 1283 05d0 0022     		movs	r2, #0
+ 1284 05d2 1A70     		strb	r2, [r3, #0]
+ 1285 05d4 154A     		ldr	r2, .L172+52
+ 1286 05d6 0023     		movs	r3, #0
+ 1287 05d8 1360     		str	r3, [r2, #0]	@ float
+ 160:subsystems/navigation/nav_survey_rectangle.c ****   NavVerticalAltitudeMode(WaypointAlt(wp1), 0.); /* No preclimb */
+ 1288              		.loc 1 160 0
+ 1289 05da 154A     		ldr	r2, .L172+56
+ 1290 05dc 0321     		movs	r1, #3
+ 1291 05de 1170     		strb	r1, [r2, #0]
+ 1292 05e0 0F4A     		ldr	r2, .L172+40
+ 1293 05e2 0C21     		movs	r1, #12
+ 1294 05e4 01FB0922 		mla	r2, r1, r9, r2
+ 1295 05e8 9168     		ldr	r1, [r2, #8]	@ float
+ 1296 05ea 124A     		ldr	r2, .L172+60
+ 1297 05ec 1160     		str	r1, [r2, #0]	@ float
+ 1298 05ee 124A     		ldr	r2, .L172+64
+ 1299 05f0 1360     		str	r3, [r2, #0]	@ float
+ 161:subsystems/navigation/nav_survey_rectangle.c **** }
+ 1300              		.loc 1 161 0
+ 1301 05f2 BDE8F88F 		pop	{r3, r4, r5, r6, r7, r8, r9, sl, fp, pc}
+ 1302              	.L173:
+ 1303 05f6 00BF     		.align	3
+ 1304              	.L172:
+ 1305 05f8 F8C1631A 		.word	442745336
+ 1306 05fc DCA54C40 		.word	1078765020
+ 1307 0600 00000000 		.word	0
+ 1308 0604 00E07040 		.word	1081139200
+ 1309 0608 0000B443 		.word	1135869952
+ 1310 060c 0000AF43 		.word	1135542272
+ 1311 0610 00002041 		.word	1092616192
+ 1312 0614 00000000 		.word	estimator_hspeed_dir
+ 1313 0618 00000000 		.word	.LANCHOR3
+ 1314 061c 00000000 		.word	nav_in_circle
+ 1315 0620 00000000 		.word	waypoints
+ 1316 0624 00000000 		.word	.LANCHOR4
+ 1317 0628 00000000 		.word	v_ctl_climb_mode
+ 1318 062c 00000000 		.word	nav_pitch
+ 1319 0630 00000000 		.word	v_ctl_mode
+ 1320 0634 00000000 		.word	nav_altitude
+ 1321 0638 00000000 		.word	v_ctl_altitude_pre_climb
+ 1322              		.cfi_endproc
+ 1323              	.LFE1:
+ 1325 063c AFF30080 		.section	.bss.survey_from,"aw",%nobits
+ 1326              		.align	2
+ 1327              		.set	.LANCHOR2,. + 0
+ 1330              	survey_from:
+ 1331 0000 00000000 		.space	12
+ 1331      00000000 
+ 1331      00000000 
+ 1332              		.section	.bss.survey_orientation,"aw",%nobits
+ 1333              		.set	.LANCHOR0,. + 0
+ 1336              	survey_orientation:
+ 1337 0000 00       		.space	1
+ 1338              		.section	.bss.survey_to,"aw",%nobits
+ 1339              		.align	2
+ 1340              		.set	.LANCHOR1,. + 0
+ 1343              	survey_to:
+ 1344 0000 00000000 		.space	12
+ 1344      00000000 
+ 1344      00000000 
+ 1345              		.section	.bss.survey_uturn,"aw",%nobits
+ 1346              		.set	.LANCHOR3,. + 0
+ 1349              	survey_uturn:
+ 1350 0000 00       		.space	1
+ 1351              		.section	.bss.survey_radius.2217,"aw",%nobits
+ 1352              		.align	2
+ 1353              		.set	.LANCHOR4,. + 0
+ 1356              	survey_radius.2217:
+ 1357 0000 00000000 		.space	4
+ 1358              		.text
+ 1359              	.Letext0:
+ 1360              		.file 2 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+ 1361              		.file 3 "/home/mav/paparazzi/sw/include/std.h"
+ 1362              		.file 4 "./subsystems/navigation/common_nav.h"
+ 1363              		.file 5 "./subsystems/navigation/nav_survey_rectangle.h"
+ 1364              		.file 6 "./firmwares/fixedwing/guidance/guidance_v.h"
+ 1365              		.file 7 "./subsystems/nav.h"
+ 1366              		.file 8 "./estimator.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 nav_survey_rectangle.c
+     /tmp/cc6wbVeP.s:27     .text.nav_survey_rectangle_init:00000000 $t
+     /tmp/cc6wbVeP.s:32     .text.nav_survey_rectangle_init:00000000 nav_survey_rectangle_init
+     /tmp/cc6wbVeP.s:332    .text.nav_survey_rectangle_init:00000230 $d
+     /tmp/cc6wbVeP.s:352    .text.nav_survey_rectangle_init:00000278 $t
+     /tmp/cc6wbVeP.s:374    .text.nav_survey_rectangle_init:00000294 $d
+     /tmp/cc6wbVeP.s:386    .text.nav_survey_rectangle:00000000 $t
+     /tmp/cc6wbVeP.s:391    .text.nav_survey_rectangle:00000000 nav_survey_rectangle
+     /tmp/cc6wbVeP.s:753    .text.nav_survey_rectangle:00000238 $d
+     /tmp/cc6wbVeP.s:773    .text.nav_survey_rectangle:00000274 $t
+     /tmp/cc6wbVeP.s:1123   .text.nav_survey_rectangle:000004b8 $d
+     /tmp/cc6wbVeP.s:1142   .text.nav_survey_rectangle:000004f8 $t
+     /tmp/cc6wbVeP.s:1305   .text.nav_survey_rectangle:000005f8 $d
+     /tmp/cc6wbVeP.s:1326   .bss.survey_from:00000000 $d
+     /tmp/cc6wbVeP.s:1330   .bss.survey_from:00000000 survey_from
+     /tmp/cc6wbVeP.s:1336   .bss.survey_orientation:00000000 survey_orientation
+     /tmp/cc6wbVeP.s:1337   .bss.survey_orientation:00000000 $d
+     /tmp/cc6wbVeP.s:1339   .bss.survey_to:00000000 $d
+     /tmp/cc6wbVeP.s:1343   .bss.survey_to:00000000 survey_to
+     /tmp/cc6wbVeP.s:1349   .bss.survey_uturn:00000000 survey_uturn
+     /tmp/cc6wbVeP.s:1350   .bss.survey_uturn:00000000 $d
+     /tmp/cc6wbVeP.s:1352   .bss.survey_radius.2217:00000000 $d
+     /tmp/cc6wbVeP.s:1356   .bss.survey_radius.2217:00000000 survey_radius.2217
+                     .debug_frame:00000010 $d
+     /tmp/cc6wbVeP.s:385    .text.nav_survey_rectangle_init:000002a4 $t
+     /tmp/cc6wbVeP.s:1325   .text.nav_survey_rectangle:0000063c $t
+
+UNDEFINED SYMBOLS
+__aeabi_fcmplt
+__aeabi_fcmpgt
+__aeabi_f2d
+__aeabi_dmul
+__aeabi_dadd
+__aeabi_dcmpgt
+__aeabi_dsub
+__aeabi_dcmplt
+__aeabi_d2f
+waypoints
+nav_survey_west
+nav_survey_east
+nav_survey_south
+nav_survey_north
+estimator_x
+estimator_y
+estimator_hspeed_dir
+nav_survey_shift
+__aeabi_fadd
+__aeabi_fmul
+__aeabi_fsub
+__aeabi_fcmpge
+nav_route_xy
+nav_survey_active
+nav_in_segment
+nav_circle_XY
+nav_in_circle
+v_ctl_climb_mode
+nav_pitch
+v_ctl_mode
+nav_altitude
+v_ctl_altitude_pre_climb

@@ -1,0 +1,17 @@
+<dump>
+  <flight_plan name="Dummy" lon0="1.27289" max_dist_from_home="1000" ground_alt="185" security_height="25" qfu="270" alt="250" lat0="43.46223">
+    <waypoints>
+      <waypoint name="HOME" x="0.0" y="120.0" alt="250."/>
+    </waypoints>
+    <blocks>
+      <block name="HOME" no="0">
+        <home no="0"/>
+      </block>
+    </blocks>
+  </flight_plan>
+  <stages>
+    <stage block="0" block_name="HOME" stage="0">
+      <home no="0"/>
+    </stage>
+  </stages>
+</dump>

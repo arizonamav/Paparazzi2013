@@ -1,0 +1,172 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 18, 4
+  12              		.thumb
+  13              		.file	"traffic_info.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.traffic_info_init,"ax",%progbits
+  18              		.align	1
+  19              		.global	traffic_info_init
+  20              		.thumb
+  21              		.thumb_func
+  23              	traffic_info_init:
+  24              	.LFB0:
+  25              		.file 1 "subsystems/navigation/traffic_info.c"
+   1:subsystems/navigation/traffic_info.c **** /*
+   2:subsystems/navigation/traffic_info.c ****  * $Id$
+   3:subsystems/navigation/traffic_info.c ****  *
+   4:subsystems/navigation/traffic_info.c ****  * Copyright (C) 2005  Pascal Brisset, Antoine Drouin
+   5:subsystems/navigation/traffic_info.c ****  *
+   6:subsystems/navigation/traffic_info.c ****  * This file is part of paparazzi.
+   7:subsystems/navigation/traffic_info.c ****  *
+   8:subsystems/navigation/traffic_info.c ****  * paparazzi is free software; you can redistribute it and/or modify
+   9:subsystems/navigation/traffic_info.c ****  * it under the terms of the GNU General Public License as published by
+  10:subsystems/navigation/traffic_info.c ****  * the Free Software Foundation; either version 2, or (at your option)
+  11:subsystems/navigation/traffic_info.c ****  * any later version.
+  12:subsystems/navigation/traffic_info.c ****  *
+  13:subsystems/navigation/traffic_info.c ****  * paparazzi is distributed in the hope that it will be useful,
+  14:subsystems/navigation/traffic_info.c ****  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  15:subsystems/navigation/traffic_info.c ****  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  16:subsystems/navigation/traffic_info.c ****  * GNU General Public License for more details.
+  17:subsystems/navigation/traffic_info.c ****  *
+  18:subsystems/navigation/traffic_info.c ****  * You should have received a copy of the GNU General Public License
+  19:subsystems/navigation/traffic_info.c ****  * along with paparazzi; see the file COPYING.  If not, write to
+  20:subsystems/navigation/traffic_info.c ****  * the Free Software Foundation, 59 Temple Place - Suite 330,
+  21:subsystems/navigation/traffic_info.c ****  * Boston, MA 02111-1307, USA.
+  22:subsystems/navigation/traffic_info.c ****  *
+  23:subsystems/navigation/traffic_info.c ****  */
+  24:subsystems/navigation/traffic_info.c **** /** \file traffic_info.c
+  25:subsystems/navigation/traffic_info.c ****  *  \brief Informations relative to the other aircrafts
+  26:subsystems/navigation/traffic_info.c ****  *
+  27:subsystems/navigation/traffic_info.c ****  */
+  28:subsystems/navigation/traffic_info.c **** 
+  29:subsystems/navigation/traffic_info.c **** #include <inttypes.h>
+  30:subsystems/navigation/traffic_info.c **** #include "subsystems/navigation/traffic_info.h"
+  31:subsystems/navigation/traffic_info.c **** #include "generated/airframe.h"
+  32:subsystems/navigation/traffic_info.c **** 
+  33:subsystems/navigation/traffic_info.c **** uint8_t acs_idx;
+  34:subsystems/navigation/traffic_info.c **** uint8_t the_acs_id[NB_ACS_ID];
+  35:subsystems/navigation/traffic_info.c **** struct ac_info_ the_acs[NB_ACS];
+  36:subsystems/navigation/traffic_info.c **** 
+  37:subsystems/navigation/traffic_info.c **** void traffic_info_init( void ) {
+  26              		.loc 1 37 0
+  27              		.cfi_startproc
+  28              		@ args = 0, pretend = 0, frame = 0
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  30              		@ link register save eliminated.
+  38:subsystems/navigation/traffic_info.c ****   the_acs_id[0] = 0;  // ground station
+  31              		.loc 1 38 0
+  32 0000 054A     		ldr	r2, .L2
+  33 0002 0023     		movs	r3, #0
+  34 0004 1370     		strb	r3, [r2, #0]
+  39:subsystems/navigation/traffic_info.c ****   the_acs_id[AC_ID] = 1;
+  35              		.loc 1 39 0
+  36 0006 0123     		movs	r3, #1
+  37 0008 5370     		strb	r3, [r2, #1]
+  40:subsystems/navigation/traffic_info.c ****   the_acs[the_acs_id[AC_ID]].ac_id = AC_ID;
+  38              		.loc 1 40 0
+  39 000a 044A     		ldr	r2, .L2+4
+  40 000c 82F82030 		strb	r3, [r2, #32]
+  41:subsystems/navigation/traffic_info.c ****   acs_idx = 2;
+  41              		.loc 1 41 0
+  42 0010 034B     		ldr	r3, .L2+8
+  43 0012 0222     		movs	r2, #2
+  44 0014 1A70     		strb	r2, [r3, #0]
+  42:subsystems/navigation/traffic_info.c **** }
+  45              		.loc 1 42 0
+  46 0016 7047     		bx	lr
+  47              	.L3:
+  48              		.align	2
+  49              	.L2:
+  50 0018 00000000 		.word	.LANCHOR0
+  51 001c 00000000 		.word	.LANCHOR1
+  52 0020 00000000 		.word	.LANCHOR2
+  53              		.cfi_endproc
+  54              	.LFE0:
+  56              		.section	.text.get_ac_info,"ax",%progbits
+  57              		.align	1
+  58              		.global	get_ac_info
+  59              		.thumb
+  60              		.thumb_func
+  62              	get_ac_info:
+  63              	.LFB1:
+  43:subsystems/navigation/traffic_info.c **** 
+  44:subsystems/navigation/traffic_info.c **** struct ac_info_ * get_ac_info(uint8_t id) {
+  64              		.loc 1 44 0
+  65              		.cfi_startproc
+  66              		@ args = 0, pretend = 0, frame = 0
+  67              		@ frame_needed = 0, uses_anonymous_args = 0
+  68              		@ link register save eliminated.
+  69              	.LVL0:
+  45:subsystems/navigation/traffic_info.c ****   return &the_acs[the_acs_id[id]];
+  70              		.loc 1 45 0
+  71 0000 024B     		ldr	r3, .L5
+  72 0002 185C     		ldrb	r0, [r3, r0]	@ zero_extendqisi2
+  73              	.LVL1:
+  46:subsystems/navigation/traffic_info.c **** }
+  74              		.loc 1 46 0
+  75 0004 024B     		ldr	r3, .L5+4
+  76 0006 03EB4010 		add	r0, r3, r0, lsl #5
+  77 000a 7047     		bx	lr
+  78              	.L6:
+  79              		.align	2
+  80              	.L5:
+  81 000c 00000000 		.word	.LANCHOR0
+  82 0010 00000000 		.word	.LANCHOR1
+  83              		.cfi_endproc
+  84              	.LFE1:
+  86              		.global	the_acs
+  87              		.global	the_acs_id
+  88              		.global	acs_idx
+  89              		.section	.bss.the_acs,"aw",%nobits
+  90              		.align	2
+  91              		.set	.LANCHOR1,. + 0
+  94              	the_acs:
+  95 0000 00000000 		.space	768
+  95      00000000 
+  95      00000000 
+  95      00000000 
+  95      00000000 
+  96              		.section	.bss.acs_idx,"aw",%nobits
+  97              		.set	.LANCHOR2,. + 0
+ 100              	acs_idx:
+ 101 0000 00       		.space	1
+ 102              		.section	.bss.the_acs_id,"aw",%nobits
+ 103              		.set	.LANCHOR0,. + 0
+ 106              	the_acs_id:
+ 107 0000 00000000 		.space	256
+ 107      00000000 
+ 107      00000000 
+ 107      00000000 
+ 107      00000000 
+ 108              		.text
+ 109              	.Letext0:
+ 110              		.file 2 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+ 111              		.file 3 "./subsystems/navigation/traffic_info.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 traffic_info.c
+     /tmp/ccYsYaqM.s:18     .text.traffic_info_init:00000000 $t
+     /tmp/ccYsYaqM.s:23     .text.traffic_info_init:00000000 traffic_info_init
+     /tmp/ccYsYaqM.s:50     .text.traffic_info_init:00000018 $d
+     /tmp/ccYsYaqM.s:57     .text.get_ac_info:00000000 $t
+     /tmp/ccYsYaqM.s:62     .text.get_ac_info:00000000 get_ac_info
+     /tmp/ccYsYaqM.s:81     .text.get_ac_info:0000000c $d
+     /tmp/ccYsYaqM.s:94     .bss.the_acs:00000000 the_acs
+     /tmp/ccYsYaqM.s:106    .bss.the_acs_id:00000000 the_acs_id
+     /tmp/ccYsYaqM.s:100    .bss.acs_idx:00000000 acs_idx
+     /tmp/ccYsYaqM.s:90     .bss.the_acs:00000000 $d
+     /tmp/ccYsYaqM.s:101    .bss.acs_idx:00000000 $d
+     /tmp/ccYsYaqM.s:107    .bss.the_acs_id:00000000 $d
+                     .debug_frame:00000010 $d
+
+NO UNDEFINED SYMBOLS

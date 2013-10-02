@@ -1,0 +1,496 @@
+/home/mav/paparazzi/var/Radian/ap/mcu.o: mcu.c mcu.h /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_arch.h \
+ mcu_periph/sys_time.h /home/mav/paparazzi/sw/include/std.h \
+ boards/lisa_m_1.0.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/sys_time_arch.h \
+ mcu_periph/sys_time.h led.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/led_hw.h \
+ subsystems/radio_control.h led.h \
+ /home/mav/paparazzi/var/Radian/generated/airframe.h paparazzi.h \
+ subsystems/radio_control/spektrum.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/subsystems/radio_control/spektrum_arch.h \
+ mcu_periph/uart.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/uart_arch.h \
+ mcu_periph/adc.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/adc_arch.h \
+ mcu_periph/spi.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/spi_arch.h \
+ mcu_periph/spi.h
+/home/mav/paparazzi/var/Radian/ap/mcu_arch.o: arch/stm32/mcu_arch.c mcu.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_arch.h \
+ boards/lisa_m_1.0.h
+/home/mav/paparazzi/var/Radian/ap/led_hw.o: arch/stm32/led_hw.c led.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/led_hw.h boards/lisa_m_1.0.h \
+ /home/mav/paparazzi/sw/include/std.h
+/home/mav/paparazzi/var/Radian/ap/sys_time.o: mcu_periph/sys_time.c mcu_periph/sys_time.h \
+ /home/mav/paparazzi/sw/include/std.h boards/lisa_m_1.0.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/sys_time_arch.h \
+ mcu.h /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_arch.h
+/home/mav/paparazzi/var/Radian/ap/sys_time_arch.o: arch/stm32/mcu_periph/sys_time_arch.c \
+ mcu_periph/sys_time.h /home/mav/paparazzi/sw/include/std.h \
+ boards/lisa_m_1.0.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/sys_time_arch.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/stm32_vector_table.h led.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/led_hw.h
+/home/mav/paparazzi/var/Radian/ap/inter_mcu.o: inter_mcu.c inter_mcu.h /home/mav/paparazzi/sw/include/std.h \
+ paparazzi.h /home/mav/paparazzi/var/Radian/generated/airframe.h \
+ subsystems/radio_control.h led.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/led_hw.h boards/lisa_m_1.0.h \
+ paparazzi.h subsystems/radio_control/spektrum.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/subsystems/radio_control/spektrum_arch.h \
+ subsystems/electrical.h firmwares/fixedwing/main_fbw.h
+/home/mav/paparazzi/var/Radian/ap/pprz_geodetic_int.o: math/pprz_geodetic_int.c math/pprz_geodetic_int.h \
+ math/pprz_geodetic.h /home/mav/paparazzi/sw/include/std.h \
+ math/pprz_algebra_int.h math/pprz_algebra.h math/pprz_trig_int.h \
+ math/pprz_algebra_int.h math/pprz_geodetic_float.h \
+ math/pprz_algebra_float.h math/pprz_algebra.h \
+ math/pprz_geodetic_double.h math/pprz_algebra_double.h
+/home/mav/paparazzi/var/Radian/ap/pprz_geodetic_float.o: math/pprz_geodetic_float.c \
+ math/pprz_geodetic_float.h math/pprz_geodetic.h \
+ math/pprz_algebra_float.h math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/include/std.h math/pprz_geodetic_double.h \
+ math/pprz_algebra_double.h math/pprz_geodetic_utm.h
+/home/mav/paparazzi/var/Radian/ap/pprz_geodetic_double.o: math/pprz_geodetic_double.c \
+ math/pprz_geodetic_double.h math/pprz_geodetic.h \
+ math/pprz_algebra_double.h math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/include/std.h math/pprz_algebra_float.h \
+ math/pprz_geodetic_utm.h
+/home/mav/paparazzi/var/Radian/ap/pprz_trig_int.o: math/pprz_trig_int.c math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/include/std.h math/pprz_algebra_int.h \
+ math/pprz_algebra.h math/pprz_trig_int.h
+/home/mav/paparazzi/var/Radian/ap/i2c.o: mcu_periph/i2c.c mcu_periph/i2c.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/i2c_arch.h
+/home/mav/paparazzi/var/Radian/ap/i2c_arch.o: arch/stm32/mcu_periph/i2c_arch.c mcu_periph/i2c.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/i2c_arch.h
+/home/mav/paparazzi/var/Radian/ap/main_fbw.o: firmwares/fixedwing/main_fbw.c \
+ /home/mav/paparazzi/var/Radian/generated/airframe.h \
+ firmwares/fixedwing/main_fbw.h /home/mav/paparazzi/sw/include/std.h \
+ mcu.h /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_arch.h \
+ mcu_periph/sys_time.h boards/lisa_m_1.0.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/sys_time_arch.h \
+ commands.h paparazzi.h firmwares/fixedwing/actuators.h paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/servos_direct_hw.h \
+ firmwares/rotorcraft/actuators/arch/stm32/actuators_pwm_arch.h \
+ subsystems/electrical.h subsystems/radio_control.h led.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/led_hw.h \
+ subsystems/radio_control/spektrum.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/subsystems/radio_control/spektrum_arch.h \
+ firmwares/fixedwing/autopilot.h estimator.h \
+ firmwares/fixedwing/fbw_downlink.h \
+ /home/mav/paparazzi/var/include/messages.h \
+ /home/mav/paparazzi/var/Radian/generated/periodic_telemetry.h \
+ firmwares/fixedwing/actuators.h mcu_periph/uart.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/uart_arch.h \
+ inter_mcu.h subsystems/radio_control.h subsystems/electrical.h \
+ firmwares/fixedwing/main_fbw.h subsystems/datalink/downlink.h \
+ /home/mav/paparazzi/var/Radian/generated/modules.h \
+ modules/gps/gps_ubx_ucenter.h subsystems/datalink/pprz_transport.h \
+ subsystems/datalink/datalink.h \
+ /home/mav/paparazzi/var/include/dl_protocol.h \
+ subsystems/datalink/transport.h subsystems/datalink/xbee.h \
+ subsystems/datalink/xbee24.h mcu_periph/i2c.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/i2c_arch.h
+/home/mav/paparazzi/var/Radian/ap/electrical.o: subsystems/electrical.c subsystems/electrical.h \
+ /home/mav/paparazzi/sw/include/std.h mcu_periph/adc.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/adc_arch.h \
+ commands.h paparazzi.h \
+ /home/mav/paparazzi/var/Radian/generated/airframe.h boards/lisa_m_1.0.h
+/home/mav/paparazzi/var/Radian/ap/commands.o: commands.c commands.h paparazzi.h \
+ /home/mav/paparazzi/var/Radian/generated/airframe.h
+/home/mav/paparazzi/var/Radian/ap/fbw_downlink.o: firmwares/fixedwing/fbw_downlink.c \
+ /home/mav/paparazzi/var/Radian/generated/periodic_telemetry.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/var/Radian/generated/airframe.h
+/home/mav/paparazzi/var/Radian/ap/main_ap.o: firmwares/fixedwing/main_ap.c firmwares/fixedwing/main_ap.h \
+ mcu.h /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_arch.h \
+ mcu_periph/sys_time.h /home/mav/paparazzi/sw/include/std.h \
+ boards/lisa_m_1.0.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/sys_time_arch.h \
+ link_mcu.h inter_mcu.h paparazzi.h \
+ /home/mav/paparazzi/var/Radian/generated/airframe.h \
+ subsystems/radio_control.h led.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/led_hw.h paparazzi.h \
+ subsystems/radio_control/spektrum.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/subsystems/radio_control/spektrum_arch.h \
+ subsystems/electrical.h firmwares/fixedwing/main_fbw.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/link_mcu_hw.h \
+ subsystems/gps.h math/pprz_geodetic_int.h math/pprz_geodetic.h \
+ math/pprz_algebra_int.h math/pprz_algebra.h math/pprz_trig_int.h \
+ math/pprz_algebra_int.h subsystems/gps/gps_ubx.h mcu_periph/uart.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/uart_arch.h \
+ /home/mav/paparazzi/var/include/ubx_protocol.h subsystems/imu.h \
+ math/pprz_algebra_float.h math/pprz_algebra.h \
+ subsystems/imu/imu_aspirin2.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/subsystems/imu/imu_aspirin2_arch.h \
+ subsystems/ahrs.h subsystems/ahrs/ahrs_int_cmpl_quat.h \
+ subsystems/ahrs/ahrs_aligner.h firmwares/fixedwing/autopilot.h \
+ estimator.h subsystems/radio_control.h \
+ firmwares/fixedwing/stabilization/stabilization_attitude.h \
+ firmwares/fixedwing/guidance/guidance_v.h subsystems/nav.h \
+ subsystems/navigation/nav_survey_rectangle.h \
+ subsystems/navigation/common_flight_plan.h \
+ subsystems/navigation/common_nav.h \
+ /home/mav/paparazzi/var/Radian/generated/flight_plan.h \
+ /home/mav/paparazzi/var/Radian/generated/modules.h \
+ modules/gps/gps_ubx_ucenter.h subsystems/navigation/traffic_info.h \
+ subsystems/datalink/datalink.h \
+ /home/mav/paparazzi/var/include/dl_protocol.h subsystems/settings.h \
+ /home/mav/paparazzi/var/Radian/generated/settings.h \
+ firmwares/fixedwing/autopilot.h \
+ /home/mav/paparazzi/var/Radian/generated/periodic_telemetry.h \
+ subsystems/datalink/xbee.h subsystems/datalink/xbee24.h \
+ subsystems/datalink/transport.h firmwares/fixedwing/ap_downlink.h \
+ subsystems/datalink/downlink.h \
+ /home/mav/paparazzi/var/include/messages.h \
+ subsystems/datalink/pprz_transport.h \
+ firmwares/fixedwing/stabilization/stabilization_adaptive.h rc_settings.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/gpio.h
+/home/mav/paparazzi/var/Radian/ap/estimator.o: estimator.c estimator.h /home/mav/paparazzi/sw/include/std.h \
+ mcu_periph/uart.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/uart_arch.h \
+ firmwares/fixedwing/ap_downlink.h \
+ /home/mav/paparazzi/var/Radian/generated/airframe.h \
+ subsystems/datalink/downlink.h \
+ /home/mav/paparazzi/var/Radian/generated/modules.h \
+ modules/gps/gps_ubx_ucenter.h /home/mav/paparazzi/var/include/messages.h \
+ subsystems/datalink/pprz_transport.h subsystems/datalink/datalink.h \
+ /home/mav/paparazzi/var/include/dl_protocol.h \
+ subsystems/datalink/transport.h subsystems/datalink/xbee.h \
+ subsystems/datalink/xbee24.h \
+ /home/mav/paparazzi/var/Radian/generated/periodic_telemetry.h \
+ subsystems/imu.h math/pprz_algebra_int.h math/pprz_algebra.h \
+ math/pprz_trig_int.h math/pprz_algebra_float.h math/pprz_algebra.h \
+ subsystems/imu/imu_aspirin2.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/subsystems/imu/imu_aspirin2_arch.h \
+ firmwares/fixedwing/stabilization/stabilization_adaptive.h paparazzi.h \
+ subsystems/gps.h math/pprz_geodetic_int.h math/pprz_geodetic.h \
+ math/pprz_algebra_int.h subsystems/gps/gps_ubx.h mcu_periph/uart.h \
+ /home/mav/paparazzi/var/include/ubx_protocol.h subsystems/nav.h \
+ firmwares/fixedwing/guidance/guidance_v.h \
+ subsystems/navigation/nav_survey_rectangle.h subsystems/nav.h \
+ subsystems/navigation/common_flight_plan.h \
+ subsystems/navigation/common_nav.h
+/home/mav/paparazzi/var/Radian/ap/ap_downlink.o: firmwares/fixedwing/ap_downlink.c \
+ /home/mav/paparazzi/var/Radian/generated/periodic_telemetry.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/var/Radian/generated/airframe.h
+/home/mav/paparazzi/var/Radian/ap/stm32_exceptions.o: arch/stm32/stm32_exceptions.c \
+ arch/stm32/stm32_exceptions.h
+/home/mav/paparazzi/var/Radian/ap/stm32_vector_table.o: arch/stm32/stm32_vector_table.c \
+ arch/stm32/stm32_vector_table.h arch/stm32/stm32_exceptions.h \
+ mcu_periph/sys_time.h /home/mav/paparazzi/sw/include/std.h \
+ boards/lisa_m_1.0.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/sys_time_arch.h \
+ mcu_periph/uart.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/uart_arch.h
+/home/mav/paparazzi/var/Radian/ap/plug_sys.o: lisa/plug_sys.c
+/home/mav/paparazzi/var/Radian/ap/main.o: firmwares/fixedwing/main.c firmwares/fixedwing/main_fbw.h \
+ /home/mav/paparazzi/sw/include/std.h firmwares/fixedwing/main_ap.h
+/home/mav/paparazzi/var/Radian/ap/uart.o: mcu_periph/uart.c mcu_periph/uart.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/uart_arch.h \
+ /home/mav/paparazzi/sw/include/std.h
+/home/mav/paparazzi/var/Radian/ap/uart_arch.o: arch/stm32/mcu_periph/uart_arch.c mcu_periph/uart.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/uart_arch.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/pprz_baudrate.h \
+ boards/lisa_m_1.0.h
+/home/mav/paparazzi/var/Radian/ap/settings.o: subsystems/settings.c subsystems/settings.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/var/Radian/generated/settings.h \
+ firmwares/fixedwing/autopilot.h mcu_periph/sys_time.h \
+ boards/lisa_m_1.0.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/sys_time_arch.h \
+ estimator.h subsystems/radio_control.h led.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/led_hw.h \
+ /home/mav/paparazzi/var/Radian/generated/airframe.h paparazzi.h \
+ subsystems/radio_control/spektrum.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/subsystems/radio_control/spektrum_arch.h \
+ subsystems/gps.h math/pprz_geodetic_int.h math/pprz_geodetic.h \
+ math/pprz_algebra_int.h math/pprz_algebra.h math/pprz_trig_int.h \
+ math/pprz_algebra_int.h subsystems/gps/gps_ubx.h mcu_periph/uart.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/uart_arch.h \
+ /home/mav/paparazzi/var/include/ubx_protocol.h subsystems/nav.h \
+ firmwares/fixedwing/guidance/guidance_v.h \
+ subsystems/navigation/nav_survey_rectangle.h \
+ subsystems/navigation/common_flight_plan.h \
+ subsystems/navigation/common_nav.h \
+ /home/mav/paparazzi/var/Radian/generated/modules.h \
+ modules/gps/gps_ubx_ucenter.h \
+ /home/mav/paparazzi/var/Radian/generated/periodic_telemetry.h
+/home/mav/paparazzi/var/Radian/ap/settings_arch.o: arch/stm32/subsystems/settings_arch.c \
+ subsystems/settings.h /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/var/Radian/generated/settings.h \
+ firmwares/fixedwing/autopilot.h mcu_periph/sys_time.h \
+ boards/lisa_m_1.0.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/sys_time_arch.h \
+ estimator.h subsystems/radio_control.h led.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/led_hw.h \
+ /home/mav/paparazzi/var/Radian/generated/airframe.h paparazzi.h \
+ subsystems/radio_control/spektrum.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/subsystems/radio_control/spektrum_arch.h \
+ subsystems/gps.h math/pprz_geodetic_int.h math/pprz_geodetic.h \
+ math/pprz_algebra_int.h math/pprz_algebra.h math/pprz_trig_int.h \
+ math/pprz_algebra_int.h subsystems/gps/gps_ubx.h mcu_periph/uart.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/uart_arch.h \
+ /home/mav/paparazzi/var/include/ubx_protocol.h subsystems/nav.h \
+ firmwares/fixedwing/guidance/guidance_v.h \
+ subsystems/navigation/nav_survey_rectangle.h \
+ subsystems/navigation/common_flight_plan.h \
+ subsystems/navigation/common_nav.h \
+ /home/mav/paparazzi/var/Radian/generated/modules.h \
+ modules/gps/gps_ubx_ucenter.h \
+ /home/mav/paparazzi/var/Radian/generated/periodic_telemetry.h
+/home/mav/paparazzi/var/Radian/ap/adc_arch.o: arch/stm32/mcu_periph/adc_arch.c mcu_periph/adc.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/adc_arch.h \
+ /home/mav/paparazzi/sw/include/std.h led.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/led_hw.h boards/lisa_m_1.0.h
+/home/mav/paparazzi/var/Radian/ap/servos_direct_hw.o: arch/stm32/servos_direct_hw.c \
+ /home/mav/paparazzi/sw/include/std.h firmwares/fixedwing/actuators.h \
+ paparazzi.h /home/mav/paparazzi/var/Radian/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/servos_direct_hw.h \
+ firmwares/rotorcraft/actuators/arch/stm32/actuators_pwm_arch.h \
+ arch/stm32/servos_direct_hw.h
+/home/mav/paparazzi/var/Radian/ap/actuators.o: actuators.c firmwares/fixedwing/actuators.h paparazzi.h \
+ /home/mav/paparazzi/var/Radian/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/servos_direct_hw.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ firmwares/rotorcraft/actuators/arch/stm32/actuators_pwm_arch.h
+/home/mav/paparazzi/var/Radian/ap/actuators_pwm_arch.o: \
+ firmwares/rotorcraft/actuators/arch/stm32/actuators_pwm_arch.c \
+ firmwares/rotorcraft/actuators/actuators_pwm.h \
+ /home/mav/paparazzi/sw/include/std.h firmwares/rotorcraft/actuators.h \
+ boards/lisa_m_1.0.h \
+ firmwares/rotorcraft/actuators/arch/stm32/actuators_pwm_arch.h
+/home/mav/paparazzi/var/Radian/ap/radio_control.o: subsystems/radio_control.c subsystems/radio_control.h \
+ led.h /home/mav/paparazzi/sw/airborne/arch/stm32/led_hw.h \
+ boards/lisa_m_1.0.h /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/var/Radian/generated/airframe.h paparazzi.h \
+ subsystems/radio_control/spektrum.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/subsystems/radio_control/spektrum_arch.h
+/home/mav/paparazzi/var/Radian/ap/spektrum.o: subsystems/radio_control/spektrum.c \
+ subsystems/radio_control/spektrum.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/subsystems/radio_control/spektrum_arch.h
+/home/mav/paparazzi/var/Radian/ap/spektrum_arch.o: arch/stm32/subsystems/radio_control/spektrum_arch.c \
+ subsystems/radio_control.h led.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/led_hw.h boards/lisa_m_1.0.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/var/Radian/generated/airframe.h paparazzi.h \
+ subsystems/radio_control/spektrum.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/subsystems/radio_control/spektrum_arch.h \
+ mcu_periph/uart.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/uart_arch.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/pprz_baudrate.h
+/home/mav/paparazzi/var/Radian/ap/downlink.o: subsystems/datalink/downlink.c \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/var/Radian/generated/airframe.h
+/home/mav/paparazzi/var/Radian/ap/pprz_transport.o: subsystems/datalink/pprz_transport.c \
+ subsystems/datalink/pprz_transport.h \
+ /home/mav/paparazzi/sw/include/std.h subsystems/datalink/datalink.h \
+ /home/mav/paparazzi/var/include/dl_protocol.h \
+ subsystems/datalink/transport.h mcu_periph/uart.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/uart_arch.h
+/home/mav/paparazzi/var/Radian/ap/datalink.o: firmwares/fixedwing/datalink.c subsystems/datalink/datalink.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/var/include/dl_protocol.h \
+ /home/mav/paparazzi/var/Radian/generated/modules.h \
+ modules/gps/gps_ubx_ucenter.h /home/mav/paparazzi/var/include/messages.h \
+ /home/mav/paparazzi/var/Radian/generated/airframe.h \
+ subsystems/navigation/traffic_info.h estimator.h subsystems/nav.h \
+ paparazzi.h firmwares/fixedwing/guidance/guidance_v.h \
+ subsystems/navigation/nav_survey_rectangle.h \
+ subsystems/navigation/common_flight_plan.h \
+ subsystems/navigation/common_nav.h \
+ /home/mav/paparazzi/var/Radian/generated/settings.h \
+ firmwares/fixedwing/autopilot.h mcu_periph/sys_time.h \
+ boards/lisa_m_1.0.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/sys_time_arch.h \
+ subsystems/radio_control.h led.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/led_hw.h \
+ subsystems/radio_control/spektrum.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/subsystems/radio_control/spektrum_arch.h \
+ subsystems/gps.h math/pprz_geodetic_int.h math/pprz_geodetic.h \
+ math/pprz_algebra_int.h math/pprz_algebra.h math/pprz_trig_int.h \
+ math/pprz_algebra_int.h subsystems/gps/gps_ubx.h mcu_periph/uart.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/uart_arch.h \
+ /home/mav/paparazzi/var/include/ubx_protocol.h \
+ /home/mav/paparazzi/var/Radian/generated/periodic_telemetry.h \
+ math/pprz_geodetic_float.h math/pprz_algebra_float.h math/pprz_algebra.h \
+ subsystems/datalink/downlink.h subsystems/datalink/pprz_transport.h \
+ subsystems/datalink/transport.h subsystems/datalink/xbee.h \
+ subsystems/datalink/xbee24.h firmwares/fixedwing/ap_downlink.h \
+ subsystems/imu.h math/pprz_algebra_float.h subsystems/imu/imu_aspirin2.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/subsystems/imu/imu_aspirin2_arch.h \
+ firmwares/fixedwing/stabilization/stabilization_adaptive.h
+/home/mav/paparazzi/var/Radian/ap/stabilization_attitude.o: \
+ firmwares/fixedwing/stabilization/stabilization_attitude.c \
+ firmwares/fixedwing/stabilization/stabilization_attitude.h \
+ /home/mav/paparazzi/sw/include/std.h paparazzi.h \
+ /home/mav/paparazzi/var/Radian/generated/airframe.h led.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/led_hw.h boards/lisa_m_1.0.h \
+ estimator.h subsystems/nav.h firmwares/fixedwing/guidance/guidance_v.h \
+ subsystems/navigation/nav_survey_rectangle.h \
+ subsystems/navigation/common_flight_plan.h \
+ subsystems/navigation/common_nav.h firmwares/fixedwing/autopilot.h \
+ mcu_periph/sys_time.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/sys_time_arch.h \
+ subsystems/radio_control.h subsystems/radio_control/spektrum.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/subsystems/radio_control/spektrum_arch.h
+/home/mav/paparazzi/var/Radian/ap/guidance_v.o: firmwares/fixedwing/guidance/guidance_v.c \
+ firmwares/fixedwing/guidance/guidance_v.h paparazzi.h estimator.h \
+ /home/mav/paparazzi/sw/include/std.h subsystems/nav.h \
+ subsystems/navigation/nav_survey_rectangle.h \
+ subsystems/navigation/common_flight_plan.h \
+ subsystems/navigation/common_nav.h \
+ /home/mav/paparazzi/var/Radian/generated/airframe.h \
+ firmwares/fixedwing/autopilot.h mcu_periph/sys_time.h \
+ boards/lisa_m_1.0.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/sys_time_arch.h \
+ subsystems/radio_control.h led.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/led_hw.h \
+ subsystems/radio_control/spektrum.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/subsystems/radio_control/spektrum_arch.h
+/home/mav/paparazzi/var/Radian/ap/ahrs.o: subsystems/ahrs.c subsystems/ahrs.h \
+ /home/mav/paparazzi/sw/include/std.h math/pprz_algebra_int.h \
+ math/pprz_algebra.h math/pprz_trig_int.h math/pprz_algebra_float.h \
+ math/pprz_algebra.h subsystems/ahrs/ahrs_int_cmpl_quat.h
+/home/mav/paparazzi/var/Radian/ap/ahrs_int_cmpl_quat.o: subsystems/ahrs/ahrs_int_cmpl_quat.c \
+ subsystems/ahrs/ahrs_int_cmpl_quat.h subsystems/ahrs.h \
+ /home/mav/paparazzi/sw/include/std.h math/pprz_algebra_int.h \
+ math/pprz_algebra.h math/pprz_trig_int.h math/pprz_algebra_float.h \
+ math/pprz_algebra.h subsystems/ahrs/ahrs_aligner.h \
+ subsystems/ahrs/ahrs_int_utils.h \
+ subsystems/ahrs/ahrs_magnetic_field_model.h \
+ /home/mav/paparazzi/var/Radian/generated/airframe.h \
+ subsystems/ahrs/ahrs_float_utils.h subsystems/imu.h \
+ subsystems/imu/imu_aspirin2.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/subsystems/imu/imu_aspirin2_arch.h \
+ subsystems/gps.h math/pprz_geodetic_int.h math/pprz_geodetic.h \
+ math/pprz_algebra_int.h subsystems/gps/gps_ubx.h mcu_periph/uart.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/uart_arch.h \
+ /home/mav/paparazzi/var/include/ubx_protocol.h estimator.h
+/home/mav/paparazzi/var/Radian/ap/ahrs_aligner.o: subsystems/ahrs/ahrs_aligner.c \
+ subsystems/ahrs/ahrs_aligner.h /home/mav/paparazzi/sw/include/std.h \
+ math/pprz_algebra_int.h math/pprz_algebra.h math/pprz_trig_int.h \
+ subsystems/imu.h math/pprz_algebra_float.h math/pprz_algebra.h \
+ /home/mav/paparazzi/var/Radian/generated/airframe.h \
+ subsystems/imu/imu_aspirin2.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/subsystems/imu/imu_aspirin2_arch.h \
+ led.h /home/mav/paparazzi/sw/airborne/arch/stm32/led_hw.h \
+ boards/lisa_m_1.0.h
+/home/mav/paparazzi/var/Radian/ap/gps_ubx.o: subsystems/gps/gps_ubx.c subsystems/gps.h \
+ /home/mav/paparazzi/sw/include/std.h math/pprz_geodetic_int.h \
+ math/pprz_geodetic.h math/pprz_algebra_int.h math/pprz_algebra.h \
+ math/pprz_trig_int.h math/pprz_algebra_int.h subsystems/gps/gps_ubx.h \
+ mcu_periph/uart.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/uart_arch.h \
+ /home/mav/paparazzi/var/include/ubx_protocol.h led.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/led_hw.h boards/lisa_m_1.0.h \
+ subsystems/navigation/common_nav.h \
+ subsystems/navigation/common_flight_plan.h math/pprz_geodetic_float.h \
+ math/pprz_algebra_float.h math/pprz_algebra.h \
+ modules/gps/gps_ubx_ucenter.c modules/gps/gps_ubx_ucenter.h \
+ subsystems/datalink/downlink.h \
+ /home/mav/paparazzi/var/Radian/generated/modules.h \
+ modules/gps/gps_ubx_ucenter.h /home/mav/paparazzi/var/include/messages.h \
+ /home/mav/paparazzi/var/Radian/generated/airframe.h \
+ subsystems/datalink/pprz_transport.h subsystems/datalink/datalink.h \
+ /home/mav/paparazzi/var/include/dl_protocol.h \
+ subsystems/datalink/transport.h subsystems/datalink/xbee.h \
+ subsystems/datalink/xbee24.h
+/home/mav/paparazzi/var/Radian/ap/gps.o: subsystems/gps.c subsystems/gps.h \
+ /home/mav/paparazzi/sw/include/std.h math/pprz_geodetic_int.h \
+ math/pprz_geodetic.h math/pprz_algebra_int.h math/pprz_algebra.h \
+ math/pprz_trig_int.h math/pprz_algebra_int.h subsystems/gps/gps_ubx.h \
+ mcu_periph/uart.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/uart_arch.h \
+ /home/mav/paparazzi/var/include/ubx_protocol.h led.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/led_hw.h boards/lisa_m_1.0.h
+/home/mav/paparazzi/var/Radian/ap/imu.o: subsystems/imu.c subsystems/imu.h math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/include/std.h math/pprz_algebra.h \
+ math/pprz_trig_int.h math/pprz_algebra_float.h math/pprz_algebra.h \
+ /home/mav/paparazzi/var/Radian/generated/airframe.h \
+ subsystems/imu/imu_aspirin2.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/subsystems/imu/imu_aspirin2_arch.h
+/home/mav/paparazzi/var/Radian/ap/imu_aspirin2.o: subsystems/imu/imu_aspirin2.c subsystems/imu.h \
+ math/pprz_algebra_int.h /home/mav/paparazzi/sw/include/std.h \
+ math/pprz_algebra.h math/pprz_trig_int.h math/pprz_algebra_float.h \
+ math/pprz_algebra.h /home/mav/paparazzi/var/Radian/generated/airframe.h \
+ subsystems/imu/imu_aspirin2.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/subsystems/imu/imu_aspirin2_arch.h \
+ led.h /home/mav/paparazzi/sw/airborne/arch/stm32/led_hw.h \
+ boards/lisa_m_1.0.h mcu_periph/spi.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/spi_arch.h \
+ subsystems/imu/../../peripherals/mpu60X0.h \
+ subsystems/imu/../../peripherals/hmc58xx.h mcu_periph/i2c.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/i2c_arch.h
+/home/mav/paparazzi/var/Radian/ap/imu_aspirin2_arch.o: arch/stm32/subsystems/imu/imu_aspirin2_arch.c \
+ subsystems/imu.h math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/include/std.h math/pprz_algebra.h \
+ math/pprz_trig_int.h math/pprz_algebra_float.h math/pprz_algebra.h \
+ /home/mav/paparazzi/var/Radian/generated/airframe.h \
+ subsystems/imu/imu_aspirin2.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/subsystems/imu/imu_aspirin2_arch.h
+/home/mav/paparazzi/var/Radian/ap/spi_arch.o: arch/stm32/mcu_periph/spi_arch.c subsystems/imu.h \
+ math/pprz_algebra_int.h /home/mav/paparazzi/sw/include/std.h \
+ math/pprz_algebra.h math/pprz_trig_int.h math/pprz_algebra_float.h \
+ math/pprz_algebra.h /home/mav/paparazzi/var/Radian/generated/airframe.h \
+ subsystems/imu/imu_aspirin2.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/subsystems/imu/imu_aspirin2_arch.h \
+ mcu_periph/spi.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/spi_arch.h
+/home/mav/paparazzi/var/Radian/ap/spi.o: mcu_periph/spi.c /home/mav/paparazzi/sw/include/std.h \
+ mcu_periph/spi.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/spi_arch.h
+/home/mav/paparazzi/var/Radian/ap/nav.o: subsystems/nav.c subsystems/nav.h \
+ /home/mav/paparazzi/sw/include/std.h paparazzi.h \
+ firmwares/fixedwing/guidance/guidance_v.h \
+ subsystems/navigation/nav_survey_rectangle.h \
+ subsystems/navigation/common_flight_plan.h \
+ subsystems/navigation/common_nav.h subsystems/gps.h \
+ math/pprz_geodetic_int.h math/pprz_geodetic.h math/pprz_algebra_int.h \
+ math/pprz_algebra.h math/pprz_trig_int.h math/pprz_algebra_int.h \
+ subsystems/gps/gps_ubx.h mcu_periph/uart.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/uart_arch.h \
+ /home/mav/paparazzi/var/include/ubx_protocol.h estimator.h \
+ firmwares/fixedwing/stabilization/stabilization_attitude.h \
+ /home/mav/paparazzi/var/Radian/generated/airframe.h \
+ firmwares/fixedwing/autopilot.h mcu_periph/sys_time.h \
+ boards/lisa_m_1.0.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/sys_time_arch.h \
+ subsystems/radio_control.h led.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/led_hw.h \
+ subsystems/radio_control/spektrum.h \
+ /home/mav/paparazzi/sw/airborne/arch/stm32/subsystems/radio_control/spektrum_arch.h \
+ inter_mcu.h paparazzi.h subsystems/radio_control.h \
+ subsystems/electrical.h firmwares/fixedwing/main_fbw.h \
+ subsystems/navigation/traffic_info.h \
+ /home/mav/paparazzi/var/Radian/generated/flight_plan.h \
+ /home/mav/paparazzi/var/Radian/generated/modules.h \
+ modules/gps/gps_ubx_ucenter.h subsystems/navigation/common_nav.c \
+ math/pprz_geodetic_float.h math/pprz_algebra_float.h math/pprz_algebra.h
+/home/mav/paparazzi/var/Radian/ap/common_flight_plan.o: subsystems/navigation/common_flight_plan.c \
+ subsystems/navigation/common_flight_plan.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/var/Radian/generated/flight_plan.h \
+ /home/mav/paparazzi/var/Radian/generated/modules.h \
+ modules/gps/gps_ubx_ucenter.h
+/home/mav/paparazzi/var/Radian/ap/traffic_info.o: subsystems/navigation/traffic_info.c \
+ subsystems/navigation/traffic_info.h \
+ /home/mav/paparazzi/var/Radian/generated/airframe.h
+/home/mav/paparazzi/var/Radian/ap/nav_survey_rectangle.o: subsystems/navigation/nav_survey_rectangle.c \
+ subsystems/navigation/nav_survey_rectangle.h subsystems/nav.h \
+ /home/mav/paparazzi/sw/include/std.h paparazzi.h \
+ firmwares/fixedwing/guidance/guidance_v.h \
+ subsystems/navigation/common_flight_plan.h \
+ subsystems/navigation/common_nav.h estimator.h \
+ /home/mav/paparazzi/var/Radian/generated/flight_plan.h \
+ /home/mav/paparazzi/var/Radian/generated/modules.h \
+ modules/gps/gps_ubx_ucenter.h
+/home/mav/paparazzi/var/Radian/ap/nav_line.o: subsystems/navigation/nav_line.c \
+ /home/mav/paparazzi/var/Radian/generated/airframe.h \
+ subsystems/navigation/nav_line.h /home/mav/paparazzi/sw/include/std.h \
+ subsystems/nav.h paparazzi.h firmwares/fixedwing/guidance/guidance_v.h \
+ subsystems/navigation/nav_survey_rectangle.h \
+ subsystems/navigation/common_flight_plan.h \
+ subsystems/navigation/common_nav.h

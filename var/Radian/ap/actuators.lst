@@ -1,0 +1,32 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 18, 4
+  12              		.thumb
+  13              		.file	"actuators.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.global	actuators
+  18              		.section	.bss.actuators,"aw",%nobits
+  19              		.align	1
+  22              	actuators:
+  23 0000 00000000 		.space	6
+  23      0000
+  24              		.text
+  25              	.Letext0:
+  26              		.file 1 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+  27              		.file 2 "actuators.c"
+DEFINED SYMBOLS
+                            *ABS*:00000000 actuators.c
+     /tmp/ccLPeW6X.s:22     .bss.actuators:00000000 actuators
+     /tmp/ccLPeW6X.s:19     .bss.actuators:00000000 $d
+
+NO UNDEFINED SYMBOLS

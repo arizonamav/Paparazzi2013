@@ -1,0 +1,319 @@
+Archive member included because of file (symbol)
+
+usbstack.a(usbhw_lpc.o)       bootloader.o (USBHwConnect)
+usbstack.a(usbcontrol.o)      bootloader.o (USBRegisterPreRequestHandler)
+usbstack.a(usbinit.o)         bootloader.o (USBInit)
+usbstack.a(usbdescrip.o)      bootloader.o (USBRegisterDescriptors)
+usbstack.a(usbstdreq.o)       usbstack.a(usbinit.o) (USBHandleStandardRequest)
+/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/libgcc.a(_udivsi3.o)
+                              printf.o (__aeabi_uidiv)
+/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/libgcc.a(_dvmd_tls.o)
+                              /opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/libgcc.a(_udivsi3.o) (__aeabi_idiv0)
+/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/lib/libc.a(lib_a-memcpy.o)
+                              bootloader.o (memcpy)
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+flash            0x00000000         0x00080000
+ram_isp_low      0x40000120         0x000000df         a
+ram              0x40006000         0x00005021
+ram_isp_high     0x40007fe0         0x00000020         a
+ram_usb_dma      0x7fd00000         0x00002000
+*default*        0x00000000         0xffffffff
+
+Linker script and memory map
+
+LOAD crt.o
+LOAD startup.o
+LOAD printf.o
+LOAD console.o
+LOAD bootloader.o
+LOAD usbstack.a
+START GROUP
+LOAD /opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/libgcc.a
+LOAD /opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/lib/libc.a
+END GROUP
+                0x40007edc                _stack_end = 0x40007edc
+                0x00000000                . = 0x0
+
+startup
+ *(.startup)
+
+.text           0x00000000     0x171e
+ *(.text)
+ .text          0x00000000       0xfc crt.o
+                0x00000000                _startup
+                0x00000044                Reset_Handler
+ .text          0x000000fc       0x80 startup.o
+                0x000000fc                IRQ_Routine
+                0x00000100                FIQ_Routine
+                0x00000104                SWI_Routine
+                0x00000108                UNDEF_Routine
+                0x0000010c                Initialize
+ .text          0x0000017c      0x470 printf.o
+                0x00000594                printf
+                0x000005bc                sprintf
+ .text          0x000005ec       0xd8 console.o
+                0x000005ec                ConsoleInit
+                0x00000634                putchar
+                0x00000674                getchar
+                0x00000694                puts
+ .text          0x000006c4      0x450 bootloader.o
+                0x000006c4                isp_entry
+                0x00000924                btl_entry
+ .text          0x00000b14      0x544 usbstack.a(usbhw_lpc.o)
+                0x00000bb0                USBHwRegisterEPIntHandler
+                0x00000bf0                USBHwRegisterDevIntHandler
+                0x00000c14                USBHwRegisterFrameHandler
+                0x00000c38                USBHwSetAddress
+                0x00000c44                USBHwConnect
+                0x00000c54                USBHwGetEPStall
+                0x00000ca0                USBHwEPStall
+                0x00000cbc                USBHwEPWrite
+                0x00000d34                USBHwEPRead
+                0x00000ddc                USBHwConfigDevice
+                0x00000e34                USBHwISR
+                0x00000f5c                USBHwInit
+                0x00001054                USBHwReset
+ .text          0x00001058      0x224 usbstack.a(usbcontrol.o)
+                0x000010a0                USBHandleControlTransfer
+                0x00001258                USBRegisterPreRequestHandler
+                0x00001268                USBRegisterRequestHandler
+ .text          0x0000127c       0x78 usbstack.a(usbinit.o)
+                0x00001290                USBInit
+ .text          0x000012f4       0x84 usbstack.a(usbdescrip.o)
+                0x000012f4                USBRegisterDescriptors
+                0x00001304                USBHandleDescriptor
+ .text          0x00001378      0x1f0 usbstack.a(usbstdreq.o)
+                0x00001378                USBHandleStandardRequest
+                0x00001558                USBRegisterDescriptorHandler
+ .text          0x00001568      0x114 /opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/libgcc.a(_udivsi3.o)
+                0x00001568                __udivsi3
+                0x00001568                __aeabi_uidiv
+                0x0000165c                __aeabi_uidivmod
+ .text          0x0000167c        0x4 /opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/libgcc.a(_dvmd_tls.o)
+                0x0000167c                __aeabi_ldiv0
+                0x0000167c                __aeabi_idiv0
+ .text          0x00001680       0x20 /opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/lib/libc.a(lib_a-memcpy.o)
+                0x00001680                memcpy
+ *(.rodata)
+ .rodata        0x000016a0       0x77 bootloader.o
+ *(.rodata*)
+ .rodata.str1.1
+                0x00001717        0x7 printf.o
+ *(.glue_7)
+ .glue_7        0x00000000        0x0 linker stubs
+ *(.glue_7t)
+ .glue_7t       0x00000000        0x0 linker stubs
+                0x0000171e                _etext = .
+
+.vfp11_veneer   0x00001720        0x0
+ .vfp11_veneer  0x00000000        0x0 linker stubs
+
+.v4_bx          0x00001720        0x0
+ .v4_bx         0x00000000        0x0 linker stubs
+
+.text.startup   0x00001720       0xec
+ .text.startup  0x00001720       0xec bootloader.o
+                0x00001720                main
+
+.data           0x40006000        0x0 load address 0x0000180c
+                0x40006000                _data = .
+ *(.data)
+ .data          0x40006000        0x0 crt.o
+ .data          0x40006000        0x0 startup.o
+ .data          0x40006000        0x0 printf.o
+ .data          0x40006000        0x0 console.o
+ .data          0x40006000        0x0 bootloader.o
+ .data          0x40006000        0x0 usbstack.a(usbhw_lpc.o)
+ .data          0x40006000        0x0 usbstack.a(usbcontrol.o)
+ .data          0x40006000        0x0 usbstack.a(usbinit.o)
+ .data          0x40006000        0x0 usbstack.a(usbdescrip.o)
+ .data          0x40006000        0x0 usbstack.a(usbstdreq.o)
+ .data          0x40006000        0x0 /opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/libgcc.a(_udivsi3.o)
+ .data          0x40006000        0x0 /opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/libgcc.a(_dvmd_tls.o)
+ .data          0x40006000        0x0 /opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/lib/libc.a(lib_a-memcpy.o)
+                0x40006000                _edata = .
+
+.bss            0x40006000      0x14c load address 0x0000180c
+                0x40006000                _bss_start = .
+ *(.bss)
+ .bss           0x40006000        0x0 crt.o
+ .bss           0x40006000        0x0 startup.o
+ .bss           0x40006000        0x0 printf.o
+ .bss           0x40006000        0x0 console.o
+ .bss           0x40006000       0x50 bootloader.o
+ .bss           0x40006050       0x48 usbstack.a(usbhw_lpc.o)
+ .bss           0x40006098       0xa8 usbstack.a(usbcontrol.o)
+ .bss           0x40006140        0x0 usbstack.a(usbinit.o)
+ .bss           0x40006140        0x4 usbstack.a(usbdescrip.o)
+ .bss           0x40006144        0x8 usbstack.a(usbstdreq.o)
+ .bss           0x4000614c        0x0 /opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/libgcc.a(_udivsi3.o)
+ .bss           0x4000614c        0x0 /opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/libgcc.a(_dvmd_tls.o)
+ .bss           0x4000614c        0x0 /opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/lib/libc.a(lib_a-memcpy.o)
+                0x4000614c                . = ALIGN (0x4)
+                0x4000614c                _bss_end = .
+                0x4000614c                _end = .
+OUTPUT(bl.elf elf32-littlearm)
+
+.ARM.attributes
+                0x00000000       0x2e
+ .ARM.attributes
+                0x00000000       0x16 crt.o
+ .ARM.attributes
+                0x00000016       0x32 startup.o
+ .ARM.attributes
+                0x00000048       0x32 printf.o
+ .ARM.attributes
+                0x0000007a       0x32 console.o
+ .ARM.attributes
+                0x000000ac       0x32 bootloader.o
+ .ARM.attributes
+                0x000000de       0x32 usbstack.a(usbhw_lpc.o)
+ .ARM.attributes
+                0x00000110       0x32 usbstack.a(usbcontrol.o)
+ .ARM.attributes
+                0x00000142       0x32 usbstack.a(usbinit.o)
+ .ARM.attributes
+                0x00000174       0x32 usbstack.a(usbdescrip.o)
+ .ARM.attributes
+                0x000001a6       0x32 usbstack.a(usbstdreq.o)
+ .ARM.attributes
+                0x000001d8       0x1a /opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/libgcc.a(_udivsi3.o)
+ .ARM.attributes
+                0x000001f2       0x18 /opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/libgcc.a(_dvmd_tls.o)
+ .ARM.attributes
+                0x0000020a       0x32 /opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/lib/libc.a(lib_a-memcpy.o)
+
+.comment        0x00000000       0x3c
+ .comment       0x00000000       0x3c startup.o
+                                 0x3d (size before relaxing)
+ .comment       0x00000000       0x3d printf.o
+ .comment       0x00000000       0x3d console.o
+ .comment       0x00000000       0x3d bootloader.o
+ .comment       0x00000000       0x3d usbstack.a(usbhw_lpc.o)
+ .comment       0x00000000       0x3d usbstack.a(usbcontrol.o)
+ .comment       0x00000000       0x3d usbstack.a(usbinit.o)
+ .comment       0x00000000       0x3d usbstack.a(usbdescrip.o)
+ .comment       0x00000000       0x3d usbstack.a(usbstdreq.o)
+ .comment       0x00000000       0x3d /opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/lib/libc.a(lib_a-memcpy.o)
+
+.debug_info     0x00000000     0x1b1e
+ .debug_info    0x00000000       0xc1 startup.o
+ .debug_info    0x000000c1      0x362 printf.o
+ .debug_info    0x00000423       0xce console.o
+ .debug_info    0x000004f1      0x48b bootloader.o
+ .debug_info    0x0000097c      0x5eb usbstack.a(usbhw_lpc.o)
+ .debug_info    0x00000f67      0x45c usbstack.a(usbcontrol.o)
+ .debug_info    0x000013c3       0x98 usbstack.a(usbinit.o)
+ .debug_info    0x0000145b      0x146 usbstack.a(usbdescrip.o)
+ .debug_info    0x000015a1      0x2fb usbstack.a(usbstdreq.o)
+ .debug_info    0x0000189c       0xc2 /opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/libgcc.a(_udivsi3.o)
+ .debug_info    0x0000195e       0xc2 /opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/libgcc.a(_dvmd_tls.o)
+ .debug_info    0x00001a20       0xfe /opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/lib/libc.a(lib_a-memcpy.o)
+
+.debug_abbrev   0x00000000      0xb95
+ .debug_abbrev  0x00000000       0x6b startup.o
+ .debug_abbrev  0x0000006b      0x176 printf.o
+ .debug_abbrev  0x000001e1       0xc0 console.o
+ .debug_abbrev  0x000002a1      0x1c5 bootloader.o
+ .debug_abbrev  0x00000466      0x21f usbstack.a(usbhw_lpc.o)
+ .debug_abbrev  0x00000685      0x1a1 usbstack.a(usbcontrol.o)
+ .debug_abbrev  0x00000826       0x7f usbstack.a(usbinit.o)
+ .debug_abbrev  0x000008a5       0xcf usbstack.a(usbdescrip.o)
+ .debug_abbrev  0x00000974      0x158 usbstack.a(usbstdreq.o)
+ .debug_abbrev  0x00000acc       0x14 /opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/libgcc.a(_udivsi3.o)
+ .debug_abbrev  0x00000ae0       0x14 /opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/libgcc.a(_dvmd_tls.o)
+ .debug_abbrev  0x00000af4       0xa1 /opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/lib/libc.a(lib_a-memcpy.o)
+
+.debug_aranges  0x00000000      0x188
+ .debug_aranges
+                0x00000000       0x20 startup.o
+ .debug_aranges
+                0x00000020       0x20 printf.o
+ .debug_aranges
+                0x00000040       0x20 console.o
+ .debug_aranges
+                0x00000060       0x28 bootloader.o
+ .debug_aranges
+                0x00000088       0x20 usbstack.a(usbhw_lpc.o)
+ .debug_aranges
+                0x000000a8       0x20 usbstack.a(usbcontrol.o)
+ .debug_aranges
+                0x000000c8       0x20 usbstack.a(usbinit.o)
+ .debug_aranges
+                0x000000e8       0x20 usbstack.a(usbdescrip.o)
+ .debug_aranges
+                0x00000108       0x20 usbstack.a(usbstdreq.o)
+ .debug_aranges
+                0x00000128       0x20 /opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/libgcc.a(_udivsi3.o)
+ .debug_aranges
+                0x00000148       0x20 /opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/libgcc.a(_dvmd_tls.o)
+ .debug_aranges
+                0x00000168       0x20 /opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/lib/libc.a(lib_a-memcpy.o)
+
+.debug_ranges   0x00000000      0x110
+ .debug_ranges  0x00000000       0x30 startup.o
+ .debug_ranges  0x00000030       0x30 printf.o
+ .debug_ranges  0x00000060       0x40 bootloader.o
+ .debug_ranges  0x000000a0       0x70 usbstack.a(usbstdreq.o)
+
+.debug_line     0x00000000      0xa0c
+ .debug_line    0x00000000       0x6c startup.o
+ .debug_line    0x0000006c      0x1c7 printf.o
+ .debug_line    0x00000233       0x67 console.o
+ .debug_line    0x0000029a      0x141 bootloader.o
+ .debug_line    0x000003db      0x17e usbstack.a(usbhw_lpc.o)
+ .debug_line    0x00000559       0xd2 usbstack.a(usbcontrol.o)
+ .debug_line    0x0000062b       0x55 usbstack.a(usbinit.o)
+ .debug_line    0x00000680       0x6d usbstack.a(usbdescrip.o)
+ .debug_line    0x000006ed       0xbb usbstack.a(usbstdreq.o)
+ .debug_line    0x000007a8       0xa9 /opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/libgcc.a(_udivsi3.o)
+ .debug_line    0x00000851       0x80 /opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/libgcc.a(_dvmd_tls.o)
+ .debug_line    0x000008d1      0x13b /opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/lib/libc.a(lib_a-memcpy.o)
+
+.debug_str      0x00000000      0x80f
+ .debug_str     0x00000000       0xa9 startup.o
+ .debug_str     0x000000a9       0x79 printf.o
+                                 0xfe (size before relaxing)
+ .debug_str     0x00000122       0x34 console.o
+                                 0x96 (size before relaxing)
+ .debug_str     0x00000156      0x171 bootloader.o
+                                0x226 (size before relaxing)
+ .debug_str     0x000002c7      0x234 usbstack.a(usbhw_lpc.o)
+                                0x2d5 (size before relaxing)
+ .debug_str     0x000004fb       0xed usbstack.a(usbcontrol.o)
+                                0x1f1 (size before relaxing)
+ .debug_str     0x000005e8       0x2c usbstack.a(usbinit.o)
+                                 0xbc (size before relaxing)
+ .debug_str     0x00000614       0x7c usbstack.a(usbdescrip.o)
+                                0x11a (size before relaxing)
+ .debug_str     0x00000690       0xbc usbstack.a(usbstdreq.o)
+                                0x1a2 (size before relaxing)
+ .debug_str     0x0000074c       0xc3 /opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/lib/libc.a(lib_a-memcpy.o)
+                                0x16e (size before relaxing)
+
+.debug_frame    0x00000000      0x4fc
+ .debug_frame   0x00000000       0x60 startup.o
+ .debug_frame   0x00000060       0xe8 printf.o
+ .debug_frame   0x00000148       0x58 console.o
+ .debug_frame   0x000001a0       0x88 bootloader.o
+ .debug_frame   0x00000228      0x170 usbstack.a(usbhw_lpc.o)
+ .debug_frame   0x00000398       0x68 usbstack.a(usbcontrol.o)
+ .debug_frame   0x00000400       0x40 usbstack.a(usbinit.o)
+ .debug_frame   0x00000440       0x3c usbstack.a(usbdescrip.o)
+ .debug_frame   0x0000047c       0x40 usbstack.a(usbstdreq.o)
+ .debug_frame   0x000004bc       0x20 /opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/libgcc.a(_udivsi3.o)
+ .debug_frame   0x000004dc       0x20 /opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/lib/libc.a(lib_a-memcpy.o)
+
+.debug_loc      0x00000000     0x12c1
+ .debug_loc     0x00000000      0x5ce printf.o
+ .debug_loc     0x000005ce       0x46 console.o
+ .debug_loc     0x00000614      0x24c bootloader.o
+ .debug_loc     0x00000860      0x470 usbstack.a(usbhw_lpc.o)
+ .debug_loc     0x00000cd0      0x2a9 usbstack.a(usbcontrol.o)
+ .debug_loc     0x00000f79       0x53 usbstack.a(usbinit.o)
+ .debug_loc     0x00000fcc       0xa5 usbstack.a(usbdescrip.o)
+ .debug_loc     0x00001071      0x217 usbstack.a(usbstdreq.o)
+ .debug_loc     0x00001288       0x39 /opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/lib/libc.a(lib_a-memcpy.o)

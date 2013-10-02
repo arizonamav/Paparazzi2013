@@ -1,0 +1,51 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 18, 4
+  12              		.thumb
+  13              		.file	"spi.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.global	spi_message_received
+  18              		.global	spi_buffer_length
+  19              		.global	spi_buffer_output
+  20              		.global	spi_buffer_input
+  21              		.section	.bss.spi_buffer_length,"aw",%nobits
+  24              	spi_buffer_length:
+  25 0000 00       		.space	1
+  26              		.section	.bss.spi_buffer_input,"aw",%nobits
+  27              		.align	2
+  30              	spi_buffer_input:
+  31 0000 00000000 		.space	4
+  32              		.section	.bss.spi_message_received,"aw",%nobits
+  35              	spi_message_received:
+  36 0000 00       		.space	1
+  37              		.section	.bss.spi_buffer_output,"aw",%nobits
+  38              		.align	2
+  41              	spi_buffer_output:
+  42 0000 00000000 		.space	4
+  43              		.text
+  44              	.Letext0:
+  45              		.file 1 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+  46              		.file 2 "/home/mav/paparazzi/sw/include/std.h"
+  47              		.file 3 "mcu_periph/spi.c"
+DEFINED SYMBOLS
+                            *ABS*:00000000 spi.c
+     /tmp/ccBbTNzY.s:35     .bss.spi_message_received:00000000 spi_message_received
+     /tmp/ccBbTNzY.s:24     .bss.spi_buffer_length:00000000 spi_buffer_length
+     /tmp/ccBbTNzY.s:41     .bss.spi_buffer_output:00000000 spi_buffer_output
+     /tmp/ccBbTNzY.s:30     .bss.spi_buffer_input:00000000 spi_buffer_input
+     /tmp/ccBbTNzY.s:25     .bss.spi_buffer_length:00000000 $d
+     /tmp/ccBbTNzY.s:27     .bss.spi_buffer_input:00000000 $d
+     /tmp/ccBbTNzY.s:36     .bss.spi_message_received:00000000 $d
+     /tmp/ccBbTNzY.s:38     .bss.spi_buffer_output:00000000 $d
+
+NO UNDEFINED SYMBOLS

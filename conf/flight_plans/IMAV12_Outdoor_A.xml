@@ -1,0 +1,26 @@
+<!DOCTYPE flight_plan SYSTEM "flight_plan.dtd">
+
+<flight_plan alt="728" ground_alt="728" lat0="32.233275" lon0="-110.933177" max_dist_from_home="200" name="IMAV2012 Outdoor A" security_height="0">
+  <waypoints>
+    <waypoint name="HOME" x="-10" y="-10" height="3"/>
+    <waypoint name="Start" x="-10" y="0" height="3"/>
+    <waypoint name="GateA" x="0" y="0" height="3"/>
+    <waypoint name="GateB" x="50" y ="50" height="3"/>
+    <waypoint name="Midpoint" x="40" y ="20" height="3"/>
+    <waypoint name="End" x="50" y ="60" height="3"/>
+  </waypoints>
+  <blocks>
+    <block name="endurance">
+      <while cond="TRUE">
+	<go wp="Start"/>
+        <go wp="GateA"/>
+        <go wp="Midpoint"/>
+        <go wp="GateB"/>
+        <go wp="End"/>
+        <go wp="GateB"/>
+        <go wp="Midpoint"/>
+        <go wp="GateA"/>
+      </while>
+    </block>
+  </blocks>
+</flight_plan>

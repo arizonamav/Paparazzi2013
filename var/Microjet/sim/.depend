@@ -1,0 +1,908 @@
+/home/mav/paparazzi/var/Microjet/sim/mcu.o: mcu.c mcu.h /home/mav/paparazzi/sw/airborne/arch/sim/mcu_arch.h \
+ mcu_periph/sys_time.h /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/boards/tiny_sim.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/sys_time_arch.h \
+ led.h /home/mav/paparazzi/sw/airborne/arch/sim/led_hw.h \
+ /usr/lib/ocaml/caml/mlvalues.h /usr/lib/ocaml/caml/compatibility.h \
+ /usr/lib/ocaml/caml/config.h /usr/lib/ocaml/caml/misc.h \
+ /usr/lib/ocaml/caml/memory.h /usr/lib/ocaml/caml/mlvalues.h \
+ /usr/lib/ocaml/caml/callback.h
+/home/mav/paparazzi/var/Microjet/sim/mcu_arch.o: arch/sim/mcu_arch.c
+/home/mav/paparazzi/var/Microjet/sim/led_hw.o: arch/sim/led_hw.c arch/sim/led_hw.h \
+ /usr/lib/ocaml/caml/mlvalues.h /usr/lib/ocaml/caml/compatibility.h \
+ /usr/lib/ocaml/caml/config.h /usr/lib/ocaml/caml/misc.h \
+ /usr/lib/ocaml/caml/memory.h /usr/lib/ocaml/caml/mlvalues.h \
+ /usr/lib/ocaml/caml/callback.h
+/home/mav/paparazzi/var/Microjet/sim/sys_time.o: mcu_periph/sys_time.c \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/sys_time.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/boards/tiny_sim.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/sys_time_arch.h \
+ /home/mav/paparazzi/sw/airborne/mcu.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_arch.h
+/home/mav/paparazzi/var/Microjet/sim/sys_time_arch.o: arch/sim/mcu_periph/sys_time_arch.c \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/sys_time.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/boards/tiny_sim.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/sys_time_arch.h
+/home/mav/paparazzi/var/Microjet/sim/inter_mcu.o: inter_mcu.c inter_mcu.h /home/mav/paparazzi/sw/include/std.h \
+ paparazzi.h /home/mav/paparazzi/var/Microjet/generated/airframe.h \
+ subsystems/radio_control.h /home/mav/paparazzi/sw/airborne/led.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/led_hw.h \
+ /usr/lib/ocaml/caml/mlvalues.h /usr/lib/ocaml/caml/compatibility.h \
+ /usr/lib/ocaml/caml/config.h /usr/lib/ocaml/caml/misc.h \
+ /usr/lib/ocaml/caml/memory.h /usr/lib/ocaml/caml/mlvalues.h \
+ /usr/lib/ocaml/caml/callback.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control/ppm.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/subsystems/radio_control/ppm_arch.h \
+ /home/mav/paparazzi/var/Microjet/generated/radio.h \
+ subsystems/electrical.h firmwares/fixedwing/main_fbw.h
+/home/mav/paparazzi/var/Microjet/sim/pprz_geodetic_int.o: math/pprz_geodetic_int.c math/pprz_geodetic_int.h \
+ math/pprz_geodetic.h /home/mav/paparazzi/sw/include/std.h \
+ math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ math/pprz_geodetic_float.h math/pprz_algebra_float.h math/pprz_algebra.h \
+ math/pprz_geodetic_double.h math/pprz_algebra_double.h
+/home/mav/paparazzi/var/Microjet/sim/pprz_geodetic_float.o: math/pprz_geodetic_float.c \
+ math/pprz_geodetic_float.h math/pprz_geodetic.h \
+ math/pprz_algebra_float.h math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/include/std.h math/pprz_geodetic_double.h \
+ math/pprz_algebra_double.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_utm.h
+/home/mav/paparazzi/var/Microjet/sim/pprz_geodetic_double.o: math/pprz_geodetic_double.c \
+ math/pprz_geodetic_double.h math/pprz_geodetic.h \
+ math/pprz_algebra_double.h math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/include/std.h math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_utm.h
+/home/mav/paparazzi/var/Microjet/sim/pprz_trig_int.o: math/pprz_trig_int.c math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h
+/home/mav/paparazzi/var/Microjet/sim/i2c.o: mcu_periph/i2c.c /home/mav/paparazzi/sw/airborne/mcu_periph/i2c.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/i2c_arch.h
+/home/mav/paparazzi/var/Microjet/sim/i2c_arch.o: arch/sim/mcu_periph/i2c_arch.c \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/i2c.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/i2c_arch.h
+/home/mav/paparazzi/var/Microjet/sim/main_fbw.o: firmwares/fixedwing/main_fbw.c \
+ /home/mav/paparazzi/var/Microjet/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/main_fbw.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/mcu.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_arch.h \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/sys_time.h \
+ /home/mav/paparazzi/sw/airborne/boards/tiny_sim.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/sys_time_arch.h \
+ /home/mav/paparazzi/sw/airborne/commands.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/actuators.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/electrical.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control.h \
+ /home/mav/paparazzi/sw/airborne/led.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/led_hw.h \
+ /usr/lib/ocaml/caml/mlvalues.h /usr/lib/ocaml/caml/compatibility.h \
+ /usr/lib/ocaml/caml/config.h /usr/lib/ocaml/caml/misc.h \
+ /usr/lib/ocaml/caml/memory.h /usr/lib/ocaml/caml/mlvalues.h \
+ /usr/lib/ocaml/caml/callback.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control/ppm.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/subsystems/radio_control/ppm_arch.h \
+ /home/mav/paparazzi/var/Microjet/generated/radio.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/autopilot.h \
+ /home/mav/paparazzi/sw/airborne/estimator.h \
+ firmwares/fixedwing/fbw_downlink.h \
+ /home/mav/paparazzi/var/include/messages.h \
+ /home/mav/paparazzi/var/Microjet/generated/periodic_telemetry.h \
+ firmwares/fixedwing/actuators.h \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/uart.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/uart_arch.h \
+ /home/mav/paparazzi/sw/airborne/inter_mcu.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/electrical.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/main_fbw.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/datalink/downlink.h \
+ /home/mav/paparazzi/var/Microjet/generated/modules.h \
+ modules/openlog/openlog.h modules/sensors/infrared_adc.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/sensors/infrared_adc.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/sensors/infrared.h \
+ modules/digital_cam/servo_cam_ctrl.h modules/digital_cam/dc.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/nav.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/guidance/guidance_v.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/nav_survey_rectangle.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_flight_plan.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_nav.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps/gps_sim.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/ivy_transport.h \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/i2c.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/i2c_arch.h
+/home/mav/paparazzi/var/Microjet/sim/electrical.o: subsystems/electrical.c \
+ /home/mav/paparazzi/sw/airborne/subsystems/electrical.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/adc.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/adc_arch.h \
+ /home/mav/paparazzi/sw/airborne/commands.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/var/Microjet/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/boards/tiny_sim.h
+/home/mav/paparazzi/var/Microjet/sim/commands.o: commands.c commands.h paparazzi.h \
+ /home/mav/paparazzi/var/Microjet/generated/airframe.h
+/home/mav/paparazzi/var/Microjet/sim/fbw_downlink.o: firmwares/fixedwing/fbw_downlink.c \
+ /home/mav/paparazzi/var/Microjet/generated/periodic_telemetry.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/var/Microjet/generated/airframe.h
+/home/mav/paparazzi/var/Microjet/sim/main_ap.o: firmwares/fixedwing/main_ap.c \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/main_ap.h \
+ /home/mav/paparazzi/sw/airborne/mcu.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_arch.h \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/sys_time.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/boards/tiny_sim.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/sys_time_arch.h \
+ /home/mav/paparazzi/sw/airborne/link_mcu.h \
+ /home/mav/paparazzi/sw/airborne/inter_mcu.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/var/Microjet/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control.h \
+ /home/mav/paparazzi/sw/airborne/led.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/led_hw.h \
+ /usr/lib/ocaml/caml/mlvalues.h /usr/lib/ocaml/caml/compatibility.h \
+ /usr/lib/ocaml/caml/config.h /usr/lib/ocaml/caml/misc.h \
+ /usr/lib/ocaml/caml/memory.h /usr/lib/ocaml/caml/mlvalues.h \
+ /usr/lib/ocaml/caml/callback.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control/ppm.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/subsystems/radio_control/ppm_arch.h \
+ /home/mav/paparazzi/var/Microjet/generated/radio.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/electrical.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/main_fbw.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps/gps_sim.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs/ahrs_infrared.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/autopilot.h \
+ /home/mav/paparazzi/sw/airborne/estimator.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/stabilization/stabilization_attitude.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/guidance/guidance_v.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/nav.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/nav_survey_rectangle.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_flight_plan.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_nav.h \
+ /home/mav/paparazzi/var/Microjet/generated/flight_plan.h \
+ /home/mav/paparazzi/var/Microjet/generated/modules.h \
+ modules/openlog/openlog.h modules/sensors/infrared_adc.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/sensors/infrared_adc.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/sensors/infrared.h \
+ modules/digital_cam/servo_cam_ctrl.h modules/digital_cam/dc.h \
+ /home/mav/paparazzi/sw/airborne/commands.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/nav_line.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/datalink/datalink.h \
+ /home/mav/paparazzi/var/include/dl_protocol.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/traffic_info.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/settings.h \
+ /home/mav/paparazzi/var/Microjet/generated/settings.h \
+ firmwares/fixedwing/autopilot.h \
+ /home/mav/paparazzi/var/Microjet/generated/periodic_telemetry.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/datalink/xbee.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/datalink/xbee24.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/datalink/transport.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/ap_downlink.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/datalink/downlink.h \
+ /home/mav/paparazzi/var/include/messages.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/ivy_transport.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/stabilization/stabilization_adaptive.h \
+ /home/mav/paparazzi/sw/airborne/rc_settings.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/gpio.h
+/home/mav/paparazzi/var/Microjet/sim/estimator.o: estimator.c estimator.h /home/mav/paparazzi/sw/include/std.h \
+ mcu_periph/uart.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/uart_arch.h \
+ firmwares/fixedwing/ap_downlink.h \
+ /home/mav/paparazzi/var/Microjet/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/datalink/downlink.h \
+ /home/mav/paparazzi/var/Microjet/generated/modules.h \
+ modules/openlog/openlog.h modules/sensors/infrared_adc.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/sensors/infrared_adc.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/sensors/infrared.h \
+ modules/digital_cam/servo_cam_ctrl.h modules/digital_cam/dc.h \
+ /home/mav/paparazzi/sw/airborne/led.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/led_hw.h \
+ /usr/lib/ocaml/caml/mlvalues.h /usr/lib/ocaml/caml/compatibility.h \
+ /usr/lib/ocaml/caml/config.h /usr/lib/ocaml/caml/misc.h \
+ /usr/lib/ocaml/caml/memory.h /usr/lib/ocaml/caml/mlvalues.h \
+ /usr/lib/ocaml/caml/callback.h \
+ /home/mav/paparazzi/sw/airborne/estimator.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/nav.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/guidance/guidance_v.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/nav_survey_rectangle.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_flight_plan.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_nav.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps/gps_sim.h \
+ /home/mav/paparazzi/sw/airborne/commands.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/var/include/messages.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/ivy_transport.h \
+ /home/mav/paparazzi/var/Microjet/generated/periodic_telemetry.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/stabilization/stabilization_adaptive.h \
+ subsystems/gps.h subsystems/nav.h
+/home/mav/paparazzi/var/Microjet/sim/ap_downlink.o: firmwares/fixedwing/ap_downlink.c \
+ /home/mav/paparazzi/var/Microjet/generated/periodic_telemetry.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/var/Microjet/generated/airframe.h
+/home/mav/paparazzi/var/Microjet/sim/sim_ap.o: arch/sim/sim_ap.c /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/inter_mcu.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/var/Microjet/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control.h \
+ /home/mav/paparazzi/sw/airborne/led.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/led_hw.h \
+ /usr/lib/ocaml/caml/mlvalues.h /usr/lib/ocaml/caml/compatibility.h \
+ /usr/lib/ocaml/caml/config.h /usr/lib/ocaml/caml/misc.h \
+ /usr/lib/ocaml/caml/memory.h /usr/lib/ocaml/caml/mlvalues.h \
+ /usr/lib/ocaml/caml/callback.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control/ppm.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/subsystems/radio_control/ppm_arch.h \
+ /home/mav/paparazzi/var/Microjet/generated/radio.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/electrical.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/main_fbw.h \
+ firmwares/fixedwing/autopilot.h \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/sys_time.h \
+ /home/mav/paparazzi/sw/airborne/boards/tiny_sim.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/sys_time_arch.h \
+ /home/mav/paparazzi/sw/airborne/estimator.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps/gps_sim.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/traffic_info.h \
+ /home/mav/paparazzi/var/Microjet/generated/settings.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/nav.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/guidance/guidance_v.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/nav_survey_rectangle.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_flight_plan.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_nav.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/sensors/infrared.h \
+ /home/mav/paparazzi/var/Microjet/generated/modules.h \
+ modules/openlog/openlog.h modules/sensors/infrared_adc.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/sensors/infrared_adc.h \
+ modules/digital_cam/servo_cam_ctrl.h modules/digital_cam/dc.h \
+ /home/mav/paparazzi/sw/airborne/commands.h \
+ /home/mav/paparazzi/var/Microjet/generated/periodic_telemetry.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/stabilization/stabilization_attitude.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/main_ap.h \
+ firmwares/fixedwing/ap_downlink.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/datalink/downlink.h \
+ /home/mav/paparazzi/var/include/messages.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/ivy_transport.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/stabilization/stabilization_adaptive.h \
+ arch/sim/sim_uart.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/datalink/datalink.h \
+ /home/mav/paparazzi/var/include/dl_protocol.h \
+ /home/mav/paparazzi/var/Microjet/generated/flight_plan.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/nav_line.h
+/home/mav/paparazzi/var/Microjet/sim/downlink.o: subsystems/datalink/downlink.c \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/var/Microjet/generated/airframe.h
+/home/mav/paparazzi/var/Microjet/sim/datalink.o: firmwares/fixedwing/datalink.c \
+ /home/mav/paparazzi/sw/airborne/subsystems/datalink/datalink.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/var/include/dl_protocol.h \
+ /home/mav/paparazzi/var/Microjet/generated/modules.h \
+ modules/openlog/openlog.h modules/sensors/infrared_adc.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/sensors/infrared_adc.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/sensors/infrared.h \
+ /home/mav/paparazzi/var/Microjet/generated/airframe.h \
+ modules/digital_cam/servo_cam_ctrl.h modules/digital_cam/dc.h \
+ /home/mav/paparazzi/sw/airborne/led.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/led_hw.h \
+ /usr/lib/ocaml/caml/mlvalues.h /usr/lib/ocaml/caml/compatibility.h \
+ /usr/lib/ocaml/caml/config.h /usr/lib/ocaml/caml/misc.h \
+ /usr/lib/ocaml/caml/memory.h /usr/lib/ocaml/caml/mlvalues.h \
+ /usr/lib/ocaml/caml/callback.h \
+ /home/mav/paparazzi/sw/airborne/estimator.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/nav.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/guidance/guidance_v.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/nav_survey_rectangle.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_flight_plan.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_nav.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps/gps_sim.h \
+ /home/mav/paparazzi/sw/airborne/commands.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/var/include/messages.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/traffic_info.h \
+ /home/mav/paparazzi/var/Microjet/generated/settings.h \
+ firmwares/fixedwing/autopilot.h \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/sys_time.h \
+ /home/mav/paparazzi/sw/airborne/boards/tiny_sim.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/sys_time_arch.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control/ppm.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/subsystems/radio_control/ppm_arch.h \
+ /home/mav/paparazzi/var/Microjet/generated/radio.h \
+ /home/mav/paparazzi/var/Microjet/generated/periodic_telemetry.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/uart.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/uart_arch.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/datalink/downlink.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/ivy_transport.h \
+ firmwares/fixedwing/ap_downlink.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/stabilization/stabilization_adaptive.h
+/home/mav/paparazzi/var/Microjet/sim/sim_gps.o: arch/sim/sim_gps.c \
+ /home/mav/paparazzi/var/Microjet/generated/airframe.h \
+ /home/mav/paparazzi/var/Microjet/generated/flight_plan.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/var/Microjet/generated/modules.h \
+ modules/openlog/openlog.h modules/sensors/infrared_adc.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/sensors/infrared_adc.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/sensors/infrared.h \
+ modules/digital_cam/servo_cam_ctrl.h modules/digital_cam/dc.h \
+ /home/mav/paparazzi/sw/airborne/led.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/led_hw.h \
+ /usr/lib/ocaml/caml/mlvalues.h /usr/lib/ocaml/caml/compatibility.h \
+ /usr/lib/ocaml/caml/config.h /usr/lib/ocaml/caml/misc.h \
+ /usr/lib/ocaml/caml/memory.h /usr/lib/ocaml/caml/mlvalues.h \
+ /usr/lib/ocaml/caml/callback.h \
+ /home/mav/paparazzi/sw/airborne/estimator.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/nav.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/guidance/guidance_v.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/nav_survey_rectangle.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_flight_plan.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_nav.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps/gps_sim.h \
+ /home/mav/paparazzi/sw/airborne/commands.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/nav_line.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/datalink/datalink.h \
+ /home/mav/paparazzi/var/include/dl_protocol.h \
+ firmwares/fixedwing/autopilot.h \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/sys_time.h \
+ /home/mav/paparazzi/sw/airborne/boards/tiny_sim.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/sys_time_arch.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control/ppm.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/subsystems/radio_control/ppm_arch.h \
+ /home/mav/paparazzi/var/Microjet/generated/radio.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h
+/home/mav/paparazzi/var/Microjet/sim/ivy_transport.o: arch/sim/ivy_transport.c
+/home/mav/paparazzi/var/Microjet/sim/sim_adc_generic.o: arch/sim/sim_adc_generic.c \
+ /usr/lib/ocaml/caml/mlvalues.h /usr/lib/ocaml/caml/compatibility.h \
+ /usr/lib/ocaml/caml/config.h /usr/lib/ocaml/caml/misc.h
+/home/mav/paparazzi/var/Microjet/sim/settings.o: subsystems/settings.c \
+ /home/mav/paparazzi/sw/airborne/subsystems/settings.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/var/Microjet/generated/settings.h \
+ firmwares/fixedwing/autopilot.h \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/sys_time.h \
+ /home/mav/paparazzi/sw/airborne/boards/tiny_sim.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/sys_time_arch.h \
+ /home/mav/paparazzi/sw/airborne/estimator.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control.h \
+ /home/mav/paparazzi/sw/airborne/led.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/led_hw.h \
+ /usr/lib/ocaml/caml/mlvalues.h /usr/lib/ocaml/caml/compatibility.h \
+ /usr/lib/ocaml/caml/config.h /usr/lib/ocaml/caml/misc.h \
+ /usr/lib/ocaml/caml/memory.h /usr/lib/ocaml/caml/mlvalues.h \
+ /usr/lib/ocaml/caml/callback.h \
+ /home/mav/paparazzi/var/Microjet/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control/ppm.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/subsystems/radio_control/ppm_arch.h \
+ /home/mav/paparazzi/var/Microjet/generated/radio.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps/gps_sim.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/nav.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/guidance/guidance_v.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/nav_survey_rectangle.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_flight_plan.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_nav.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/sensors/infrared.h \
+ /home/mav/paparazzi/var/Microjet/generated/modules.h \
+ modules/openlog/openlog.h modules/sensors/infrared_adc.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/sensors/infrared_adc.h \
+ modules/digital_cam/servo_cam_ctrl.h modules/digital_cam/dc.h \
+ /home/mav/paparazzi/sw/airborne/commands.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/var/Microjet/generated/periodic_telemetry.h
+/home/mav/paparazzi/var/Microjet/sim/settings_arch.o: arch/sim/subsystems/settings_arch.c \
+ /home/mav/paparazzi/sw/airborne/subsystems/settings.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/var/Microjet/generated/settings.h \
+ firmwares/fixedwing/autopilot.h \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/sys_time.h \
+ /home/mav/paparazzi/sw/airborne/boards/tiny_sim.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/sys_time_arch.h \
+ /home/mav/paparazzi/sw/airborne/estimator.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control.h \
+ /home/mav/paparazzi/sw/airborne/led.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/led_hw.h \
+ /usr/lib/ocaml/caml/mlvalues.h /usr/lib/ocaml/caml/compatibility.h \
+ /usr/lib/ocaml/caml/config.h /usr/lib/ocaml/caml/misc.h \
+ /usr/lib/ocaml/caml/memory.h /usr/lib/ocaml/caml/mlvalues.h \
+ /usr/lib/ocaml/caml/callback.h \
+ /home/mav/paparazzi/var/Microjet/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control/ppm.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/subsystems/radio_control/ppm_arch.h \
+ /home/mav/paparazzi/var/Microjet/generated/radio.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps/gps_sim.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/nav.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/guidance/guidance_v.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/nav_survey_rectangle.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_flight_plan.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_nav.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/sensors/infrared.h \
+ /home/mav/paparazzi/var/Microjet/generated/modules.h \
+ modules/openlog/openlog.h modules/sensors/infrared_adc.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/sensors/infrared_adc.h \
+ modules/digital_cam/servo_cam_ctrl.h modules/digital_cam/dc.h \
+ /home/mav/paparazzi/sw/airborne/commands.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/var/Microjet/generated/periodic_telemetry.h
+/home/mav/paparazzi/var/Microjet/sim/sim_ahrs.o: arch/sim/sim_ahrs.c /usr/lib/ocaml/caml/mlvalues.h \
+ /usr/lib/ocaml/caml/compatibility.h /usr/lib/ocaml/caml/config.h \
+ /usr/lib/ocaml/caml/misc.h /home/mav/paparazzi/sw/include/std.h
+/home/mav/paparazzi/var/Microjet/sim/sim_ir.o: arch/sim/sim_ir.c \
+ /home/mav/paparazzi/sw/airborne/subsystems/sensors/infrared.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/var/Microjet/generated/airframe.h \
+ /usr/lib/ocaml/caml/mlvalues.h /usr/lib/ocaml/caml/compatibility.h \
+ /usr/lib/ocaml/caml/config.h /usr/lib/ocaml/caml/misc.h
+/home/mav/paparazzi/var/Microjet/sim/radio_control.o: subsystems/radio_control.c \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control.h \
+ /home/mav/paparazzi/sw/airborne/led.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/led_hw.h \
+ /usr/lib/ocaml/caml/mlvalues.h /usr/lib/ocaml/caml/compatibility.h \
+ /usr/lib/ocaml/caml/config.h /usr/lib/ocaml/caml/misc.h \
+ /usr/lib/ocaml/caml/memory.h /usr/lib/ocaml/caml/mlvalues.h \
+ /usr/lib/ocaml/caml/callback.h \
+ /home/mav/paparazzi/var/Microjet/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control/ppm.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/subsystems/radio_control/ppm_arch.h \
+ /home/mav/paparazzi/var/Microjet/generated/radio.h
+/home/mav/paparazzi/var/Microjet/sim/ppm.o: subsystems/radio_control/ppm.c \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control.h \
+ /home/mav/paparazzi/sw/airborne/led.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/led_hw.h \
+ /usr/lib/ocaml/caml/mlvalues.h /usr/lib/ocaml/caml/compatibility.h \
+ /usr/lib/ocaml/caml/config.h /usr/lib/ocaml/caml/misc.h \
+ /usr/lib/ocaml/caml/memory.h /usr/lib/ocaml/caml/mlvalues.h \
+ /usr/lib/ocaml/caml/callback.h \
+ /home/mav/paparazzi/var/Microjet/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control/ppm.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/subsystems/radio_control/ppm_arch.h \
+ /home/mav/paparazzi/var/Microjet/generated/radio.h
+/home/mav/paparazzi/var/Microjet/sim/ppm_arch.o: arch/sim/subsystems/radio_control/ppm_arch.c \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/sys_time.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/boards/tiny_sim.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/sys_time_arch.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control.h \
+ /home/mav/paparazzi/sw/airborne/led.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/led_hw.h \
+ /usr/lib/ocaml/caml/mlvalues.h /usr/lib/ocaml/caml/compatibility.h \
+ /usr/lib/ocaml/caml/config.h /usr/lib/ocaml/caml/misc.h \
+ /usr/lib/ocaml/caml/memory.h /usr/lib/ocaml/caml/mlvalues.h \
+ /usr/lib/ocaml/caml/callback.h \
+ /home/mav/paparazzi/var/Microjet/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control/ppm.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/subsystems/radio_control/ppm_arch.h \
+ /home/mav/paparazzi/var/Microjet/generated/radio.h
+/home/mav/paparazzi/var/Microjet/sim/stabilization_attitude.o: \
+ firmwares/fixedwing/stabilization/stabilization_attitude.c \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/stabilization/stabilization_attitude.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/var/Microjet/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/led.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/led_hw.h \
+ /usr/lib/ocaml/caml/mlvalues.h /usr/lib/ocaml/caml/compatibility.h \
+ /usr/lib/ocaml/caml/config.h /usr/lib/ocaml/caml/misc.h \
+ /usr/lib/ocaml/caml/memory.h /usr/lib/ocaml/caml/mlvalues.h \
+ /usr/lib/ocaml/caml/callback.h \
+ /home/mav/paparazzi/sw/airborne/estimator.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/nav.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/guidance/guidance_v.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/nav_survey_rectangle.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_flight_plan.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_nav.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/autopilot.h \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/sys_time.h \
+ /home/mav/paparazzi/sw/airborne/boards/tiny_sim.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/sys_time_arch.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control/ppm.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/subsystems/radio_control/ppm_arch.h \
+ /home/mav/paparazzi/var/Microjet/generated/radio.h
+/home/mav/paparazzi/var/Microjet/sim/guidance_v.o: firmwares/fixedwing/guidance/guidance_v.c \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/guidance/guidance_v.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/estimator.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/nav.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/nav_survey_rectangle.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_flight_plan.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_nav.h \
+ /home/mav/paparazzi/var/Microjet/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/autopilot.h \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/sys_time.h \
+ /home/mav/paparazzi/sw/airborne/boards/tiny_sim.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/sys_time_arch.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control.h \
+ /home/mav/paparazzi/sw/airborne/led.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/led_hw.h \
+ /usr/lib/ocaml/caml/mlvalues.h /usr/lib/ocaml/caml/compatibility.h \
+ /usr/lib/ocaml/caml/config.h /usr/lib/ocaml/caml/misc.h \
+ /usr/lib/ocaml/caml/memory.h /usr/lib/ocaml/caml/mlvalues.h \
+ /usr/lib/ocaml/caml/callback.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control/ppm.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/subsystems/radio_control/ppm_arch.h \
+ /home/mav/paparazzi/var/Microjet/generated/radio.h
+/home/mav/paparazzi/var/Microjet/sim/ahrs.o: subsystems/ahrs.c \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs/ahrs_infrared.h
+/home/mav/paparazzi/var/Microjet/sim/ahrs_infrared.o: subsystems/ahrs/ahrs_infrared.c \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs/ahrs_infrared.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/ahrs.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/sensors/infrared.h \
+ /home/mav/paparazzi/var/Microjet/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/imu.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps/gps_sim.h \
+ /home/mav/paparazzi/sw/airborne/estimator.h
+/home/mav/paparazzi/var/Microjet/sim/gps.o: subsystems/gps.c /home/mav/paparazzi/sw/airborne/subsystems/gps.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps/gps_sim.h \
+ /home/mav/paparazzi/sw/airborne/led.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/led_hw.h \
+ /usr/lib/ocaml/caml/mlvalues.h /usr/lib/ocaml/caml/compatibility.h \
+ /usr/lib/ocaml/caml/config.h /usr/lib/ocaml/caml/misc.h \
+ /usr/lib/ocaml/caml/memory.h /usr/lib/ocaml/caml/mlvalues.h \
+ /usr/lib/ocaml/caml/callback.h
+/home/mav/paparazzi/var/Microjet/sim/gps_sim.o: subsystems/gps/gps_sim.c \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps/gps_sim.h
+/home/mav/paparazzi/var/Microjet/sim/nav.o: subsystems/nav.c /home/mav/paparazzi/sw/airborne/subsystems/nav.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/guidance/guidance_v.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/nav_survey_rectangle.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_flight_plan.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_nav.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps/gps_sim.h \
+ /home/mav/paparazzi/sw/airborne/estimator.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/stabilization/stabilization_attitude.h \
+ /home/mav/paparazzi/var/Microjet/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/autopilot.h \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/sys_time.h \
+ /home/mav/paparazzi/sw/airborne/boards/tiny_sim.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/sys_time_arch.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control.h \
+ /home/mav/paparazzi/sw/airborne/led.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/led_hw.h \
+ /usr/lib/ocaml/caml/mlvalues.h /usr/lib/ocaml/caml/compatibility.h \
+ /usr/lib/ocaml/caml/config.h /usr/lib/ocaml/caml/misc.h \
+ /usr/lib/ocaml/caml/memory.h /usr/lib/ocaml/caml/mlvalues.h \
+ /usr/lib/ocaml/caml/callback.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control/ppm.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/subsystems/radio_control/ppm_arch.h \
+ /home/mav/paparazzi/var/Microjet/generated/radio.h \
+ /home/mav/paparazzi/sw/airborne/inter_mcu.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/radio_control.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/electrical.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/main_fbw.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/traffic_info.h \
+ /home/mav/paparazzi/var/Microjet/generated/flight_plan.h \
+ /home/mav/paparazzi/var/Microjet/generated/modules.h \
+ modules/openlog/openlog.h modules/sensors/infrared_adc.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/sensors/infrared_adc.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/sensors/infrared.h \
+ modules/digital_cam/servo_cam_ctrl.h modules/digital_cam/dc.h \
+ /home/mav/paparazzi/sw/airborne/commands.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/nav_line.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/datalink/datalink.h \
+ /home/mav/paparazzi/var/include/dl_protocol.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_nav.c \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_float.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h
+/home/mav/paparazzi/var/Microjet/sim/common_flight_plan.o: subsystems/navigation/common_flight_plan.c \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_flight_plan.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/var/Microjet/generated/flight_plan.h \
+ /home/mav/paparazzi/var/Microjet/generated/modules.h \
+ modules/openlog/openlog.h modules/sensors/infrared_adc.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/sensors/infrared_adc.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/sensors/infrared.h \
+ /home/mav/paparazzi/var/Microjet/generated/airframe.h \
+ modules/digital_cam/servo_cam_ctrl.h modules/digital_cam/dc.h \
+ /home/mav/paparazzi/sw/airborne/led.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/led_hw.h \
+ /usr/lib/ocaml/caml/mlvalues.h /usr/lib/ocaml/caml/compatibility.h \
+ /usr/lib/ocaml/caml/config.h /usr/lib/ocaml/caml/misc.h \
+ /usr/lib/ocaml/caml/memory.h /usr/lib/ocaml/caml/mlvalues.h \
+ /usr/lib/ocaml/caml/callback.h \
+ /home/mav/paparazzi/sw/airborne/estimator.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/nav.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/guidance/guidance_v.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/nav_survey_rectangle.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_nav.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps/gps_sim.h \
+ /home/mav/paparazzi/sw/airborne/commands.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/nav_line.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/datalink/datalink.h \
+ /home/mav/paparazzi/var/include/dl_protocol.h
+/home/mav/paparazzi/var/Microjet/sim/traffic_info.o: subsystems/navigation/traffic_info.c \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/traffic_info.h \
+ /home/mav/paparazzi/var/Microjet/generated/airframe.h
+/home/mav/paparazzi/var/Microjet/sim/nav_survey_rectangle.o: subsystems/navigation/nav_survey_rectangle.c \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/nav_survey_rectangle.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/nav.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/guidance/guidance_v.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_flight_plan.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_nav.h \
+ /home/mav/paparazzi/sw/airborne/estimator.h \
+ /home/mav/paparazzi/var/Microjet/generated/flight_plan.h \
+ /home/mav/paparazzi/var/Microjet/generated/modules.h \
+ modules/openlog/openlog.h modules/sensors/infrared_adc.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/sensors/infrared_adc.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/sensors/infrared.h \
+ /home/mav/paparazzi/var/Microjet/generated/airframe.h \
+ modules/digital_cam/servo_cam_ctrl.h modules/digital_cam/dc.h \
+ /home/mav/paparazzi/sw/airborne/led.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/led_hw.h \
+ /usr/lib/ocaml/caml/mlvalues.h /usr/lib/ocaml/caml/compatibility.h \
+ /usr/lib/ocaml/caml/config.h /usr/lib/ocaml/caml/misc.h \
+ /usr/lib/ocaml/caml/memory.h /usr/lib/ocaml/caml/mlvalues.h \
+ /usr/lib/ocaml/caml/callback.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps/gps_sim.h \
+ /home/mav/paparazzi/sw/airborne/commands.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/nav_line.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/datalink/datalink.h \
+ /home/mav/paparazzi/var/include/dl_protocol.h
+/home/mav/paparazzi/var/Microjet/sim/nav_line.o: subsystems/navigation/nav_line.c \
+ /home/mav/paparazzi/var/Microjet/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/nav_line.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/nav.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/guidance/guidance_v.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/nav_survey_rectangle.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_flight_plan.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_nav.h
+/home/mav/paparazzi/var/Microjet/sim/openlog.o: modules/openlog/openlog.c modules/openlog/openlog.h \
+ /home/mav/paparazzi/var/include/messages.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/datalink/downlink.h \
+ /home/mav/paparazzi/var/Microjet/generated/modules.h \
+ /home/mav/paparazzi/sw/include/std.h modules/openlog/openlog.h \
+ modules/sensors/infrared_adc.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/sensors/infrared_adc.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/sensors/infrared.h \
+ /home/mav/paparazzi/var/Microjet/generated/airframe.h \
+ modules/digital_cam/servo_cam_ctrl.h modules/digital_cam/dc.h \
+ /home/mav/paparazzi/sw/airborne/led.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/led_hw.h \
+ /usr/lib/ocaml/caml/mlvalues.h /usr/lib/ocaml/caml/compatibility.h \
+ /usr/lib/ocaml/caml/config.h /usr/lib/ocaml/caml/misc.h \
+ /usr/lib/ocaml/caml/memory.h /usr/lib/ocaml/caml/mlvalues.h \
+ /usr/lib/ocaml/caml/callback.h \
+ /home/mav/paparazzi/sw/airborne/estimator.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/nav.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/guidance/guidance_v.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/nav_survey_rectangle.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_flight_plan.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_nav.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps/gps_sim.h \
+ /home/mav/paparazzi/sw/airborne/commands.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/ivy_transport.h \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/uart.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/uart_arch.h
+/home/mav/paparazzi/var/Microjet/sim/infrared.o: subsystems/sensors/infrared.c \
+ /home/mav/paparazzi/sw/airborne/subsystems/sensors/infrared.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/var/Microjet/generated/airframe.h
+/home/mav/paparazzi/var/Microjet/sim/infrared_adc.o: subsystems/sensors/infrared_adc.c \
+ /home/mav/paparazzi/sw/airborne/subsystems/sensors/infrared_adc.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/sensors/infrared.h \
+ /home/mav/paparazzi/var/Microjet/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/adc.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/adc_arch.h \
+ /home/mav/paparazzi/sw/airborne/boards/tiny_sim.h
+/home/mav/paparazzi/var/Microjet/sim/servo_cam_ctrl.o: modules/digital_cam/servo_cam_ctrl.c \
+ modules/digital_cam/servo_cam_ctrl.h modules/digital_cam/dc.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/led.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/led_hw.h \
+ /usr/lib/ocaml/caml/mlvalues.h /usr/lib/ocaml/caml/compatibility.h \
+ /usr/lib/ocaml/caml/config.h /usr/lib/ocaml/caml/misc.h \
+ /usr/lib/ocaml/caml/memory.h /usr/lib/ocaml/caml/mlvalues.h \
+ /usr/lib/ocaml/caml/callback.h \
+ /home/mav/paparazzi/sw/airborne/estimator.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/nav.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/guidance/guidance_v.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/nav_survey_rectangle.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_flight_plan.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_nav.h \
+ /home/mav/paparazzi/var/Microjet/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps/gps_sim.h \
+ /home/mav/paparazzi/sw/airborne/commands.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h
+/home/mav/paparazzi/var/Microjet/sim/dc.o: modules/digital_cam/dc.c modules/digital_cam/dc.h \
+ /home/mav/paparazzi/sw/include/std.h \
+ /home/mav/paparazzi/sw/airborne/led.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/led_hw.h \
+ /usr/lib/ocaml/caml/mlvalues.h /usr/lib/ocaml/caml/compatibility.h \
+ /usr/lib/ocaml/caml/config.h /usr/lib/ocaml/caml/misc.h \
+ /usr/lib/ocaml/caml/memory.h /usr/lib/ocaml/caml/mlvalues.h \
+ /usr/lib/ocaml/caml/callback.h \
+ /home/mav/paparazzi/sw/airborne/estimator.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/nav.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/firmwares/fixedwing/guidance/guidance_v.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/nav_survey_rectangle.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_flight_plan.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/navigation/common_nav.h \
+ /home/mav/paparazzi/var/Microjet/generated/airframe.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_geodetic.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_trig_int.h \
+ /home/mav/paparazzi/sw/airborne/math/pprz_algebra_int.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/gps/gps_sim.h \
+ /home/mav/paparazzi/sw/airborne/mcu_periph/uart.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/mcu_periph/uart_arch.h \
+ /home/mav/paparazzi/var/include/messages.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/datalink/downlink.h \
+ /home/mav/paparazzi/var/Microjet/generated/modules.h \
+ modules/openlog/openlog.h modules/sensors/infrared_adc.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/sensors/infrared_adc.h \
+ /home/mav/paparazzi/sw/airborne/subsystems/sensors/infrared.h \
+ modules/digital_cam/servo_cam_ctrl.h \
+ /home/mav/paparazzi/sw/airborne/commands.h \
+ /home/mav/paparazzi/sw/airborne/paparazzi.h \
+ /home/mav/paparazzi/sw/airborne/arch/sim/ivy_transport.h

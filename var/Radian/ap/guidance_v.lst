@@ -1,0 +1,1332 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 18, 4
+  12              		.thumb
+  13              		.file	"guidance_v.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.v_ctl_init,"ax",%progbits
+  18              		.align	1
+  19              		.global	v_ctl_init
+  20              		.thumb
+  21              		.thumb_func
+  23              	v_ctl_init:
+  24              	.LFB30:
+  25              		.file 1 "firmwares/fixedwing/guidance/guidance_v.c"
+   1:firmwares/fixedwing/guidance/guidance_v.c **** /*
+   2:firmwares/fixedwing/guidance/guidance_v.c ****  * Copyright (C) 2006  Pascal Brisset, Antoine Drouin, Michel Gorraz
+   3:firmwares/fixedwing/guidance/guidance_v.c ****  *
+   4:firmwares/fixedwing/guidance/guidance_v.c ****  * This file is part of paparazzi.
+   5:firmwares/fixedwing/guidance/guidance_v.c ****  *
+   6:firmwares/fixedwing/guidance/guidance_v.c ****  * paparazzi is free software; you can redistribute it and/or modify
+   7:firmwares/fixedwing/guidance/guidance_v.c ****  * it under the terms of the GNU General Public License as published by
+   8:firmwares/fixedwing/guidance/guidance_v.c ****  * the Free Software Foundation; either version 2, or (at your option)
+   9:firmwares/fixedwing/guidance/guidance_v.c ****  * any later version.
+  10:firmwares/fixedwing/guidance/guidance_v.c ****  *
+  11:firmwares/fixedwing/guidance/guidance_v.c ****  * paparazzi is distributed in the hope that it will be useful,
+  12:firmwares/fixedwing/guidance/guidance_v.c ****  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  13:firmwares/fixedwing/guidance/guidance_v.c ****  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  14:firmwares/fixedwing/guidance/guidance_v.c ****  * GNU General Public License for more details.
+  15:firmwares/fixedwing/guidance/guidance_v.c ****  *
+  16:firmwares/fixedwing/guidance/guidance_v.c ****  * You should have received a copy of the GNU General Public License
+  17:firmwares/fixedwing/guidance/guidance_v.c ****  * along with paparazzi; see the file COPYING.  If not, write to
+  18:firmwares/fixedwing/guidance/guidance_v.c ****  * the Free Software Foundation, 59 Temple Place - Suite 330,
+  19:firmwares/fixedwing/guidance/guidance_v.c ****  * Boston, MA 02111-1307, USA.
+  20:firmwares/fixedwing/guidance/guidance_v.c ****  */
+  21:firmwares/fixedwing/guidance/guidance_v.c **** 
+  22:firmwares/fixedwing/guidance/guidance_v.c **** /**
+  23:firmwares/fixedwing/guidance/guidance_v.c ****  *  @file firmwares/fixedwing/guidance/guidance_v.c
+  24:firmwares/fixedwing/guidance/guidance_v.c ****  *  Vertical control for fixed wing vehicles.
+  25:firmwares/fixedwing/guidance/guidance_v.c ****  *
+  26:firmwares/fixedwing/guidance/guidance_v.c ****  */
+  27:firmwares/fixedwing/guidance/guidance_v.c **** 
+  28:firmwares/fixedwing/guidance/guidance_v.c **** #include "firmwares/fixedwing/guidance/guidance_v.h"
+  29:firmwares/fixedwing/guidance/guidance_v.c **** #include "estimator.h"
+  30:firmwares/fixedwing/guidance/guidance_v.c **** #include "subsystems/nav.h"
+  31:firmwares/fixedwing/guidance/guidance_v.c **** #include "generated/airframe.h"
+  32:firmwares/fixedwing/guidance/guidance_v.c **** #include "firmwares/fixedwing/autopilot.h"
+  33:firmwares/fixedwing/guidance/guidance_v.c **** 
+  34:firmwares/fixedwing/guidance/guidance_v.c **** /* mode */
+  35:firmwares/fixedwing/guidance/guidance_v.c **** uint8_t v_ctl_mode;
+  36:firmwares/fixedwing/guidance/guidance_v.c **** 
+  37:firmwares/fixedwing/guidance/guidance_v.c **** /* outer loop */
+  38:firmwares/fixedwing/guidance/guidance_v.c **** float v_ctl_altitude_setpoint;
+  39:firmwares/fixedwing/guidance/guidance_v.c **** float v_ctl_altitude_pre_climb;
+  40:firmwares/fixedwing/guidance/guidance_v.c **** float v_ctl_altitude_pgain;
+  41:firmwares/fixedwing/guidance/guidance_v.c **** float v_ctl_altitude_error;
+  42:firmwares/fixedwing/guidance/guidance_v.c **** float v_ctl_altitude_pre_climb_correction;
+  43:firmwares/fixedwing/guidance/guidance_v.c **** float v_ctl_altitude_max_climb;
+  44:firmwares/fixedwing/guidance/guidance_v.c **** 
+  45:firmwares/fixedwing/guidance/guidance_v.c **** /* inner loop */
+  46:firmwares/fixedwing/guidance/guidance_v.c **** float v_ctl_climb_setpoint;
+  47:firmwares/fixedwing/guidance/guidance_v.c **** uint8_t v_ctl_climb_mode;
+  48:firmwares/fixedwing/guidance/guidance_v.c **** uint8_t v_ctl_auto_throttle_submode;
+  49:firmwares/fixedwing/guidance/guidance_v.c **** 
+  50:firmwares/fixedwing/guidance/guidance_v.c **** #ifndef V_CTL_AUTO_THROTTLE_DGAIN
+  51:firmwares/fixedwing/guidance/guidance_v.c **** #define V_CTL_AUTO_THROTTLE_DGAIN 0.
+  52:firmwares/fixedwing/guidance/guidance_v.c **** #endif
+  53:firmwares/fixedwing/guidance/guidance_v.c **** 
+  54:firmwares/fixedwing/guidance/guidance_v.c **** /* "auto throttle" inner loop parameters */
+  55:firmwares/fixedwing/guidance/guidance_v.c **** float v_ctl_auto_throttle_cruise_throttle;
+  56:firmwares/fixedwing/guidance/guidance_v.c **** float v_ctl_auto_throttle_nominal_cruise_throttle;
+  57:firmwares/fixedwing/guidance/guidance_v.c **** float v_ctl_auto_throttle_min_cruise_throttle;
+  58:firmwares/fixedwing/guidance/guidance_v.c **** float v_ctl_auto_throttle_max_cruise_throttle;
+  59:firmwares/fixedwing/guidance/guidance_v.c **** float v_ctl_auto_throttle_climb_throttle_increment;
+  60:firmwares/fixedwing/guidance/guidance_v.c **** float v_ctl_auto_throttle_pgain;
+  61:firmwares/fixedwing/guidance/guidance_v.c **** float v_ctl_auto_throttle_igain;
+  62:firmwares/fixedwing/guidance/guidance_v.c **** float v_ctl_auto_throttle_dgain;
+  63:firmwares/fixedwing/guidance/guidance_v.c **** float v_ctl_auto_throttle_sum_err;
+  64:firmwares/fixedwing/guidance/guidance_v.c **** #define V_CTL_AUTO_THROTTLE_MAX_SUM_ERR 150
+  65:firmwares/fixedwing/guidance/guidance_v.c **** float v_ctl_auto_throttle_pitch_of_vz_pgain;
+  66:firmwares/fixedwing/guidance/guidance_v.c **** float v_ctl_auto_throttle_pitch_of_vz_dgain;
+  67:firmwares/fixedwing/guidance/guidance_v.c **** 
+  68:firmwares/fixedwing/guidance/guidance_v.c **** #ifndef V_CTL_AUTO_THROTTLE_PITCH_OF_VZ_DGAIN
+  69:firmwares/fixedwing/guidance/guidance_v.c **** #define V_CTL_AUTO_THROTTLE_PITCH_OF_VZ_DGAIN 0.
+  70:firmwares/fixedwing/guidance/guidance_v.c **** #endif
+  71:firmwares/fixedwing/guidance/guidance_v.c **** 
+  72:firmwares/fixedwing/guidance/guidance_v.c **** /* agressive tuning */
+  73:firmwares/fixedwing/guidance/guidance_v.c **** #ifdef TUNE_AGRESSIVE_CLIMB
+  74:firmwares/fixedwing/guidance/guidance_v.c **** float agr_climb_throttle;
+  75:firmwares/fixedwing/guidance/guidance_v.c **** float agr_climb_pitch;
+  76:firmwares/fixedwing/guidance/guidance_v.c **** float agr_climb_nav_ratio;
+  77:firmwares/fixedwing/guidance/guidance_v.c **** float agr_descent_throttle;
+  78:firmwares/fixedwing/guidance/guidance_v.c **** float agr_descent_pitch;
+  79:firmwares/fixedwing/guidance/guidance_v.c **** float agr_descent_nav_ratio;
+  80:firmwares/fixedwing/guidance/guidance_v.c **** #endif
+  81:firmwares/fixedwing/guidance/guidance_v.c **** 
+  82:firmwares/fixedwing/guidance/guidance_v.c **** /* "auto pitch" inner loop parameters */
+  83:firmwares/fixedwing/guidance/guidance_v.c **** float v_ctl_auto_pitch_pgain;
+  84:firmwares/fixedwing/guidance/guidance_v.c **** float v_ctl_auto_pitch_igain;
+  85:firmwares/fixedwing/guidance/guidance_v.c **** float v_ctl_auto_pitch_sum_err;
+  86:firmwares/fixedwing/guidance/guidance_v.c **** #define V_CTL_AUTO_PITCH_MAX_SUM_ERR 100
+  87:firmwares/fixedwing/guidance/guidance_v.c **** 
+  88:firmwares/fixedwing/guidance/guidance_v.c **** pprz_t v_ctl_throttle_setpoint;
+  89:firmwares/fixedwing/guidance/guidance_v.c **** pprz_t v_ctl_throttle_slewed;
+  90:firmwares/fixedwing/guidance/guidance_v.c **** 
+  91:firmwares/fixedwing/guidance/guidance_v.c **** inline static void v_ctl_climb_auto_throttle_loop( void );
+  92:firmwares/fixedwing/guidance/guidance_v.c **** #ifdef V_CTL_AUTO_PITCH_PGAIN
+  93:firmwares/fixedwing/guidance/guidance_v.c **** inline static void v_ctl_climb_auto_pitch_loop( void );
+  94:firmwares/fixedwing/guidance/guidance_v.c **** #endif
+  95:firmwares/fixedwing/guidance/guidance_v.c **** 
+  96:firmwares/fixedwing/guidance/guidance_v.c **** #if USE_AIRSPEED
+  97:firmwares/fixedwing/guidance/guidance_v.c **** float v_ctl_auto_airspeed_setpoint;
+  98:firmwares/fixedwing/guidance/guidance_v.c **** float v_ctl_auto_airspeed_controlled;
+  99:firmwares/fixedwing/guidance/guidance_v.c **** float v_ctl_auto_airspeed_pgain;
+ 100:firmwares/fixedwing/guidance/guidance_v.c **** float v_ctl_auto_airspeed_igain;
+ 101:firmwares/fixedwing/guidance/guidance_v.c **** float v_ctl_auto_airspeed_sum_err;
+ 102:firmwares/fixedwing/guidance/guidance_v.c **** float v_ctl_auto_groundspeed_setpoint;
+ 103:firmwares/fixedwing/guidance/guidance_v.c **** float v_ctl_auto_groundspeed_pgain;
+ 104:firmwares/fixedwing/guidance/guidance_v.c **** float v_ctl_auto_groundspeed_igain;
+ 105:firmwares/fixedwing/guidance/guidance_v.c **** float v_ctl_auto_groundspeed_sum_err;
+ 106:firmwares/fixedwing/guidance/guidance_v.c **** #define V_CTL_AUTO_AIRSPEED_MAX_SUM_ERR 200
+ 107:firmwares/fixedwing/guidance/guidance_v.c **** #define V_CTL_AUTO_GROUNDSPEED_MAX_SUM_ERR 100
+ 108:firmwares/fixedwing/guidance/guidance_v.c **** #define V_CTL_AUTO_CLIMB_LIMIT 0.5/4.0 // m/s/s
+ 109:firmwares/fixedwing/guidance/guidance_v.c **** #define V_CTL_AUTO_AGR_CLIMB_GAIN 2.0 // altitude gain multiplier while in aggressive climb mode
+ 110:firmwares/fixedwing/guidance/guidance_v.c **** #endif
+ 111:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 112:firmwares/fixedwing/guidance/guidance_v.c **** #pragma message "CAUTION! ALL control gains have to be positive now!"
+ 113:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 114:firmwares/fixedwing/guidance/guidance_v.c **** #ifndef V_CTL_ALTITUDE_PRE_CLIMB_CORRECTION
+ 115:firmwares/fixedwing/guidance/guidance_v.c **** #define V_CTL_ALTITUDE_PRE_CLIMB_CORRECTION 1.0f
+ 116:firmwares/fixedwing/guidance/guidance_v.c **** #endif
+ 117:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 118:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 119:firmwares/fixedwing/guidance/guidance_v.c **** void v_ctl_init( void ) {
+  26              		.loc 1 119 0
+  27              		.cfi_startproc
+  28              		@ args = 0, pretend = 0, frame = 0
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+ 120:firmwares/fixedwing/guidance/guidance_v.c ****   /* mode */
+ 121:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_mode = V_CTL_MODE_MANUAL;
+  30              		.loc 1 121 0
+  31 0000 204B     		ldr	r3, .L2
+  32 0002 0022     		movs	r2, #0
+ 122:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 123:firmwares/fixedwing/guidance/guidance_v.c ****   /* outer loop */
+ 124:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_altitude_setpoint = 0.;
+  33              		.loc 1 124 0
+  34 0004 2049     		ldr	r1, .L2+4
+ 119:firmwares/fixedwing/guidance/guidance_v.c **** void v_ctl_init( void ) {
+  35              		.loc 1 119 0
+  36 0006 30B5     		push	{r4, r5, lr}
+  37              	.LCFI0:
+  38              		.cfi_def_cfa_offset 12
+  39              		.cfi_offset 14, -4
+  40              		.cfi_offset 5, -8
+  41              		.cfi_offset 4, -12
+ 121:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_mode = V_CTL_MODE_MANUAL;
+  42              		.loc 1 121 0
+  43 0008 1A70     		strb	r2, [r3, #0]
+  44              		.loc 1 124 0
+  45 000a 0023     		movs	r3, #0
+  46 000c 0B60     		str	r3, [r1, #0]	@ float
+ 125:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_altitude_pre_climb = 0.;
+  47              		.loc 1 125 0
+  48 000e 1F49     		ldr	r1, .L2+8
+ 126:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_altitude_pgain = V_CTL_ALTITUDE_PGAIN;
+  49              		.loc 1 126 0
+  50 0010 1F48     		ldr	r0, .L2+12
+ 125:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_altitude_pre_climb = 0.;
+  51              		.loc 1 125 0
+  52 0012 0B60     		str	r3, [r1, #0]	@ float
+  53              		.loc 1 126 0
+  54 0014 1F49     		ldr	r1, .L2+16
+ 127:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_altitude_error = 0.;
+ 128:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_altitude_pre_climb_correction = V_CTL_ALTITUDE_PRE_CLIMB_CORRECTION;
+  55              		.loc 1 128 0
+  56 0016 4FF07E54 		mov	r4, #1065353216
+ 126:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_altitude_pgain = V_CTL_ALTITUDE_PGAIN;
+  57              		.loc 1 126 0
+  58 001a 0160     		str	r1, [r0, #0]	@ float
+ 127:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_altitude_error = 0.;
+  59              		.loc 1 127 0
+  60 001c 1E48     		ldr	r0, .L2+20
+ 129:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_altitude_max_climb = V_CTL_ALTITUDE_MAX_CLIMB;
+ 130:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 131:firmwares/fixedwing/guidance/guidance_v.c ****   /* inner loops */
+ 132:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_climb_setpoint = 0.;
+ 133:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_climb_mode = V_CTL_CLIMB_MODE_AUTO_THROTTLE;
+ 134:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_auto_throttle_submode = V_CTL_AUTO_THROTTLE_STANDARD;
+ 135:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 136:firmwares/fixedwing/guidance/guidance_v.c ****   /* "auto throttle" inner loop parameters */
+ 137:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_auto_throttle_nominal_cruise_throttle = V_CTL_AUTO_THROTTLE_NOMINAL_CRUISE_THROTTLE;
+ 138:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_auto_throttle_min_cruise_throttle = V_CTL_AUTO_THROTTLE_MIN_CRUISE_THROTTLE;
+  61              		.loc 1 138 0
+  62 001e 1F4D     		ldr	r5, .L2+24
+ 127:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_altitude_error = 0.;
+  63              		.loc 1 127 0
+  64 0020 0360     		str	r3, [r0, #0]	@ float
+ 128:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_altitude_pre_climb_correction = V_CTL_ALTITUDE_PRE_CLIMB_CORRECTION;
+  65              		.loc 1 128 0
+  66 0022 1F48     		ldr	r0, .L2+28
+  67 0024 0460     		str	r4, [r0, #0]	@ float
+ 129:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_altitude_max_climb = V_CTL_ALTITUDE_MAX_CLIMB;
+  68              		.loc 1 129 0
+  69 0026 1F48     		ldr	r0, .L2+32
+  70 0028 4FF08044 		mov	r4, #1073741824
+  71 002c 0460     		str	r4, [r0, #0]	@ float
+ 132:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_climb_setpoint = 0.;
+  72              		.loc 1 132 0
+  73 002e 1E48     		ldr	r0, .L2+36
+ 137:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_auto_throttle_nominal_cruise_throttle = V_CTL_AUTO_THROTTLE_NOMINAL_CRUISE_THROTTLE;
+  74              		.loc 1 137 0
+  75 0030 1E4C     		ldr	r4, .L2+40
+ 132:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_climb_setpoint = 0.;
+  76              		.loc 1 132 0
+  77 0032 0360     		str	r3, [r0, #0]	@ float
+ 133:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_climb_mode = V_CTL_CLIMB_MODE_AUTO_THROTTLE;
+  78              		.loc 1 133 0
+  79 0034 1E48     		ldr	r0, .L2+44
+  80 0036 0270     		strb	r2, [r0, #0]
+ 134:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_auto_throttle_submode = V_CTL_AUTO_THROTTLE_STANDARD;
+  81              		.loc 1 134 0
+  82 0038 1E48     		ldr	r0, .L2+48
+  83 003a 0270     		strb	r2, [r0, #0]
+ 137:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_auto_throttle_nominal_cruise_throttle = V_CTL_AUTO_THROTTLE_NOMINAL_CRUISE_THROTTLE;
+  84              		.loc 1 137 0
+  85 003c 1E48     		ldr	r0, .L2+52
+  86 003e 2060     		str	r0, [r4, #0]	@ float
+  87              		.loc 1 138 0
+  88 0040 1E4C     		ldr	r4, .L2+56
+  89 0042 2560     		str	r5, [r4, #0]	@ float
+ 139:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_auto_throttle_max_cruise_throttle = V_CTL_AUTO_THROTTLE_MAX_CRUISE_THROTTLE;
+  90              		.loc 1 139 0
+  91 0044 1E4C     		ldr	r4, .L2+60
+  92 0046 1F4D     		ldr	r5, .L2+64
+  93 0048 2560     		str	r5, [r4, #0]	@ float
+ 140:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_auto_throttle_cruise_throttle = v_ctl_auto_throttle_nominal_cruise_throttle;
+  94              		.loc 1 140 0
+  95 004a 1F4C     		ldr	r4, .L2+68
+  96 004c 2060     		str	r0, [r4, #0]	@ float
+ 141:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_auto_throttle_climb_throttle_increment = V_CTL_AUTO_THROTTLE_CLIMB_THROTTLE_INCREMENT;
+  97              		.loc 1 141 0
+  98 004e 1F4C     		ldr	r4, .L2+72
+  99 0050 1F48     		ldr	r0, .L2+76
+ 100 0052 0460     		str	r4, [r0, #0]	@ float
+ 142:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_auto_throttle_pgain = V_CTL_AUTO_THROTTLE_PGAIN;
+ 101              		.loc 1 142 0
+ 102 0054 1F4C     		ldr	r4, .L2+80
+ 103 0056 2048     		ldr	r0, .L2+84
+ 104 0058 0460     		str	r4, [r0, #0]	@ float
+ 143:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_auto_throttle_igain = V_CTL_AUTO_THROTTLE_IGAIN;
+ 105              		.loc 1 143 0
+ 106 005a 204C     		ldr	r4, .L2+88
+ 107 005c 2048     		ldr	r0, .L2+92
+ 108 005e 0460     		str	r4, [r0, #0]	@ float
+ 144:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_auto_throttle_dgain = V_CTL_AUTO_THROTTLE_DGAIN;
+ 109              		.loc 1 144 0
+ 110 0060 2048     		ldr	r0, .L2+96
+ 145:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_auto_throttle_sum_err = 0.;
+ 146:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_auto_throttle_pitch_of_vz_pgain = V_CTL_AUTO_THROTTLE_PITCH_OF_VZ_PGAIN;
+ 111              		.loc 1 146 0
+ 112 0062 214C     		ldr	r4, .L2+100
+ 144:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_auto_throttle_dgain = V_CTL_AUTO_THROTTLE_DGAIN;
+ 113              		.loc 1 144 0
+ 114 0064 0360     		str	r3, [r0, #0]	@ float
+ 145:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_auto_throttle_sum_err = 0.;
+ 115              		.loc 1 145 0
+ 116 0066 2148     		ldr	r0, .L2+104
+ 117 0068 0360     		str	r3, [r0, #0]	@ float
+ 118              		.loc 1 146 0
+ 119 006a 2148     		ldr	r0, .L2+108
+ 120 006c 0460     		str	r4, [r0, #0]	@ float
+ 147:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_auto_throttle_pitch_of_vz_dgain = V_CTL_AUTO_THROTTLE_PITCH_OF_VZ_DGAIN;
+ 121              		.loc 1 147 0
+ 122 006e 2148     		ldr	r0, .L2+112
+ 123 0070 0360     		str	r3, [r0, #0]	@ float
+ 148:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 149:firmwares/fixedwing/guidance/guidance_v.c **** #ifdef V_CTL_AUTO_PITCH_PGAIN
+ 150:firmwares/fixedwing/guidance/guidance_v.c ****   /* "auto pitch" inner loop parameters */
+ 151:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_auto_pitch_pgain = V_CTL_AUTO_PITCH_PGAIN;
+ 124              		.loc 1 151 0
+ 125 0072 2148     		ldr	r0, .L2+116
+ 126 0074 0160     		str	r1, [r0, #0]	@ float
+ 152:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_auto_pitch_igain = V_CTL_AUTO_PITCH_IGAIN;
+ 127              		.loc 1 152 0
+ 128 0076 2149     		ldr	r1, .L2+120
+ 129 0078 0B60     		str	r3, [r1, #0]	@ float
+ 153:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_auto_pitch_sum_err = 0.;
+ 130              		.loc 1 153 0
+ 131 007a 2149     		ldr	r1, .L2+124
+ 132 007c 0B60     		str	r3, [r1, #0]	@ float
+ 154:firmwares/fixedwing/guidance/guidance_v.c **** #endif
+ 155:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 156:firmwares/fixedwing/guidance/guidance_v.c **** #if USE_AIRSPEED
+ 157:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_auto_airspeed_setpoint = V_CTL_AUTO_AIRSPEED_SETPOINT;
+ 158:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_auto_airspeed_controlled = V_CTL_AUTO_AIRSPEED_SETPOINT;
+ 159:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_auto_airspeed_pgain = V_CTL_AUTO_AIRSPEED_PGAIN;
+ 160:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_auto_airspeed_igain = V_CTL_AUTO_AIRSPEED_IGAIN;
+ 161:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_auto_airspeed_sum_err = 0.;
+ 162:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 163:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_auto_groundspeed_setpoint = V_CTL_AUTO_GROUNDSPEED_SETPOINT;
+ 164:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_auto_groundspeed_pgain = V_CTL_AUTO_GROUNDSPEED_PGAIN;
+ 165:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_auto_groundspeed_igain = V_CTL_AUTO_GROUNDSPEED_IGAIN;
+ 166:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_auto_groundspeed_sum_err = 0.;
+ 167:firmwares/fixedwing/guidance/guidance_v.c **** #endif
+ 168:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 169:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_throttle_setpoint = 0;
+ 133              		.loc 1 169 0
+ 134 007e 214B     		ldr	r3, .L2+128
+ 135 0080 1A80     		strh	r2, [r3, #0]	@ movhi
+ 170:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 171:firmwares/fixedwing/guidance/guidance_v.c **** /*agressive tuning*/
+ 172:firmwares/fixedwing/guidance/guidance_v.c **** #ifdef TUNE_AGRESSIVE_CLIMB
+ 173:firmwares/fixedwing/guidance/guidance_v.c ****   agr_climb_throttle = AGR_CLIMB_THROTTLE;
+ 174:firmwares/fixedwing/guidance/guidance_v.c ****   #undef   AGR_CLIMB_THROTTLE
+ 175:firmwares/fixedwing/guidance/guidance_v.c ****   #define AGR_CLIMB_THROTTLE agr_climb_throttle
+ 176:firmwares/fixedwing/guidance/guidance_v.c ****   agr_climb_pitch = AGR_CLIMB_PITCH;
+ 177:firmwares/fixedwing/guidance/guidance_v.c ****   #undef   AGR_CLIMB_PITCH
+ 178:firmwares/fixedwing/guidance/guidance_v.c ****   #define   AGR_CLIMB_PITCH agr_climb_pitch
+ 179:firmwares/fixedwing/guidance/guidance_v.c ****   agr_climb_nav_ratio = AGR_CLIMB_NAV_RATIO;
+ 180:firmwares/fixedwing/guidance/guidance_v.c ****   #undef   AGR_CLIMB_NAV_RATIO
+ 181:firmwares/fixedwing/guidance/guidance_v.c ****   #define   AGR_CLIMB_NAV_RATIO agr_climb_nav_ratio
+ 182:firmwares/fixedwing/guidance/guidance_v.c ****   agr_descent_throttle = AGR_DESCENT_THROTTLE;
+ 183:firmwares/fixedwing/guidance/guidance_v.c ****   #undef   AGR_DESCENT_THROTTLE
+ 184:firmwares/fixedwing/guidance/guidance_v.c ****   #define   AGR_DESCENT_THROTTLE agr_descent_throttle
+ 185:firmwares/fixedwing/guidance/guidance_v.c ****   agr_descent_pitch = AGR_DESCENT_PITCH;
+ 186:firmwares/fixedwing/guidance/guidance_v.c ****   #undef   AGR_DESCENT_PITCH
+ 187:firmwares/fixedwing/guidance/guidance_v.c ****   #define   AGR_DESCENT_PITCH agr_descent_pitch
+ 188:firmwares/fixedwing/guidance/guidance_v.c ****   agr_descent_nav_ratio = AGR_DESCENT_NAV_RATIO;
+ 189:firmwares/fixedwing/guidance/guidance_v.c ****   #undef   AGR_DESCENT_NAV_RATIO
+ 190:firmwares/fixedwing/guidance/guidance_v.c ****   #define   AGR_DESCENT_NAV_RATIO agr_descent_nav_ratio
+ 191:firmwares/fixedwing/guidance/guidance_v.c **** #endif
+ 192:firmwares/fixedwing/guidance/guidance_v.c **** }
+ 136              		.loc 1 192 0
+ 137 0082 30BD     		pop	{r4, r5, pc}
+ 138              	.L3:
+ 139              		.align	2
+ 140              	.L2:
+ 141 0084 00000000 		.word	.LANCHOR0
+ 142 0088 00000000 		.word	.LANCHOR1
+ 143 008c 00000000 		.word	.LANCHOR2
+ 144 0090 00000000 		.word	.LANCHOR3
+ 145 0094 8FC2753D 		.word	1031127695
+ 146 0098 00000000 		.word	.LANCHOR4
+ 147 009c 3333B33E 		.word	1051931443
+ 148 00a0 00000000 		.word	.LANCHOR5
+ 149 00a4 00000000 		.word	.LANCHOR6
+ 150 00a8 00000000 		.word	.LANCHOR7
+ 151 00ac 00000000 		.word	.LANCHOR10
+ 152 00b0 00000000 		.word	.LANCHOR8
+ 153 00b4 00000000 		.word	.LANCHOR9
+ 154 00b8 6666E63E 		.word	1055286886
+ 155 00bc 00000000 		.word	.LANCHOR11
+ 156 00c0 00000000 		.word	.LANCHOR12
+ 157 00c4 9A99593F 		.word	1062836634
+ 158 00c8 00000000 		.word	.LANCHOR13
+ 159 00cc CDCC4C3E 		.word	1045220557
+ 160 00d0 00000000 		.word	.LANCHOR14
+ 161 00d4 7F6ABC3C 		.word	1018980991
+ 162 00d8 00000000 		.word	.LANCHOR15
+ 163 00dc 0AD7233C 		.word	1008981770
+ 164 00e0 00000000 		.word	.LANCHOR16
+ 165 00e4 00000000 		.word	.LANCHOR17
+ 166 00e8 CDCC4C3D 		.word	1028443341
+ 167 00ec 00000000 		.word	.LANCHOR18
+ 168 00f0 00000000 		.word	.LANCHOR19
+ 169 00f4 00000000 		.word	.LANCHOR20
+ 170 00f8 00000000 		.word	.LANCHOR21
+ 171 00fc 00000000 		.word	.LANCHOR22
+ 172 0100 00000000 		.word	.LANCHOR23
+ 173 0104 00000000 		.word	.LANCHOR24
+ 174              		.cfi_endproc
+ 175              	.LFE30:
+ 177              		.global	__aeabi_fsub
+ 178              		.global	__aeabi_fmul
+ 179              		.global	__aeabi_fadd
+ 180              		.global	__aeabi_fcmpgt
+ 181              		.global	__aeabi_fcmplt
+ 182              		.section	.text.v_ctl_altitude_loop,"ax",%progbits
+ 183              		.align	1
+ 184              		.global	v_ctl_altitude_loop
+ 185              		.thumb
+ 186              		.thumb_func
+ 188              	v_ctl_altitude_loop:
+ 189              	.LFB31:
+ 193:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 194:firmwares/fixedwing/guidance/guidance_v.c **** /**
+ 195:firmwares/fixedwing/guidance/guidance_v.c ****  * outer loop
+ 196:firmwares/fixedwing/guidance/guidance_v.c ****  * \brief Computes v_ctl_climb_setpoint and sets v_ctl_auto_throttle_submode
+ 197:firmwares/fixedwing/guidance/guidance_v.c ****  */
+ 198:firmwares/fixedwing/guidance/guidance_v.c **** void v_ctl_altitude_loop( void ) {
+ 190              		.loc 1 198 0
+ 191              		.cfi_startproc
+ 192              		@ args = 0, pretend = 0, frame = 0
+ 193              		@ frame_needed = 0, uses_anonymous_args = 0
+ 194              	.LVL0:
+ 199:firmwares/fixedwing/guidance/guidance_v.c ****   float altitude_pgain_boost = 1.0;
+ 200:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 201:firmwares/fixedwing/guidance/guidance_v.c **** #if USE_AIRSPEED && defined(AGR_CLIMB)
+ 202:firmwares/fixedwing/guidance/guidance_v.c ****   // Aggressive climb mode (boost gain of altitude loop)
+ 203:firmwares/fixedwing/guidance/guidance_v.c ****   if ( v_ctl_climb_mode == V_CTL_CLIMB_MODE_AUTO_THROTTLE) {
+ 204:firmwares/fixedwing/guidance/guidance_v.c ****     float dist = fabs(v_ctl_altitude_error);
+ 205:firmwares/fixedwing/guidance/guidance_v.c ****     altitude_pgain_boost = 1.0 + (V_CTL_AUTO_AGR_CLIMB_GAIN-1.0)*(dist-AGR_BLEND_END)/(AGR_BLEND_ST
+ 206:firmwares/fixedwing/guidance/guidance_v.c ****     Bound(altitude_pgain_boost, 1.0, V_CTL_AUTO_AGR_CLIMB_GAIN);
+ 207:firmwares/fixedwing/guidance/guidance_v.c ****   }
+ 208:firmwares/fixedwing/guidance/guidance_v.c **** #endif
+ 209:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 210:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_altitude_error = v_ctl_altitude_setpoint - estimator_z;
+ 195              		.loc 1 210 0
+ 196 0000 154B     		ldr	r3, .L12
+ 198:firmwares/fixedwing/guidance/guidance_v.c **** void v_ctl_altitude_loop( void ) {
+ 197              		.loc 1 198 0
+ 198 0002 70B5     		push	{r4, r5, r6, lr}
+ 199              	.LCFI1:
+ 200              		.cfi_def_cfa_offset 16
+ 201              		.cfi_offset 14, -4
+ 202              		.cfi_offset 6, -8
+ 203              		.cfi_offset 5, -12
+ 204              		.cfi_offset 4, -16
+ 205              		.loc 1 210 0
+ 206 0004 1868     		ldr	r0, [r3, #0]	@ float
+ 207 0006 154B     		ldr	r3, .L12+4
+ 208 0008 1968     		ldr	r1, [r3, #0]	@ float
+ 209 000a FFF7FEFF 		bl	__aeabi_fsub
+ 210 000e 144B     		ldr	r3, .L12+8
+ 211 0010 1860     		str	r0, [r3, #0]	@ float
+ 211:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_climb_setpoint = altitude_pgain_boost * v_ctl_altitude_pgain * v_ctl_altitude_error
+ 212              		.loc 1 211 0
+ 213 0012 144B     		ldr	r3, .L12+12
+ 214 0014 1968     		ldr	r1, [r3, #0]	@ float
+ 215 0016 FFF7FEFF 		bl	__aeabi_fmul
+ 212:firmwares/fixedwing/guidance/guidance_v.c ****     + v_ctl_altitude_pre_climb * v_ctl_altitude_pre_climb_correction;
+ 216              		.loc 1 212 0
+ 217 001a 134B     		ldr	r3, .L12+16
+ 211:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_climb_setpoint = altitude_pgain_boost * v_ctl_altitude_pgain * v_ctl_altitude_error
+ 218              		.loc 1 211 0
+ 219 001c 0446     		mov	r4, r0
+ 220              		.loc 1 212 0
+ 221 001e 1868     		ldr	r0, [r3, #0]	@ float
+ 222 0020 124B     		ldr	r3, .L12+20
+ 223 0022 1968     		ldr	r1, [r3, #0]	@ float
+ 224 0024 FFF7FEFF 		bl	__aeabi_fmul
+ 225 0028 0146     		mov	r1, r0
+ 226 002a 2046     		mov	r0, r4
+ 227 002c FFF7FEFF 		bl	__aeabi_fadd
+ 213:firmwares/fixedwing/guidance/guidance_v.c ****   BoundAbs(v_ctl_climb_setpoint, v_ctl_altitude_max_climb);
+ 228              		.loc 1 213 0
+ 229 0030 0F4B     		ldr	r3, .L12+24
+ 211:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_climb_setpoint = altitude_pgain_boost * v_ctl_altitude_pgain * v_ctl_altitude_error
+ 230              		.loc 1 211 0
+ 231 0032 104C     		ldr	r4, .L12+28
+ 232              		.loc 1 213 0
+ 233 0034 1D68     		ldr	r5, [r3, #0]	@ float
+ 211:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_climb_setpoint = altitude_pgain_boost * v_ctl_altitude_pgain * v_ctl_altitude_error
+ 234              		.loc 1 211 0
+ 235 0036 2060     		str	r0, [r4, #0]	@ float
+ 236              		.loc 1 213 0
+ 237 0038 2946     		mov	r1, r5
+ 212:firmwares/fixedwing/guidance/guidance_v.c ****     + v_ctl_altitude_pre_climb * v_ctl_altitude_pre_climb_correction;
+ 238              		.loc 1 212 0
+ 239 003a 0646     		mov	r6, r0
+ 240              		.loc 1 213 0
+ 241 003c FFF7FEFF 		bl	__aeabi_fcmpgt
+ 242 0040 08B1     		cbz	r0, .L11
+ 243              		.loc 1 213 0 is_stmt 0 discriminator 1
+ 244 0042 2560     		str	r5, [r4, #0]	@ float
+ 245 0044 70BD     		pop	{r4, r5, r6, pc}
+ 246              	.L11:
+ 247              		.loc 1 213 0 discriminator 2
+ 248 0046 05F10045 		add	r5, r5, #-2147483648
+ 249 004a 3046     		mov	r0, r6
+ 250 004c 2946     		mov	r1, r5
+ 251 004e FFF7FEFF 		bl	__aeabi_fcmplt
+ 252 0052 00B1     		cbz	r0, .L4
+ 253              		.loc 1 213 0 discriminator 3
+ 254 0054 2560     		str	r5, [r4, #0]	@ float
+ 255              	.L4:
+ 256 0056 70BD     		pop	{r4, r5, r6, pc}
+ 257              	.L13:
+ 258              		.align	2
+ 259              	.L12:
+ 260 0058 00000000 		.word	.LANCHOR1
+ 261 005c 00000000 		.word	estimator_z
+ 262 0060 00000000 		.word	.LANCHOR4
+ 263 0064 00000000 		.word	.LANCHOR3
+ 264 0068 00000000 		.word	.LANCHOR2
+ 265 006c 00000000 		.word	.LANCHOR5
+ 266 0070 00000000 		.word	.LANCHOR6
+ 267 0074 00000000 		.word	.LANCHOR7
+ 268              		.cfi_endproc
+ 269              	.LFE31:
+ 271              		.global	__aeabi_f2iz
+ 272              		.global	__aeabi_f2d
+ 273              		.global	__aeabi_dcmpgt
+ 274              		.global	__aeabi_dcmplt
+ 275              		.section	.text.v_ctl_climb_loop,"ax",%progbits
+ 276              		.align	1
+ 277              		.global	v_ctl_climb_loop
+ 278              		.thumb
+ 279              		.thumb_func
+ 281              	v_ctl_climb_loop:
+ 282              	.LFB32:
+ 214:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 215:firmwares/fixedwing/guidance/guidance_v.c **** #ifdef AGR_CLIMB
+ 216:firmwares/fixedwing/guidance/guidance_v.c ****   if ( v_ctl_climb_mode == V_CTL_CLIMB_MODE_AUTO_THROTTLE) {
+ 217:firmwares/fixedwing/guidance/guidance_v.c ****     float dist = fabs(v_ctl_altitude_error);
+ 218:firmwares/fixedwing/guidance/guidance_v.c ****     if (dist < AGR_BLEND_END) {
+ 219:firmwares/fixedwing/guidance/guidance_v.c ****       v_ctl_auto_throttle_submode = V_CTL_AUTO_THROTTLE_STANDARD;
+ 220:firmwares/fixedwing/guidance/guidance_v.c ****     }
+ 221:firmwares/fixedwing/guidance/guidance_v.c ****     else if (dist > AGR_BLEND_START) {
+ 222:firmwares/fixedwing/guidance/guidance_v.c ****       v_ctl_auto_throttle_submode = V_CTL_AUTO_THROTTLE_AGRESSIVE;
+ 223:firmwares/fixedwing/guidance/guidance_v.c ****     }
+ 224:firmwares/fixedwing/guidance/guidance_v.c ****     else {
+ 225:firmwares/fixedwing/guidance/guidance_v.c ****       v_ctl_auto_throttle_submode = V_CTL_AUTO_THROTTLE_BLENDED;
+ 226:firmwares/fixedwing/guidance/guidance_v.c ****     }
+ 227:firmwares/fixedwing/guidance/guidance_v.c ****   }
+ 228:firmwares/fixedwing/guidance/guidance_v.c **** #endif
+ 229:firmwares/fixedwing/guidance/guidance_v.c **** }
+ 230:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 231:firmwares/fixedwing/guidance/guidance_v.c **** void v_ctl_climb_loop ( void ) {
+ 283              		.loc 1 231 0 is_stmt 1
+ 284              		.cfi_startproc
+ 285              		@ args = 0, pretend = 0, frame = 0
+ 286              		@ frame_needed = 0, uses_anonymous_args = 0
+ 287 0000 2DE9F047 		push	{r4, r5, r6, r7, r8, r9, sl, lr}
+ 288              	.LCFI2:
+ 289              		.cfi_def_cfa_offset 32
+ 290              		.cfi_offset 14, -4
+ 291              		.cfi_offset 10, -8
+ 292              		.cfi_offset 9, -12
+ 293              		.cfi_offset 8, -16
+ 294              		.cfi_offset 7, -20
+ 295              		.cfi_offset 6, -24
+ 296              		.cfi_offset 5, -28
+ 297              		.cfi_offset 4, -32
+ 232:firmwares/fixedwing/guidance/guidance_v.c ****   switch (v_ctl_climb_mode) {
+ 298              		.loc 1 232 0
+ 299 0004 664B     		ldr	r3, .L43+16
+ 300 0006 674A     		ldr	r2, .L43+20
+ 301 0008 1B78     		ldrb	r3, [r3, #0]	@ zero_extendqisi2
+ 302 000a 012B     		cmp	r3, #1
+ 303 000c 664B     		ldr	r3, .L43+24
+ 304 000e 75D0     		beq	.L16
+ 305              	.LVL1:
+ 306              	.LBB6:
+ 307              	.LBB7:
+ 233:firmwares/fixedwing/guidance/guidance_v.c ****   case V_CTL_CLIMB_MODE_AUTO_THROTTLE:
+ 234:firmwares/fixedwing/guidance/guidance_v.c ****   default:
+ 235:firmwares/fixedwing/guidance/guidance_v.c ****     v_ctl_climb_auto_throttle_loop();
+ 236:firmwares/fixedwing/guidance/guidance_v.c ****     break;
+ 237:firmwares/fixedwing/guidance/guidance_v.c **** #ifdef V_CTL_AUTO_PITCH_PGAIN
+ 238:firmwares/fixedwing/guidance/guidance_v.c ****   case V_CTL_CLIMB_MODE_AUTO_PITCH:
+ 239:firmwares/fixedwing/guidance/guidance_v.c ****     v_ctl_climb_auto_pitch_loop();
+ 240:firmwares/fixedwing/guidance/guidance_v.c ****     break;
+ 241:firmwares/fixedwing/guidance/guidance_v.c **** #endif
+ 242:firmwares/fixedwing/guidance/guidance_v.c ****   }
+ 243:firmwares/fixedwing/guidance/guidance_v.c **** }
+ 244:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 245:firmwares/fixedwing/guidance/guidance_v.c **** /**
+ 246:firmwares/fixedwing/guidance/guidance_v.c ****  * auto throttle inner loop
+ 247:firmwares/fixedwing/guidance/guidance_v.c ****  * \brief
+ 248:firmwares/fixedwing/guidance/guidance_v.c ****  */
+ 249:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 250:firmwares/fixedwing/guidance/guidance_v.c **** #if !USE_AIRSPEED
+ 251:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 252:firmwares/fixedwing/guidance/guidance_v.c **** inline static void v_ctl_climb_auto_throttle_loop(void) {
+ 253:firmwares/fixedwing/guidance/guidance_v.c ****   static float last_err;
+ 254:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 255:firmwares/fixedwing/guidance/guidance_v.c ****   float f_throttle = 0;
+ 256:firmwares/fixedwing/guidance/guidance_v.c ****   float err  = estimator_z_dot - v_ctl_climb_setpoint;
+ 308              		.loc 1 256 0
+ 309 0010 1E68     		ldr	r6, [r3, #0]	@ float
+ 310 0012 1068     		ldr	r0, [r2, #0]	@ float
+ 311 0014 3146     		mov	r1, r6
+ 312 0016 FFF7FEFF 		bl	__aeabi_fsub
+ 257:firmwares/fixedwing/guidance/guidance_v.c ****   float d_err = err - last_err;
+ 313              		.loc 1 257 0
+ 314 001a 644C     		ldr	r4, .L43+28
+ 256:firmwares/fixedwing/guidance/guidance_v.c ****   float err  = estimator_z_dot - v_ctl_climb_setpoint;
+ 315              		.loc 1 256 0
+ 316 001c 0546     		mov	r5, r0
+ 317              	.LVL2:
+ 318              		.loc 1 257 0
+ 319 001e 2168     		ldr	r1, [r4, #0]	@ float
+ 320 0020 FFF7FEFF 		bl	__aeabi_fsub
+ 321              	.LVL3:
+ 258:firmwares/fixedwing/guidance/guidance_v.c ****   last_err = err;
+ 259:firmwares/fixedwing/guidance/guidance_v.c ****   float controlled_throttle = v_ctl_auto_throttle_cruise_throttle
+ 260:firmwares/fixedwing/guidance/guidance_v.c ****     + v_ctl_auto_throttle_climb_throttle_increment * v_ctl_climb_setpoint
+ 322              		.loc 1 260 0
+ 323 0024 624B     		ldr	r3, .L43+32
+ 257:firmwares/fixedwing/guidance/guidance_v.c ****   float d_err = err - last_err;
+ 324              		.loc 1 257 0
+ 325 0026 8046     		mov	r8, r0
+ 326              	.LVL4:
+ 258:firmwares/fixedwing/guidance/guidance_v.c ****   last_err = err;
+ 327              		.loc 1 258 0
+ 328 0028 2560     		str	r5, [r4, #0]	@ float
+ 329              		.loc 1 260 0
+ 330 002a 1968     		ldr	r1, [r3, #0]	@ float
+ 331 002c 3046     		mov	r0, r6
+ 332              	.LVL5:
+ 333 002e FFF7FEFF 		bl	__aeabi_fmul
+ 334 0032 604B     		ldr	r3, .L43+36
+ 261:firmwares/fixedwing/guidance/guidance_v.c ****     - v_ctl_auto_throttle_pgain *
+ 262:firmwares/fixedwing/guidance/guidance_v.c ****     (err + v_ctl_auto_throttle_igain * v_ctl_auto_throttle_sum_err
+ 335              		.loc 1 262 0
+ 336 0034 604C     		ldr	r4, .L43+40
+ 260:firmwares/fixedwing/guidance/guidance_v.c ****     + v_ctl_auto_throttle_climb_throttle_increment * v_ctl_climb_setpoint
+ 337              		.loc 1 260 0
+ 338 0036 1968     		ldr	r1, [r3, #0]	@ float
+ 339 0038 FFF7FEFF 		bl	__aeabi_fadd
+ 340              		.loc 1 262 0
+ 341 003c D4F80090 		ldr	r9, [r4, #0]	@ float
+ 342 0040 5E4B     		ldr	r3, .L43+44
+ 260:firmwares/fixedwing/guidance/guidance_v.c ****     + v_ctl_auto_throttle_climb_throttle_increment * v_ctl_climb_setpoint
+ 343              		.loc 1 260 0
+ 344 0042 0746     		mov	r7, r0
+ 345              		.loc 1 262 0
+ 346 0044 1968     		ldr	r1, [r3, #0]	@ float
+ 347 0046 4846     		mov	r0, r9
+ 348 0048 FFF7FEFF 		bl	__aeabi_fmul
+ 349 004c 0146     		mov	r1, r0
+ 350 004e 2846     		mov	r0, r5
+ 351 0050 FFF7FEFF 		bl	__aeabi_fadd
+ 263:firmwares/fixedwing/guidance/guidance_v.c ****      + v_ctl_auto_throttle_dgain * d_err);
+ 352              		.loc 1 263 0
+ 353 0054 5A4B     		ldr	r3, .L43+48
+ 262:firmwares/fixedwing/guidance/guidance_v.c ****     (err + v_ctl_auto_throttle_igain * v_ctl_auto_throttle_sum_err
+ 354              		.loc 1 262 0
+ 355 0056 8246     		mov	sl, r0
+ 356              		.loc 1 263 0
+ 357 0058 1968     		ldr	r1, [r3, #0]	@ float
+ 358 005a 4046     		mov	r0, r8
+ 359 005c FFF7FEFF 		bl	__aeabi_fmul
+ 360 0060 0146     		mov	r1, r0
+ 361 0062 5046     		mov	r0, sl
+ 362 0064 FFF7FEFF 		bl	__aeabi_fadd
+ 261:firmwares/fixedwing/guidance/guidance_v.c ****     - v_ctl_auto_throttle_pgain *
+ 363              		.loc 1 261 0
+ 364 0068 564B     		ldr	r3, .L43+52
+ 365 006a 1968     		ldr	r1, [r3, #0]	@ float
+ 366 006c FFF7FEFF 		bl	__aeabi_fmul
+ 367 0070 0146     		mov	r1, r0
+ 259:firmwares/fixedwing/guidance/guidance_v.c ****   float controlled_throttle = v_ctl_auto_throttle_cruise_throttle
+ 368              		.loc 1 259 0
+ 369 0072 3846     		mov	r0, r7
+ 370 0074 FFF7FEFF 		bl	__aeabi_fsub
+ 264:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 265:firmwares/fixedwing/guidance/guidance_v.c ****   /* pitch pre-command */
+ 266:firmwares/fixedwing/guidance/guidance_v.c ****   float v_ctl_pitch_of_vz = (v_ctl_climb_setpoint + d_err * v_ctl_auto_throttle_pitch_of_vz_dgain) 
+ 371              		.loc 1 266 0
+ 372 0078 534B     		ldr	r3, .L43+56
+ 259:firmwares/fixedwing/guidance/guidance_v.c ****   float controlled_throttle = v_ctl_auto_throttle_cruise_throttle
+ 373              		.loc 1 259 0
+ 374 007a 0746     		mov	r7, r0
+ 375              	.LVL6:
+ 376              		.loc 1 266 0
+ 377 007c 1968     		ldr	r1, [r3, #0]	@ float
+ 378 007e 4046     		mov	r0, r8
+ 379              	.LVL7:
+ 380 0080 FFF7FEFF 		bl	__aeabi_fmul
+ 381 0084 0146     		mov	r1, r0
+ 382 0086 3046     		mov	r0, r6
+ 383 0088 FFF7FEFF 		bl	__aeabi_fadd
+ 384 008c 4F4B     		ldr	r3, .L43+60
+ 385 008e 1968     		ldr	r1, [r3, #0]	@ float
+ 386 0090 FFF7FEFF 		bl	__aeabi_fmul
+ 267:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 268:firmwares/fixedwing/guidance/guidance_v.c **** #if defined AGR_CLIMB
+ 269:firmwares/fixedwing/guidance/guidance_v.c ****   switch (v_ctl_auto_throttle_submode) {
+ 270:firmwares/fixedwing/guidance/guidance_v.c ****   case V_CTL_AUTO_THROTTLE_AGRESSIVE:
+ 271:firmwares/fixedwing/guidance/guidance_v.c ****     if (v_ctl_climb_setpoint > 0) { /* Climbing */
+ 272:firmwares/fixedwing/guidance/guidance_v.c ****       f_throttle =  AGR_CLIMB_THROTTLE;
+ 273:firmwares/fixedwing/guidance/guidance_v.c ****       nav_pitch = AGR_CLIMB_PITCH;
+ 274:firmwares/fixedwing/guidance/guidance_v.c ****     }
+ 275:firmwares/fixedwing/guidance/guidance_v.c ****     else { /* Going down */
+ 276:firmwares/fixedwing/guidance/guidance_v.c ****       f_throttle =  AGR_DESCENT_THROTTLE;
+ 277:firmwares/fixedwing/guidance/guidance_v.c ****       nav_pitch = AGR_DESCENT_PITCH;
+ 278:firmwares/fixedwing/guidance/guidance_v.c ****     }
+ 279:firmwares/fixedwing/guidance/guidance_v.c ****     break;
+ 280:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 281:firmwares/fixedwing/guidance/guidance_v.c ****   case V_CTL_AUTO_THROTTLE_BLENDED: {
+ 282:firmwares/fixedwing/guidance/guidance_v.c ****     float ratio = (fabs(v_ctl_altitude_error) - AGR_BLEND_END)
+ 283:firmwares/fixedwing/guidance/guidance_v.c ****       / (AGR_BLEND_START - AGR_BLEND_END);
+ 284:firmwares/fixedwing/guidance/guidance_v.c ****     f_throttle = (1-ratio) * controlled_throttle;
+ 285:firmwares/fixedwing/guidance/guidance_v.c ****     nav_pitch = (1-ratio) * v_ctl_pitch_of_vz;
+ 286:firmwares/fixedwing/guidance/guidance_v.c ****     v_ctl_auto_throttle_sum_err += (1-ratio) * err;
+ 287:firmwares/fixedwing/guidance/guidance_v.c ****     BoundAbs(v_ctl_auto_throttle_sum_err, V_CTL_AUTO_THROTTLE_MAX_SUM_ERR);
+ 288:firmwares/fixedwing/guidance/guidance_v.c ****     /* positive error -> too low */
+ 289:firmwares/fixedwing/guidance/guidance_v.c ****     if (v_ctl_altitude_error > 0) {
+ 290:firmwares/fixedwing/guidance/guidance_v.c ****       f_throttle +=  ratio * AGR_CLIMB_THROTTLE;
+ 291:firmwares/fixedwing/guidance/guidance_v.c ****       nav_pitch += ratio * AGR_CLIMB_PITCH;
+ 292:firmwares/fixedwing/guidance/guidance_v.c ****     } else {
+ 293:firmwares/fixedwing/guidance/guidance_v.c ****       f_throttle += ratio * AGR_DESCENT_THROTTLE;
+ 294:firmwares/fixedwing/guidance/guidance_v.c ****       nav_pitch += ratio * AGR_DESCENT_PITCH;
+ 295:firmwares/fixedwing/guidance/guidance_v.c ****     }
+ 296:firmwares/fixedwing/guidance/guidance_v.c ****     break;
+ 297:firmwares/fixedwing/guidance/guidance_v.c ****   }
+ 298:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 299:firmwares/fixedwing/guidance/guidance_v.c ****   case V_CTL_AUTO_THROTTLE_STANDARD:
+ 300:firmwares/fixedwing/guidance/guidance_v.c ****   default:
+ 301:firmwares/fixedwing/guidance/guidance_v.c **** #endif
+ 302:firmwares/fixedwing/guidance/guidance_v.c ****     f_throttle = controlled_throttle;
+ 303:firmwares/fixedwing/guidance/guidance_v.c ****     v_ctl_auto_throttle_sum_err += err;
+ 387              		.loc 1 303 0
+ 388 0094 2946     		mov	r1, r5
+ 266:firmwares/fixedwing/guidance/guidance_v.c ****   float v_ctl_pitch_of_vz = (v_ctl_climb_setpoint + d_err * v_ctl_auto_throttle_pitch_of_vz_dgain) 
+ 389              		.loc 1 266 0
+ 390 0096 8046     		mov	r8, r0
+ 391              	.LVL8:
+ 392              		.loc 1 303 0
+ 393 0098 4846     		mov	r0, r9
+ 394              	.LVL9:
+ 395 009a FFF7FEFF 		bl	__aeabi_fadd
+ 304:firmwares/fixedwing/guidance/guidance_v.c ****     BoundAbs(v_ctl_auto_throttle_sum_err, V_CTL_AUTO_THROTTLE_MAX_SUM_ERR);
+ 396              		.loc 1 304 0
+ 397 009e 4C4D     		ldr	r5, .L43+64
+ 398              	.LVL10:
+ 303:firmwares/fixedwing/guidance/guidance_v.c ****     v_ctl_auto_throttle_sum_err += err;
+ 399              		.loc 1 303 0
+ 400 00a0 2060     		str	r0, [r4, #0]	@ float
+ 401              		.loc 1 304 0
+ 402 00a2 2946     		mov	r1, r5
+ 303:firmwares/fixedwing/guidance/guidance_v.c ****     v_ctl_auto_throttle_sum_err += err;
+ 403              		.loc 1 303 0
+ 404 00a4 0646     		mov	r6, r0
+ 405              		.loc 1 304 0
+ 406 00a6 FFF7FEFF 		bl	__aeabi_fcmpgt
+ 407 00aa 28B9     		cbnz	r0, .L41
+ 408              	.L38:
+ 409 00ac 494D     		ldr	r5, .L43+68
+ 410 00ae 3046     		mov	r0, r6
+ 411 00b0 2946     		mov	r1, r5
+ 412 00b2 FFF7FEFF 		bl	__aeabi_fcmplt
+ 413 00b6 00B1     		cbz	r0, .L19
+ 414              	.L41:
+ 415 00b8 2560     		str	r5, [r4, #0]	@ float
+ 416              	.L19:
+ 305:firmwares/fixedwing/guidance/guidance_v.c ****     nav_pitch += v_ctl_pitch_of_vz;
+ 417              		.loc 1 305 0
+ 418 00ba 474C     		ldr	r4, .L43+72
+ 419 00bc 4146     		mov	r1, r8
+ 420 00be 2068     		ldr	r0, [r4, #0]	@ float
+ 421 00c0 FFF7FEFF 		bl	__aeabi_fadd
+ 306:firmwares/fixedwing/guidance/guidance_v.c **** #if defined AGR_CLIMB
+ 307:firmwares/fixedwing/guidance/guidance_v.c ****     break;
+ 308:firmwares/fixedwing/guidance/guidance_v.c ****   } /* switch submode */
+ 309:firmwares/fixedwing/guidance/guidance_v.c **** #endif
+ 310:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 311:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_throttle_setpoint = TRIM_UPPRZ(f_throttle * MAX_PPRZ);
+ 422              		.loc 1 311 0
+ 423 00c4 4549     		ldr	r1, .L43+76
+ 305:firmwares/fixedwing/guidance/guidance_v.c ****     nav_pitch += v_ctl_pitch_of_vz;
+ 424              		.loc 1 305 0
+ 425 00c6 2060     		str	r0, [r4, #0]	@ float
+ 426              		.loc 1 311 0
+ 427 00c8 3846     		mov	r0, r7
+ 428 00ca FFF7FEFF 		bl	__aeabi_fmul
+ 429 00ce 0021     		movs	r1, #0
+ 430 00d0 0446     		mov	r4, r0
+ 431 00d2 FFF7FEFF 		bl	__aeabi_fcmplt
+ 432 00d6 48B9     		cbnz	r0, .L30
+ 433 00d8 2046     		mov	r0, r4
+ 434 00da 4049     		ldr	r1, .L43+76
+ 435 00dc FFF7FEFF 		bl	__aeabi_fcmpgt
+ 436 00e0 30B9     		cbnz	r0, .L31
+ 437 00e2 2046     		mov	r0, r4
+ 438 00e4 FFF7FEFF 		bl	__aeabi_f2iz
+ 439 00e8 80B2     		uxth	r0, r0
+ 440 00ea 03E0     		b	.L21
+ 441              	.L30:
+ 442 00ec 0020     		movs	r0, #0
+ 443 00ee 01E0     		b	.L21
+ 444              	.L31:
+ 445 00f0 4FF41650 		mov	r0, #9600
+ 446              	.L21:
+ 447 00f4 3A4B     		ldr	r3, .L43+80
+ 448 00f6 1880     		strh	r0, [r3, #0]	@ movhi
+ 449 00f8 BDE8F087 		pop	{r4, r5, r6, r7, r8, r9, sl, pc}
+ 450              	.LVL11:
+ 451              	.L16:
+ 452              	.LBE7:
+ 453              	.LBE6:
+ 454              	.LBB8:
+ 455              	.LBB9:
+ 312:firmwares/fixedwing/guidance/guidance_v.c **** }
+ 313:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 314:firmwares/fixedwing/guidance/guidance_v.c **** #else // USE_AIRSPEED
+ 315:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 316:firmwares/fixedwing/guidance/guidance_v.c **** inline static void v_ctl_climb_auto_throttle_loop(void) {
+ 317:firmwares/fixedwing/guidance/guidance_v.c ****   float f_throttle = 0;
+ 318:firmwares/fixedwing/guidance/guidance_v.c ****   float controlled_throttle;
+ 319:firmwares/fixedwing/guidance/guidance_v.c ****   float v_ctl_pitch_of_vz;
+ 320:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 321:firmwares/fixedwing/guidance/guidance_v.c ****   // Limit rate of change of climb setpoint (to ensure that airspeed loop can catch-up)
+ 322:firmwares/fixedwing/guidance/guidance_v.c ****   static float v_ctl_climb_setpoint_last = 0;
+ 323:firmwares/fixedwing/guidance/guidance_v.c ****   float diff_climb = v_ctl_climb_setpoint - v_ctl_climb_setpoint_last;
+ 324:firmwares/fixedwing/guidance/guidance_v.c ****   Bound(diff_climb, -V_CTL_AUTO_CLIMB_LIMIT, V_CTL_AUTO_CLIMB_LIMIT);
+ 325:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_climb_setpoint = v_ctl_climb_setpoint_last + diff_climb;
+ 326:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_climb_setpoint_last = v_ctl_climb_setpoint;
+ 327:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 328:firmwares/fixedwing/guidance/guidance_v.c ****   // Pitch control (input: rate of climb error, output: pitch setpoint)
+ 329:firmwares/fixedwing/guidance/guidance_v.c ****   float err  = estimator_z_dot - v_ctl_climb_setpoint;
+ 330:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_auto_pitch_sum_err += err;
+ 331:firmwares/fixedwing/guidance/guidance_v.c ****   BoundAbs(v_ctl_auto_pitch_sum_err, V_CTL_AUTO_PITCH_MAX_SUM_ERR);
+ 332:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_pitch_of_vz = -v_ctl_auto_pitch_pgain *
+ 333:firmwares/fixedwing/guidance/guidance_v.c ****     (err + v_ctl_auto_pitch_igain * v_ctl_auto_pitch_sum_err);
+ 334:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 335:firmwares/fixedwing/guidance/guidance_v.c ****   // Ground speed control loop (input: groundspeed error, output: airspeed controlled)
+ 336:firmwares/fixedwing/guidance/guidance_v.c ****   float err_groundspeed = (v_ctl_auto_groundspeed_setpoint - estimator_hspeed_mod);
+ 337:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_auto_groundspeed_sum_err += err_groundspeed;
+ 338:firmwares/fixedwing/guidance/guidance_v.c ****   BoundAbs(v_ctl_auto_groundspeed_sum_err, V_CTL_AUTO_GROUNDSPEED_MAX_SUM_ERR);
+ 339:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_auto_airspeed_controlled = (err_groundspeed + v_ctl_auto_groundspeed_sum_err * v_ctl_auto_g
+ 340:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 341:firmwares/fixedwing/guidance/guidance_v.c ****   // Do not allow controlled airspeed below the setpoint
+ 342:firmwares/fixedwing/guidance/guidance_v.c ****   if (v_ctl_auto_airspeed_controlled < v_ctl_auto_airspeed_setpoint) {
+ 343:firmwares/fixedwing/guidance/guidance_v.c ****     v_ctl_auto_airspeed_controlled = v_ctl_auto_airspeed_setpoint;
+ 344:firmwares/fixedwing/guidance/guidance_v.c ****     v_ctl_auto_groundspeed_sum_err = v_ctl_auto_airspeed_controlled/(v_ctl_auto_groundspeed_pgain*v
+ 345:firmwares/fixedwing/guidance/guidance_v.c ****   }
+ 346:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 347:firmwares/fixedwing/guidance/guidance_v.c ****   // Airspeed control loop (input: airspeed controlled, output: throttle controlled)
+ 348:firmwares/fixedwing/guidance/guidance_v.c ****   float err_airspeed = (v_ctl_auto_airspeed_controlled - estimator_airspeed);
+ 349:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_auto_airspeed_sum_err += err_airspeed;
+ 350:firmwares/fixedwing/guidance/guidance_v.c ****   BoundAbs(v_ctl_auto_airspeed_sum_err, V_CTL_AUTO_AIRSPEED_MAX_SUM_ERR);
+ 351:firmwares/fixedwing/guidance/guidance_v.c ****   controlled_throttle = (err_airspeed + v_ctl_auto_airspeed_sum_err * v_ctl_auto_airspeed_igain) * 
+ 352:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 353:firmwares/fixedwing/guidance/guidance_v.c ****   // Done, set outputs
+ 354:firmwares/fixedwing/guidance/guidance_v.c ****   Bound(controlled_throttle, 0, v_ctl_auto_throttle_max_cruise_throttle);
+ 355:firmwares/fixedwing/guidance/guidance_v.c ****   f_throttle = controlled_throttle;
+ 356:firmwares/fixedwing/guidance/guidance_v.c ****   nav_pitch = v_ctl_pitch_of_vz;
+ 357:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_throttle_setpoint = TRIM_UPPRZ(f_throttle * MAX_PPRZ);
+ 358:firmwares/fixedwing/guidance/guidance_v.c ****   Bound(nav_pitch, V_CTL_AUTO_PITCH_MIN_PITCH, V_CTL_AUTO_PITCH_MAX_PITCH);
+ 359:firmwares/fixedwing/guidance/guidance_v.c **** }
+ 360:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 361:firmwares/fixedwing/guidance/guidance_v.c **** #endif // USE_AIRSPEED
+ 362:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 363:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 364:firmwares/fixedwing/guidance/guidance_v.c **** /**
+ 365:firmwares/fixedwing/guidance/guidance_v.c ****  * auto pitch inner loop
+ 366:firmwares/fixedwing/guidance/guidance_v.c ****  * \brief computes a nav_pitch from a climb_setpoint given a fixed throttle
+ 367:firmwares/fixedwing/guidance/guidance_v.c ****  */
+ 368:firmwares/fixedwing/guidance/guidance_v.c **** #ifdef V_CTL_AUTO_PITCH_PGAIN
+ 369:firmwares/fixedwing/guidance/guidance_v.c **** inline static void v_ctl_climb_auto_pitch_loop(void) {
+ 370:firmwares/fixedwing/guidance/guidance_v.c ****   float err  = estimator_z_dot - v_ctl_climb_setpoint;
+ 456              		.loc 1 370 0
+ 457 00fc 1968     		ldr	r1, [r3, #0]	@ float
+ 458 00fe 1068     		ldr	r0, [r2, #0]	@ float
+ 459 0100 FFF7FEFF 		bl	__aeabi_fsub
+ 371:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_throttle_setpoint = nav_throttle_setpoint;
+ 460              		.loc 1 371 0
+ 461 0104 374B     		ldr	r3, .L43+84
+ 372:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_auto_pitch_sum_err += err;
+ 462              		.loc 1 372 0
+ 463 0106 384C     		ldr	r4, .L43+88
+ 371:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_throttle_setpoint = nav_throttle_setpoint;
+ 464              		.loc 1 371 0
+ 465 0108 1A88     		ldrh	r2, [r3, #0]
+ 466 010a 354B     		ldr	r3, .L43+80
+ 467              		.loc 1 372 0
+ 468 010c 2168     		ldr	r1, [r4, #0]	@ float
+ 371:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_throttle_setpoint = nav_throttle_setpoint;
+ 469              		.loc 1 371 0
+ 470 010e 1A80     		strh	r2, [r3, #0]	@ movhi
+ 370:firmwares/fixedwing/guidance/guidance_v.c ****   float err  = estimator_z_dot - v_ctl_climb_setpoint;
+ 471              		.loc 1 370 0
+ 472 0110 0746     		mov	r7, r0
+ 473              	.LVL12:
+ 474              		.loc 1 372 0
+ 475 0112 FFF7FEFF 		bl	__aeabi_fadd
+ 476              	.LVL13:
+ 373:firmwares/fixedwing/guidance/guidance_v.c ****   BoundAbs(v_ctl_auto_pitch_sum_err, V_CTL_AUTO_PITCH_MAX_SUM_ERR);
+ 477              		.loc 1 373 0
+ 478 0116 354D     		ldr	r5, .L43+92
+ 372:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_auto_pitch_sum_err += err;
+ 479              		.loc 1 372 0
+ 480 0118 2060     		str	r0, [r4, #0]	@ float
+ 481              		.loc 1 373 0
+ 482 011a 2946     		mov	r1, r5
+ 372:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_auto_pitch_sum_err += err;
+ 483              		.loc 1 372 0
+ 484 011c 0646     		mov	r6, r0
+ 485              		.loc 1 373 0
+ 486 011e FFF7FEFF 		bl	__aeabi_fcmpgt
+ 487 0122 28B9     		cbnz	r0, .L42
+ 488              	.L39:
+ 489 0124 324D     		ldr	r5, .L43+96
+ 490 0126 3046     		mov	r0, r6
+ 491 0128 2946     		mov	r1, r5
+ 492 012a FFF7FEFF 		bl	__aeabi_fcmplt
+ 493 012e 00B1     		cbz	r0, .L25
+ 494              	.L42:
+ 495 0130 2560     		str	r5, [r4, #0]	@ float
+ 496              	.L25:
+ 374:firmwares/fixedwing/guidance/guidance_v.c ****   nav_pitch = -v_ctl_auto_pitch_pgain *
+ 497              		.loc 1 374 0
+ 498 0132 304B     		ldr	r3, .L43+100
+ 499 0134 1C68     		ldr	r4, [r3, #0]
+ 375:firmwares/fixedwing/guidance/guidance_v.c ****     (err + v_ctl_auto_pitch_igain * v_ctl_auto_pitch_sum_err);
+ 500              		.loc 1 375 0
+ 501 0136 304B     		ldr	r3, .L43+104
+ 374:firmwares/fixedwing/guidance/guidance_v.c ****   nav_pitch = -v_ctl_auto_pitch_pgain *
+ 502              		.loc 1 374 0
+ 503 0138 04F10044 		add	r4, r4, #-2147483648
+ 504              		.loc 1 375 0
+ 505 013c 1868     		ldr	r0, [r3, #0]	@ float
+ 506 013e 2A4B     		ldr	r3, .L43+88
+ 507 0140 1968     		ldr	r1, [r3, #0]	@ float
+ 508 0142 FFF7FEFF 		bl	__aeabi_fmul
+ 509 0146 0146     		mov	r1, r0
+ 510 0148 3846     		mov	r0, r7
+ 511 014a FFF7FEFF 		bl	__aeabi_fadd
+ 512 014e 0146     		mov	r1, r0
+ 374:firmwares/fixedwing/guidance/guidance_v.c ****   nav_pitch = -v_ctl_auto_pitch_pgain *
+ 513              		.loc 1 374 0
+ 514 0150 2046     		mov	r0, r4
+ 515 0152 FFF7FEFF 		bl	__aeabi_fmul
+ 516 0156 204C     		ldr	r4, .L43+72
+ 517 0158 2060     		str	r0, [r4, #0]	@ float
+ 376:firmwares/fixedwing/guidance/guidance_v.c ****   Bound(nav_pitch, V_CTL_AUTO_PITCH_MIN_PITCH, V_CTL_AUTO_PITCH_MAX_PITCH);
+ 518              		.loc 1 376 0
+ 519 015a FFF7FEFF 		bl	__aeabi_f2d
+ 520 015e 0CA3     		adr	r3, .L43
+ 521 0160 D3E90023 		ldrd	r2, [r3]
+ 522 0164 0646     		mov	r6, r0
+ 523 0166 0F46     		mov	r7, r1
+ 524              	.LVL14:
+ 525 0168 FFF7FEFF 		bl	__aeabi_dcmpgt
+ 526 016c 18B1     		cbz	r0, .L40
+ 527 016e 234B     		ldr	r3, .L43+108
+ 528 0170 2360     		str	r3, [r4, #0]	@ float
+ 529 0172 BDE8F087 		pop	{r4, r5, r6, r7, r8, r9, sl, pc}
+ 530              	.L40:
+ 531 0176 3046     		mov	r0, r6
+ 532 0178 3946     		mov	r1, r7
+ 533 017a 07A3     		adr	r3, .L43+8
+ 534 017c D3E90023 		ldrd	r2, [r3]
+ 535 0180 FFF7FEFF 		bl	__aeabi_dcmplt
+ 536 0184 08B1     		cbz	r0, .L14
+ 537 0186 1E4B     		ldr	r3, .L43+112
+ 538 0188 2360     		str	r3, [r4, #0]	@ float
+ 539              	.L14:
+ 540 018a BDE8F087 		pop	{r4, r5, r6, r7, r8, r9, sl, pc}
+ 541              	.L44:
+ 542 018e 00BF     		.align	3
+ 543              	.L43:
+ 544 0190 66666666 		.word	1717986918
+ 545 0194 6666D63F 		.word	1071015526
+ 546 0198 66666666 		.word	1717986918
+ 547 019c 6666D6BF 		.word	-1076468122
+ 548 01a0 00000000 		.word	.LANCHOR8
+ 549 01a4 00000000 		.word	estimator_z_dot
+ 550 01a8 00000000 		.word	.LANCHOR7
+ 551 01ac 00000000 		.word	.LANCHOR25
+ 552 01b0 00000000 		.word	.LANCHOR14
+ 553 01b4 00000000 		.word	.LANCHOR13
+ 554 01b8 00000000 		.word	.LANCHOR18
+ 555 01bc 00000000 		.word	.LANCHOR16
+ 556 01c0 00000000 		.word	.LANCHOR17
+ 557 01c4 00000000 		.word	.LANCHOR15
+ 558 01c8 00000000 		.word	.LANCHOR20
+ 559 01cc 00000000 		.word	.LANCHOR19
+ 560 01d0 00001643 		.word	1125515264
+ 561 01d4 000016C3 		.word	-1021968384
+ 562 01d8 00000000 		.word	nav_pitch
+ 563 01dc 00001646 		.word	1175846912
+ 564 01e0 00000000 		.word	.LANCHOR24
+ 565 01e4 00000000 		.word	nav_throttle_setpoint
+ 566 01e8 00000000 		.word	.LANCHOR23
+ 567 01ec 0000C842 		.word	1120403456
+ 568 01f0 0000C8C2 		.word	-1027080192
+ 569 01f4 00000000 		.word	.LANCHOR21
+ 570 01f8 00000000 		.word	.LANCHOR22
+ 571 01fc 3333B33E 		.word	1051931443
+ 572 0200 3333B3BE 		.word	-1095552205
+ 573              	.LBE9:
+ 574              	.LBE8:
+ 575              		.cfi_endproc
+ 576              	.LFE32:
+ 578              		.global	__aeabi_i2d
+ 579 0204 AFF30080 		.section	.text.v_ctl_throttle_slew,"ax",%progbits
+ 580              		.align	1
+ 581              		.global	v_ctl_throttle_slew
+ 582              		.thumb
+ 583              		.thumb_func
+ 585              	v_ctl_throttle_slew:
+ 586              	.LFB35:
+ 377:firmwares/fixedwing/guidance/guidance_v.c **** }
+ 378:firmwares/fixedwing/guidance/guidance_v.c **** #endif
+ 379:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 380:firmwares/fixedwing/guidance/guidance_v.c **** #ifdef V_CTL_THROTTLE_SLEW_LIMITER
+ 381:firmwares/fixedwing/guidance/guidance_v.c **** #define V_CTL_THROTTLE_SLEW (1./CONTROL_RATE/(V_CTL_THROTTLE_SLEW_LIMITER))
+ 382:firmwares/fixedwing/guidance/guidance_v.c **** #endif
+ 383:firmwares/fixedwing/guidance/guidance_v.c **** 
+ 384:firmwares/fixedwing/guidance/guidance_v.c **** #ifndef V_CTL_THROTTLE_SLEW
+ 385:firmwares/fixedwing/guidance/guidance_v.c **** #define V_CTL_THROTTLE_SLEW 1.
+ 386:firmwares/fixedwing/guidance/guidance_v.c **** #endif
+ 387:firmwares/fixedwing/guidance/guidance_v.c **** /** \brief Computes slewed throttle from throttle setpoint
+ 388:firmwares/fixedwing/guidance/guidance_v.c ****     called at 20Hz
+ 389:firmwares/fixedwing/guidance/guidance_v.c ****  */
+ 390:firmwares/fixedwing/guidance/guidance_v.c **** void v_ctl_throttle_slew( void ) {
+ 587              		.loc 1 390 0
+ 588              		.cfi_startproc
+ 589              		@ args = 0, pretend = 0, frame = 0
+ 590              		@ frame_needed = 0, uses_anonymous_args = 0
+ 591 0000 2DE97043 		push	{r4, r5, r6, r8, r9, lr}
+ 592              	.LCFI3:
+ 593              		.cfi_def_cfa_offset 24
+ 594              		.cfi_offset 14, -4
+ 595              		.cfi_offset 9, -8
+ 596              		.cfi_offset 8, -12
+ 597              		.cfi_offset 6, -16
+ 598              		.cfi_offset 5, -20
+ 599              		.cfi_offset 4, -24
+ 391:firmwares/fixedwing/guidance/guidance_v.c ****   pprz_t diff_throttle = v_ctl_throttle_setpoint - v_ctl_throttle_slewed;
+ 600              		.loc 1 391 0
+ 601 0004 104B     		ldr	r3, .L49
+ 602 0006 114D     		ldr	r5, .L49+4
+ 603 0008 1C88     		ldrh	r4, [r3, #0]
+ 604 000a 2E88     		ldrh	r6, [r5, #0]
+ 605 000c A41B     		subs	r4, r4, r6
+ 606 000e A4B2     		uxth	r4, r4
+ 607              	.LVL15:
+ 392:firmwares/fixedwing/guidance/guidance_v.c ****   BoundAbs(diff_throttle, TRIM_PPRZ(V_CTL_THROTTLE_SLEW*MAX_PPRZ));
+ 608              		.loc 1 392 0
+ 609 0010 20B2     		sxth	r0, r4
+ 610 0012 FFF7FEFF 		bl	__aeabi_i2d
+ 611 0016 0022     		movs	r2, #0
+ 612 0018 0D4B     		ldr	r3, .L49+8
+ 613 001a 8046     		mov	r8, r0
+ 614 001c 8946     		mov	r9, r1
+ 615 001e FFF7FEFF 		bl	__aeabi_dcmpgt
+ 616 0022 58B9     		cbnz	r0, .L47
+ 617              		.loc 1 392 0 is_stmt 0 discriminator 2
+ 618 0024 0B4B     		ldr	r3, .L49+12
+ 619 0026 4046     		mov	r0, r8
+ 620 0028 4946     		mov	r1, r9
+ 621 002a 0022     		movs	r2, #0
+ 622 002c FFF7FEFF 		bl	__aeabi_dcmplt
+ 623 0030 4FF64043 		movw	r3, #64576
+ 624 0034 0028     		cmp	r0, #0
+ 625 0036 18BF     		it	ne
+ 626 0038 1C46     		movne	r4, r3
+ 627              	.LVL16:
+ 628 003a 01E0     		b	.L46
+ 629              	.LVL17:
+ 630              	.L47:
+ 631              		.loc 1 392 0
+ 632 003c 4FF47074 		mov	r4, #960
+ 633              	.LVL18:
+ 634              	.L46:
+ 393:firmwares/fixedwing/guidance/guidance_v.c ****   v_ctl_throttle_slewed += diff_throttle;
+ 635              		.loc 1 393 0 is_stmt 1
+ 636 0040 3419     		adds	r4, r6, r4
+ 637              	.LVL19:
+ 638 0042 2C80     		strh	r4, [r5, #0]	@ movhi
+ 394:firmwares/fixedwing/guidance/guidance_v.c **** }
+ 639              		.loc 1 394 0
+ 640 0044 BDE87083 		pop	{r4, r5, r6, r8, r9, pc}
+ 641              	.L50:
+ 642              		.align	2
+ 643              	.L49:
+ 644 0048 00000000 		.word	.LANCHOR24
+ 645 004c 00000000 		.word	.LANCHOR26
+ 646 0050 00008E40 		.word	1083047936
+ 647 0054 00008EC0 		.word	-1064435712
+ 648              		.cfi_endproc
+ 649              	.LFE35:
+ 651              		.global	v_ctl_throttle_slewed
+ 652              		.global	v_ctl_throttle_setpoint
+ 653              		.global	v_ctl_auto_pitch_sum_err
+ 654              		.global	v_ctl_auto_pitch_igain
+ 655              		.global	v_ctl_auto_pitch_pgain
+ 656              		.global	v_ctl_auto_throttle_pitch_of_vz_dgain
+ 657              		.global	v_ctl_auto_throttle_pitch_of_vz_pgain
+ 658              		.global	v_ctl_auto_throttle_sum_err
+ 659              		.global	v_ctl_auto_throttle_dgain
+ 660              		.global	v_ctl_auto_throttle_igain
+ 661              		.global	v_ctl_auto_throttle_pgain
+ 662              		.global	v_ctl_auto_throttle_climb_throttle_increment
+ 663              		.global	v_ctl_auto_throttle_max_cruise_throttle
+ 664              		.global	v_ctl_auto_throttle_min_cruise_throttle
+ 665              		.global	v_ctl_auto_throttle_nominal_cruise_throttle
+ 666              		.global	v_ctl_auto_throttle_cruise_throttle
+ 667              		.global	v_ctl_auto_throttle_submode
+ 668              		.global	v_ctl_climb_mode
+ 669              		.global	v_ctl_climb_setpoint
+ 670              		.global	v_ctl_altitude_max_climb
+ 671              		.global	v_ctl_altitude_pre_climb_correction
+ 672              		.global	v_ctl_altitude_error
+ 673              		.global	v_ctl_altitude_pgain
+ 674              		.global	v_ctl_altitude_pre_climb
+ 675              		.global	v_ctl_altitude_setpoint
+ 676              		.global	v_ctl_mode
+ 677              		.section	.bss.v_ctl_auto_throttle_nominal_cruise_throttle,"aw",%nobits
+ 678              		.align	2
+ 679              		.set	.LANCHOR10,. + 0
+ 682              	v_ctl_auto_throttle_nominal_cruise_throttle:
+ 683 0000 00000000 		.space	4
+ 684              		.section	.bss.v_ctl_auto_throttle_igain,"aw",%nobits
+ 685              		.align	2
+ 686              		.set	.LANCHOR16,. + 0
+ 689              	v_ctl_auto_throttle_igain:
+ 690 0000 00000000 		.space	4
+ 691              		.section	.bss.v_ctl_auto_throttle_max_cruise_throttle,"aw",%nobits
+ 692              		.align	2
+ 693              		.set	.LANCHOR12,. + 0
+ 696              	v_ctl_auto_throttle_max_cruise_throttle:
+ 697 0000 00000000 		.space	4
+ 698              		.section	.bss.v_ctl_throttle_setpoint,"aw",%nobits
+ 699              		.align	1
+ 700              		.set	.LANCHOR24,. + 0
+ 703              	v_ctl_throttle_setpoint:
+ 704 0000 0000     		.space	2
+ 705              		.section	.bss.v_ctl_altitude_pre_climb_correction,"aw",%nobits
+ 706              		.align	2
+ 707              		.set	.LANCHOR5,. + 0
+ 710              	v_ctl_altitude_pre_climb_correction:
+ 711 0000 00000000 		.space	4
+ 712              		.section	.bss.v_ctl_altitude_setpoint,"aw",%nobits
+ 713              		.align	2
+ 714              		.set	.LANCHOR1,. + 0
+ 717              	v_ctl_altitude_setpoint:
+ 718 0000 00000000 		.space	4
+ 719              		.section	.bss.v_ctl_auto_throttle_dgain,"aw",%nobits
+ 720              		.align	2
+ 721              		.set	.LANCHOR17,. + 0
+ 724              	v_ctl_auto_throttle_dgain:
+ 725 0000 00000000 		.space	4
+ 726              		.section	.bss.v_ctl_mode,"aw",%nobits
+ 727              		.set	.LANCHOR0,. + 0
+ 730              	v_ctl_mode:
+ 731 0000 00       		.space	1
+ 732              		.section	.bss.v_ctl_auto_throttle_pitch_of_vz_pgain,"aw",%nobits
+ 733              		.align	2
+ 734              		.set	.LANCHOR19,. + 0
+ 737              	v_ctl_auto_throttle_pitch_of_vz_pgain:
+ 738 0000 00000000 		.space	4
+ 739              		.section	.bss.v_ctl_auto_throttle_pitch_of_vz_dgain,"aw",%nobits
+ 740              		.align	2
+ 741              		.set	.LANCHOR20,. + 0
+ 744              	v_ctl_auto_throttle_pitch_of_vz_dgain:
+ 745 0000 00000000 		.space	4
+ 746              		.section	.bss.v_ctl_auto_pitch_pgain,"aw",%nobits
+ 747              		.align	2
+ 748              		.set	.LANCHOR21,. + 0
+ 751              	v_ctl_auto_pitch_pgain:
+ 752 0000 00000000 		.space	4
+ 753              		.section	.bss.last_err.3594,"aw",%nobits
+ 754              		.align	2
+ 755              		.set	.LANCHOR25,. + 0
+ 758              	last_err.3594:
+ 759 0000 00000000 		.space	4
+ 760              		.section	.bss.v_ctl_auto_throttle_climb_throttle_increment,"aw",%nobits
+ 761              		.align	2
+ 762              		.set	.LANCHOR14,. + 0
+ 765              	v_ctl_auto_throttle_climb_throttle_increment:
+ 766 0000 00000000 		.space	4
+ 767              		.section	.bss.v_ctl_altitude_pre_climb,"aw",%nobits
+ 768              		.align	2
+ 769              		.set	.LANCHOR2,. + 0
+ 772              	v_ctl_altitude_pre_climb:
+ 773 0000 00000000 		.space	4
+ 774              		.section	.bss.v_ctl_auto_throttle_sum_err,"aw",%nobits
+ 775              		.align	2
+ 776              		.set	.LANCHOR18,. + 0
+ 779              	v_ctl_auto_throttle_sum_err:
+ 780 0000 00000000 		.space	4
+ 781              		.section	.bss.v_ctl_climb_setpoint,"aw",%nobits
+ 782              		.align	2
+ 783              		.set	.LANCHOR7,. + 0
+ 786              	v_ctl_climb_setpoint:
+ 787 0000 00000000 		.space	4
+ 788              		.section	.bss.v_ctl_auto_pitch_sum_err,"aw",%nobits
+ 789              		.align	2
+ 790              		.set	.LANCHOR23,. + 0
+ 793              	v_ctl_auto_pitch_sum_err:
+ 794 0000 00000000 		.space	4
+ 795              		.section	.bss.v_ctl_throttle_slewed,"aw",%nobits
+ 796              		.align	1
+ 797              		.set	.LANCHOR26,. + 0
+ 800              	v_ctl_throttle_slewed:
+ 801 0000 0000     		.space	2
+ 802              		.section	.bss.v_ctl_auto_throttle_submode,"aw",%nobits
+ 803              		.set	.LANCHOR9,. + 0
+ 806              	v_ctl_auto_throttle_submode:
+ 807 0000 00       		.space	1
+ 808              		.section	.bss.v_ctl_auto_throttle_pgain,"aw",%nobits
+ 809              		.align	2
+ 810              		.set	.LANCHOR15,. + 0
+ 813              	v_ctl_auto_throttle_pgain:
+ 814 0000 00000000 		.space	4
+ 815              		.section	.bss.v_ctl_auto_pitch_igain,"aw",%nobits
+ 816              		.align	2
+ 817              		.set	.LANCHOR22,. + 0
+ 820              	v_ctl_auto_pitch_igain:
+ 821 0000 00000000 		.space	4
+ 822              		.section	.bss.v_ctl_climb_mode,"aw",%nobits
+ 823              		.set	.LANCHOR8,. + 0
+ 826              	v_ctl_climb_mode:
+ 827 0000 00       		.space	1
+ 828              		.section	.bss.v_ctl_altitude_error,"aw",%nobits
+ 829              		.align	2
+ 830              		.set	.LANCHOR4,. + 0
+ 833              	v_ctl_altitude_error:
+ 834 0000 00000000 		.space	4
+ 835              		.section	.bss.v_ctl_auto_throttle_cruise_throttle,"aw",%nobits
+ 836              		.align	2
+ 837              		.set	.LANCHOR13,. + 0
+ 840              	v_ctl_auto_throttle_cruise_throttle:
+ 841 0000 00000000 		.space	4
+ 842              		.section	.bss.v_ctl_auto_throttle_min_cruise_throttle,"aw",%nobits
+ 843              		.align	2
+ 844              		.set	.LANCHOR11,. + 0
+ 847              	v_ctl_auto_throttle_min_cruise_throttle:
+ 848 0000 00000000 		.space	4
+ 849              		.section	.bss.v_ctl_altitude_pgain,"aw",%nobits
+ 850              		.align	2
+ 851              		.set	.LANCHOR3,. + 0
+ 854              	v_ctl_altitude_pgain:
+ 855 0000 00000000 		.space	4
+ 856              		.section	.bss.v_ctl_altitude_max_climb,"aw",%nobits
+ 857              		.align	2
+ 858              		.set	.LANCHOR6,. + 0
+ 861              	v_ctl_altitude_max_climb:
+ 862 0000 00000000 		.space	4
+ 863              		.text
+ 864              	.Letext0:
+ 865              		.file 2 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+ 866              		.file 3 "./paparazzi.h"
+ 867              		.file 4 "/home/mav/paparazzi/sw/include/std.h"
+ 868              		.file 5 "./mcu_periph/sys_time.h"
+ 869              		.file 6 "./subsystems/radio_control.h"
+ 870              		.file 7 "./firmwares/fixedwing/guidance/guidance_v.h"
+ 871              		.file 8 "./estimator.h"
+ 872              		.file 9 "./subsystems/nav.h"
+ 873              		.file 10 "./firmwares/fixedwing/autopilot.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 guidance_v.c
+     /tmp/ccG4y5LX.s:18     .text.v_ctl_init:00000000 $t
+     /tmp/ccG4y5LX.s:23     .text.v_ctl_init:00000000 v_ctl_init
+     /tmp/ccG4y5LX.s:141    .text.v_ctl_init:00000084 $d
+     /tmp/ccG4y5LX.s:183    .text.v_ctl_altitude_loop:00000000 $t
+     /tmp/ccG4y5LX.s:188    .text.v_ctl_altitude_loop:00000000 v_ctl_altitude_loop
+     /tmp/ccG4y5LX.s:260    .text.v_ctl_altitude_loop:00000058 $d
+     /tmp/ccG4y5LX.s:276    .text.v_ctl_climb_loop:00000000 $t
+     /tmp/ccG4y5LX.s:281    .text.v_ctl_climb_loop:00000000 v_ctl_climb_loop
+     /tmp/ccG4y5LX.s:544    .text.v_ctl_climb_loop:00000190 $d
+     /tmp/ccG4y5LX.s:580    .text.v_ctl_throttle_slew:00000000 $t
+     /tmp/ccG4y5LX.s:585    .text.v_ctl_throttle_slew:00000000 v_ctl_throttle_slew
+     /tmp/ccG4y5LX.s:644    .text.v_ctl_throttle_slew:00000048 $d
+     /tmp/ccG4y5LX.s:800    .bss.v_ctl_throttle_slewed:00000000 v_ctl_throttle_slewed
+     /tmp/ccG4y5LX.s:703    .bss.v_ctl_throttle_setpoint:00000000 v_ctl_throttle_setpoint
+     /tmp/ccG4y5LX.s:793    .bss.v_ctl_auto_pitch_sum_err:00000000 v_ctl_auto_pitch_sum_err
+     /tmp/ccG4y5LX.s:820    .bss.v_ctl_auto_pitch_igain:00000000 v_ctl_auto_pitch_igain
+     /tmp/ccG4y5LX.s:751    .bss.v_ctl_auto_pitch_pgain:00000000 v_ctl_auto_pitch_pgain
+     /tmp/ccG4y5LX.s:744    .bss.v_ctl_auto_throttle_pitch_of_vz_dgain:00000000 v_ctl_auto_throttle_pitch_of_vz_dgain
+     /tmp/ccG4y5LX.s:737    .bss.v_ctl_auto_throttle_pitch_of_vz_pgain:00000000 v_ctl_auto_throttle_pitch_of_vz_pgain
+     /tmp/ccG4y5LX.s:779    .bss.v_ctl_auto_throttle_sum_err:00000000 v_ctl_auto_throttle_sum_err
+     /tmp/ccG4y5LX.s:724    .bss.v_ctl_auto_throttle_dgain:00000000 v_ctl_auto_throttle_dgain
+     /tmp/ccG4y5LX.s:689    .bss.v_ctl_auto_throttle_igain:00000000 v_ctl_auto_throttle_igain
+     /tmp/ccG4y5LX.s:813    .bss.v_ctl_auto_throttle_pgain:00000000 v_ctl_auto_throttle_pgain
+     /tmp/ccG4y5LX.s:765    .bss.v_ctl_auto_throttle_climb_throttle_increment:00000000 v_ctl_auto_throttle_climb_throttle_increment
+     /tmp/ccG4y5LX.s:696    .bss.v_ctl_auto_throttle_max_cruise_throttle:00000000 v_ctl_auto_throttle_max_cruise_throttle
+     /tmp/ccG4y5LX.s:847    .bss.v_ctl_auto_throttle_min_cruise_throttle:00000000 v_ctl_auto_throttle_min_cruise_throttle
+     /tmp/ccG4y5LX.s:682    .bss.v_ctl_auto_throttle_nominal_cruise_throttle:00000000 v_ctl_auto_throttle_nominal_cruise_throttle
+     /tmp/ccG4y5LX.s:840    .bss.v_ctl_auto_throttle_cruise_throttle:00000000 v_ctl_auto_throttle_cruise_throttle
+     /tmp/ccG4y5LX.s:806    .bss.v_ctl_auto_throttle_submode:00000000 v_ctl_auto_throttle_submode
+     /tmp/ccG4y5LX.s:826    .bss.v_ctl_climb_mode:00000000 v_ctl_climb_mode
+     /tmp/ccG4y5LX.s:786    .bss.v_ctl_climb_setpoint:00000000 v_ctl_climb_setpoint
+     /tmp/ccG4y5LX.s:861    .bss.v_ctl_altitude_max_climb:00000000 v_ctl_altitude_max_climb
+     /tmp/ccG4y5LX.s:710    .bss.v_ctl_altitude_pre_climb_correction:00000000 v_ctl_altitude_pre_climb_correction
+     /tmp/ccG4y5LX.s:833    .bss.v_ctl_altitude_error:00000000 v_ctl_altitude_error
+     /tmp/ccG4y5LX.s:854    .bss.v_ctl_altitude_pgain:00000000 v_ctl_altitude_pgain
+     /tmp/ccG4y5LX.s:772    .bss.v_ctl_altitude_pre_climb:00000000 v_ctl_altitude_pre_climb
+     /tmp/ccG4y5LX.s:717    .bss.v_ctl_altitude_setpoint:00000000 v_ctl_altitude_setpoint
+     /tmp/ccG4y5LX.s:730    .bss.v_ctl_mode:00000000 v_ctl_mode
+     /tmp/ccG4y5LX.s:678    .bss.v_ctl_auto_throttle_nominal_cruise_throttle:00000000 $d
+     /tmp/ccG4y5LX.s:685    .bss.v_ctl_auto_throttle_igain:00000000 $d
+     /tmp/ccG4y5LX.s:692    .bss.v_ctl_auto_throttle_max_cruise_throttle:00000000 $d
+     /tmp/ccG4y5LX.s:699    .bss.v_ctl_throttle_setpoint:00000000 $d
+     /tmp/ccG4y5LX.s:706    .bss.v_ctl_altitude_pre_climb_correction:00000000 $d
+     /tmp/ccG4y5LX.s:713    .bss.v_ctl_altitude_setpoint:00000000 $d
+     /tmp/ccG4y5LX.s:720    .bss.v_ctl_auto_throttle_dgain:00000000 $d
+     /tmp/ccG4y5LX.s:731    .bss.v_ctl_mode:00000000 $d
+     /tmp/ccG4y5LX.s:733    .bss.v_ctl_auto_throttle_pitch_of_vz_pgain:00000000 $d
+     /tmp/ccG4y5LX.s:740    .bss.v_ctl_auto_throttle_pitch_of_vz_dgain:00000000 $d
+     /tmp/ccG4y5LX.s:747    .bss.v_ctl_auto_pitch_pgain:00000000 $d
+     /tmp/ccG4y5LX.s:754    .bss.last_err.3594:00000000 $d
+     /tmp/ccG4y5LX.s:758    .bss.last_err.3594:00000000 last_err.3594
+     /tmp/ccG4y5LX.s:761    .bss.v_ctl_auto_throttle_climb_throttle_increment:00000000 $d
+     /tmp/ccG4y5LX.s:768    .bss.v_ctl_altitude_pre_climb:00000000 $d
+     /tmp/ccG4y5LX.s:775    .bss.v_ctl_auto_throttle_sum_err:00000000 $d
+     /tmp/ccG4y5LX.s:782    .bss.v_ctl_climb_setpoint:00000000 $d
+     /tmp/ccG4y5LX.s:789    .bss.v_ctl_auto_pitch_sum_err:00000000 $d
+     /tmp/ccG4y5LX.s:796    .bss.v_ctl_throttle_slewed:00000000 $d
+     /tmp/ccG4y5LX.s:807    .bss.v_ctl_auto_throttle_submode:00000000 $d
+     /tmp/ccG4y5LX.s:809    .bss.v_ctl_auto_throttle_pgain:00000000 $d
+     /tmp/ccG4y5LX.s:816    .bss.v_ctl_auto_pitch_igain:00000000 $d
+     /tmp/ccG4y5LX.s:827    .bss.v_ctl_climb_mode:00000000 $d
+     /tmp/ccG4y5LX.s:829    .bss.v_ctl_altitude_error:00000000 $d
+     /tmp/ccG4y5LX.s:836    .bss.v_ctl_auto_throttle_cruise_throttle:00000000 $d
+     /tmp/ccG4y5LX.s:843    .bss.v_ctl_auto_throttle_min_cruise_throttle:00000000 $d
+     /tmp/ccG4y5LX.s:850    .bss.v_ctl_altitude_pgain:00000000 $d
+     /tmp/ccG4y5LX.s:857    .bss.v_ctl_altitude_max_climb:00000000 $d
+                     .debug_frame:00000010 $d
+     /tmp/ccG4y5LX.s:579    .text.v_ctl_climb_loop:00000204 $t
+
+UNDEFINED SYMBOLS
+__aeabi_fsub
+__aeabi_fmul
+__aeabi_fadd
+__aeabi_fcmpgt
+__aeabi_fcmplt
+estimator_z
+__aeabi_f2iz
+__aeabi_f2d
+__aeabi_dcmpgt
+__aeabi_dcmplt
+estimator_z_dot
+nav_pitch
+nav_throttle_setpoint
+__aeabi_i2d

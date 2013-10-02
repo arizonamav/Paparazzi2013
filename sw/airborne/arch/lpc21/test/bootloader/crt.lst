@@ -1,0 +1,272 @@
+ARM GAS  /tmp/cc3sVGFG.s 			page 1
+
+
+   1              	# 1 "crt.S"
+   1              	/* ************************************************************************************************
+   0              	
+   0              	
+   2              	
+   3              		crt.S						STARTUP  ASSEMBLY  CODE 
+   4              									-----------------------
+   5              	
+   6              	
+   7              		Module includes the interrupt vectors and start-up code.
+   8              	
+   9              	  *************************************************************************************************
+  10              	
+  11              	/* use the four first sectors for bootloader */
+  12              	.set  APP_START, 0x00004000
+  13              	
+  14              	.set  IOPIN0,    0xE0028000
+  15              	.set  IOPIN1,    0xE0028010
+  16              	.set  PINSEL2,   0xE002C014
+  17              	
+  18              	#ifdef PROC_AP
+  19              	#define BOARD_CLASSIX
+  20              	#endif
+  21              	#ifdef PROC_FBW
+  22              	#define BOARD_CLASSIX
+  23              	#endif
+  24              	#ifdef PROC_TINY
+  25              	#define BOARD_TINY
+  26              	#endif
+  27              	#ifdef PROC_TINYJ
+  28              	#define BOARD_TINYJ
+  29              	#endif
+  30              	#ifdef PROC_LPCH2148
+  31              	#define BOARD_LPCH2148
+  32              	#endif
+  33              	#ifdef PROC_LOGGER
+  34              	#define BOARD_LOGGER
+  35              	#endif
+  36              	
+  37              	#ifdef BOARD_TINYJ
+  38              	/* TINY Jeremy old    MOSI P0.19 */
+  39              	/* .set  BOOT_PIN,  0x00080000 */
+  40              	/* TINY Jeremy old    SCK P0.17 */
+  41              	.set BOOT_PIN,   0x00020000
+  42              	#else
+  43              	#ifdef BOARD_TINY
+  44              	/* TINY old    LPC_SSEL P0.20 */
+  45              	.set  BOOT_PIN,  0x00100000
+  46              	#else
+  47              	#ifdef BOARD_CLASSIX
+  48              	/* CLASSIX old I2C_SDA  P0.03 */
+  49              	.set  BOOT_PIN,  0x00000008
+  50              	#else
+  51              	#ifdef BOARD_LPCH2148
+  52              	/* Olimex LPC-H2148 P1.24 */
+  53              	.set  BOOT_PIN,  0x04000000
+  54              	#else
+ARM GAS  /tmp/cc3sVGFG.s 			page 2
+
+
+  55              	#ifdef BOARD_LOGGER
+  56              	/* SD-Logger P0.29 */
+  57              	.set  BOOT_PIN,  0x20000000
+  58              	#else
+  59              	/* Vbus P0.23 */
+  60              	.set  BOOT_PIN,  0x00800000
+  61              	#endif
+  62              	#endif
+  63              	#endif
+  64              	#endif
+  65              	#endif
+  66              	
+  67              	/* Stack Sizes */
+  68              	.set  UND_STACK_SIZE, 0x00000040		/* stack for "undefined instruction" interrupts is 4 bytes  */
+  69              	.set  ABT_STACK_SIZE, 0x00000040		/* stack for "abort" interrupts is 4 bytes                  */
+  70              	.set  FIQ_STACK_SIZE, 0x00000040		/* stack for "FIQ" interrupts  is 4 bytes         			*/
+  71              	.set  IRQ_STACK_SIZE, 0X00000040		/* stack for "IRQ" normal interrupts is 4 bytes    			*/
+  72              	.set  SVC_STACK_SIZE, 0x00000400		/* stack for "SVC" supervisor mode is 4 bytes  				*/
+  73              	
+  74              	
+  75              	
+  76              	/* Standard definitions of Mode bits and Interrupt (I & F) flags in PSRs (program status registers)
+  77              	.set  MODE_USR, 0x10            		/* Normal User Mode 										*/
+  78              	.set  MODE_FIQ, 0x11            		/* FIQ Processing Fast Interrupts Mode 						*/
+  79              	.set  MODE_IRQ, 0x12            		/* IRQ Processing Standard Interrupts Mode 					*/
+  80              	.set  MODE_SVC, 0x13            		/* Supervisor Processing Software Interrupts Mode 			*/
+  81              	.set  MODE_ABT, 0x17            		/* Abort Processing memory Faults Mode 						*/
+  82              	.set  MODE_UND, 0x1B            		/* Undefined Processing Undefined Instructions Mode 		*/
+  83              	.set  MODE_SYS, 0x1F            		/* System Running Priviledged Operating System Tasks  Mode	*/
+  84              	
+  85              	.set  I_BIT, 0x80               		/* when I bit is set, IRQ is disabled (program status registers) 
+  86              	.set  F_BIT, 0x40               		/* when F bit is set, FIQ is disabled (program status registers) 
+  87              	
+  88              	
+  89              	.text
+  90              	.arm
+  91              	
+  92              	.global	Reset_Handler
+  93              	.global _startup
+  94              	.func   _startup
+  95              	
+  96              	_startup:
+  97              	
+  98              	# Exception Vectors
+  99              	
+ 100 0000 18F09FE5 	_vectors:       ldr     PC, Reset_Addr
+ 101              	                /*b _vectors*/
+ 102 0004 18F09FE5 	                ldr     PC, Undef_Addr
+ 103 0008 18F09FE5 	                ldr     PC, SWI_Addr
+ 104 000c 18F09FE5 	                ldr     PC, PAbt_Addr
+ 105 0010 18F09FE5 	                ldr     PC, DAbt_Addr
+ 106 0014 0000A0E1 	                nop							/* Reserved Vector (holds Philips ISP checksum) */
+ 107 0018 F0FF1FE5 	                ldr     PC, [PC,#-0xFF0]	 /* see page 71 of "Insiders Guide" Trevor Martin  */
+ 108 001c 18F09FE5 	                ldr     PC, FIQ_Addr                
+ 109              	                
+ 110 0020 00000000 	Reset_Addr:     .word   Reset_Handler		/* defined in this module below  */
+ 111 0024 04400000 	Undef_Addr:     .word   APP_START+0x04
+ARM GAS  /tmp/cc3sVGFG.s 			page 3
+
+
+ 112 0028 08400000 	SWI_Addr:       .word   APP_START+0x08
+ 113 002c 0C400000 	PAbt_Addr:      .word   APP_START+0x0C
+ 114 0030 10400000 	DAbt_Addr:      .word   APP_START+0x10
+ 115 0034 14400000 	Resvd_Addr:     .word   APP_START+0x14
+ 116 0038 18400000 	IRQ_Addr:       .word   APP_START+0x18
+ 117 003c 1C400000 	FIQ_Addr:       .word   APP_START+0x1C
+ 118              	
+ 119 0040 00400000 	AppS_Addr:      .word   APP_START
+ 120              	
+ 121              	# Reset Handler
+ 122              	
+ 123              	Reset_Handler:  
+ 124              	#ifndef BOARD_LPCH2148
+ 125              	#ifndef BOARD_LOGGER
+ 126              	    			/* check status of the USB in P0.xx */
+ 127 0044 94009FE5 	    			ldr   r0, =IOPIN0   /* load gpio addr */
+ 128 0048 001090E5 	    			ldr   r1,[r0]       /* get data */
+ 129 004c 0225A0E3 	    			ldr   r2, =BOOT_PIN /* get boot pin */
+ 130 0050 021001E0 	    			and   r1, r1, r2    /* clear all other bits */
+ 131 0054 020051E1 	    			cmp   r1, r2        /* compare bits */ 
+ 132 0058 0000000A 	    			beq   Bootloader    /* beq */
+ 133 005c 24F01FE5 	    			ldr   PC, AppS_Addr
+ 134              	#else
+ 135              	    			/* check status of the USB in P0.xx */
+ 136              	    			ldr   r0, =IOPIN0   /* load gpio addr */
+ 137              	    			ldr   r1,[r0]       /* get data */
+ 138              	    			ldr   r2, =BOOT_PIN /* get boot pin */
+ 139              	    			and   r1, r1, r2    /* clear all other bits */
+ 140              	    			cmp   r1, r2        /* compare bits */ 
+ 141              	    			bne   Bootloader    /* beq */
+ 142              	    			ldr   PC, AppS_Addr
+ 143              	#endif
+ 144              	#else
+ 145              	    			/* check status of the USB in P1.24 */
+ 146              	    			ldr   r0, =PINSEL2  /* load mode addr */
+ 147              	    			mov   r3, #8        /* Pins P1.25-16 are used as GPIO pins */
+ 148              	                str   r3, [r0]
+ 149              	    			ldr   r0, =IOPIN1   /* load gpio addr */
+ 150              	    			ldr   r1,[r0]       /* get data */
+ 151              	    			ldr   r2, =BOOT_PIN /* get boot pin */
+ 152              	    			ldr   r0, =PINSEL2  /* load mode addr */
+ 153              	    			mov   r3, #0        /* Pins P1.25-16 default */
+ 154              	                str   r3, [r0]
+ 155              	    			and   r1, r1, r2    /* clear all other bits */
+ 156              	    			cmp   r1, r2        /* compare bits */ 
+ 157              	    			beq   Bootloader    /* beq */
+ 158              	    			ldr   PC, AppS_Addr
+ 159              	#endif
+ 160              	            
+ 161              					/* Setup a stack for each mode - note that this only sets up a usable stack
+ 162              					for User mode.   Also each mode is setup with interrupts initially disabled. */
+ 163              	Bootloader:
+ 164 0060 7C009FE5 	    			ldr   r0, =_stack_end
+ 165 0064 DBF021E3 	    			msr   CPSR_c, #MODE_UND|I_BIT|F_BIT 	/* Undefined Instruction Mode  */
+ 166 0068 00D0A0E1 	    			mov   sp, r0
+ 167 006c 400040E2 	    			sub   r0, r0, #UND_STACK_SIZE
+ 168 0070 D7F021E3 	    			msr   CPSR_c, #MODE_ABT|I_BIT|F_BIT 	/* Abort Mode */
+ARM GAS  /tmp/cc3sVGFG.s 			page 4
+
+
+ 169 0074 00D0A0E1 	    			mov   sp, r0
+ 170 0078 400040E2 	    			sub   r0, r0, #ABT_STACK_SIZE
+ 171 007c D1F021E3 	    			msr   CPSR_c, #MODE_FIQ|I_BIT|F_BIT 	/* FIQ Mode */
+ 172 0080 00D0A0E1 	    			mov   sp, r0	
+ 173 0084 400040E2 	   				sub   r0, r0, #FIQ_STACK_SIZE
+ 174 0088 D2F021E3 	    			msr   CPSR_c, #MODE_IRQ|I_BIT|F_BIT 	/* IRQ Mode */
+ 175 008c 00D0A0E1 	    			mov   sp, r0
+ 176 0090 400040E2 	    			sub   r0, r0, #IRQ_STACK_SIZE
+ 177 0094 D3F021E3 	    			msr   CPSR_c, #MODE_SVC|I_BIT|F_BIT 	/* Supervisor Mode */
+ 178 0098 00D0A0E1 	    			mov   sp, r0
+ 179 009c 010B40E2 	    			sub   r0, r0, #SVC_STACK_SIZE
+ 180 00a0 DFF021E3 	    			msr   CPSR_c, #MODE_SYS|I_BIT|F_BIT 	/* User Mode */
+ 181 00a4 00D0A0E1 	    			mov   sp, r0
+ 182              	
+ 183              					/* copy .data section (Copy from ROM to RAM) */
+ 184 00a8 38109FE5 	                ldr     R1, =_etext
+ 185 00ac 38209FE5 	                ldr     R2, =_data
+ 186 00b0 38309FE5 	                ldr     R3, =_edata
+ 187 00b4 030052E1 	1:        		cmp     R2, R3
+ 188 00b8 04009134 	                ldrlo   R0, [R1], #4
+ 189 00bc 04008234 	                strlo   R0, [R2], #4
+ 190 00c0 FBFFFF3A 	                blo     1b
+ 191              	
+ 192              					/* Clear .bss section (Zero init)  */
+ 193 00c4 0000A0E3 	                mov     R0, #0
+ 194 00c8 24109FE5 	                ldr     R1, =_bss_start
+ 195 00cc 24209FE5 	                ldr     R2, =_bss_end
+ 196 00d0 020051E1 	2:				cmp     R1, R2
+ 197 00d4 04008134 	                strlo   R0, [R1], #4
+ 198 00d8 FCFFFF3A 	                blo     2b
+ 199              	
+ 200              					/* Enter the C code  */
+ 201 00dc FEFFFFEA 	                b       main
+ 202              	
+ 203              	.endfunc
+ 204 00e0 008002E0 	.end
+ 204      00000000 
+ 204      00000000 
+ 204      00000000 
+ 204      00000000 
+ARM GAS  /tmp/cc3sVGFG.s 			page 5
+
+
+DEFINED SYMBOLS
+               crt.S:12     *ABS*:00004000 APP_START
+               crt.S:14     *ABS*:e0028000 IOPIN0
+               crt.S:15     *ABS*:e0028010 IOPIN1
+               crt.S:16     *ABS*:e002c014 PINSEL2
+               crt.S:60     *ABS*:00800000 BOOT_PIN
+               crt.S:68     *ABS*:00000040 UND_STACK_SIZE
+               crt.S:69     *ABS*:00000040 ABT_STACK_SIZE
+               crt.S:70     *ABS*:00000040 FIQ_STACK_SIZE
+               crt.S:71     *ABS*:00000040 IRQ_STACK_SIZE
+               crt.S:72     *ABS*:00000400 SVC_STACK_SIZE
+               crt.S:77     *ABS*:00000010 MODE_USR
+               crt.S:78     *ABS*:00000011 MODE_FIQ
+               crt.S:79     *ABS*:00000012 MODE_IRQ
+               crt.S:80     *ABS*:00000013 MODE_SVC
+               crt.S:81     *ABS*:00000017 MODE_ABT
+               crt.S:82     *ABS*:0000001b MODE_UND
+               crt.S:83     *ABS*:0000001f MODE_SYS
+               crt.S:85     *ABS*:00000080 I_BIT
+               crt.S:86     *ABS*:00000040 F_BIT
+               crt.S:123    .text:00000044 Reset_Handler
+               crt.S:96     .text:00000000 _startup
+               crt.S:100    .text:00000000 _vectors
+               crt.S:110    .text:00000020 Reset_Addr
+               crt.S:100    .text:00000000 $a
+               crt.S:111    .text:00000024 Undef_Addr
+               crt.S:112    .text:00000028 SWI_Addr
+               crt.S:113    .text:0000002c PAbt_Addr
+               crt.S:114    .text:00000030 DAbt_Addr
+               crt.S:117    .text:0000003c FIQ_Addr
+               crt.S:110    .text:00000020 $d
+               crt.S:115    .text:00000034 Resvd_Addr
+               crt.S:116    .text:00000038 IRQ_Addr
+               crt.S:119    .text:00000040 AppS_Addr
+               crt.S:127    .text:00000044 $a
+               crt.S:163    .text:00000060 Bootloader
+               crt.S:204    .text:000000e0 $d
+
+UNDEFINED SYMBOLS
+_stack_end
+_etext
+_data
+_edata
+_bss_start
+_bss_end
+main

@@ -1,0 +1,119 @@
+# This file has been generated from /home/mav/paparazzi/conf/airframes/TestHardware/LisaL_v1.1_b2_v1.2_rc.xml by /home/mav/paparazzi/sw/tools/gen_aircraft.ml
+# Please DO NOT EDIT
+
+####################################################
+# makefile firmware 'rotorcraft'
+####################################################
+
+###########
+# -target: 'ap'
+ifeq ($(TARGET), ap)
+$(TARGET).CFLAGS += -DRADIO_MODE=RADIO_AUX1
+$(TARGET).CFLAGS += -DRADIO_KILL_SWITCH=RADIO_GEAR
+$(TARGET).CFLAGS += -DRADIO_CONTROL_SPEKTRUM_SECONDARY_PORT=UART5
+$(TARGET).CFLAGS += -DOVERRIDE_UART5_IRQ_HANDLER
+include $(PAPARAZZI_SRC)/conf/boards/lisa_l_1.1.makefile
+include $(PAPARAZZI_SRC)/conf/autopilot/rotorcraft.makefile
+# -subsystem: 'radio_control'
+ifneq ($(strip $(wildcard $(CFG_ROTORCRAFT)/radio_control_spektrum.makefile)),)
+	include $(CFG_ROTORCRAFT)/radio_control_spektrum.makefile
+else
+	include $(CFG_SHARED)/radio_control_spektrum.makefile
+endif
+# -subsystem: 'actuators'
+ifneq ($(strip $(wildcard $(CFG_ROTORCRAFT)/actuators_mkk.makefile)),)
+	include $(CFG_ROTORCRAFT)/actuators_mkk.makefile
+else
+	include $(CFG_SHARED)/actuators_mkk.makefile
+endif
+# -subsystem: 'telemetry'
+ifneq ($(strip $(wildcard $(CFG_ROTORCRAFT)/telemetry_transparent.makefile)),)
+	include $(CFG_ROTORCRAFT)/telemetry_transparent.makefile
+else
+	include $(CFG_SHARED)/telemetry_transparent.makefile
+endif
+# -subsystem: 'imu'
+ifneq ($(strip $(wildcard $(CFG_ROTORCRAFT)/imu_b2_v1.2.makefile)),)
+	include $(CFG_ROTORCRAFT)/imu_b2_v1.2.makefile
+else
+	include $(CFG_SHARED)/imu_b2_v1.2.makefile
+endif
+# -subsystem: 'gps'
+GPS_BAUD = B57600
+ifneq ($(strip $(wildcard $(CFG_ROTORCRAFT)/gps_ublox.makefile)),)
+	include $(CFG_ROTORCRAFT)/gps_ublox.makefile
+else
+	include $(CFG_SHARED)/gps_ublox.makefile
+endif
+# -subsystem: 'stabilization'
+ifneq ($(strip $(wildcard $(CFG_ROTORCRAFT)/stabilization_euler.makefile)),)
+	include $(CFG_ROTORCRAFT)/stabilization_euler.makefile
+else
+	include $(CFG_SHARED)/stabilization_euler.makefile
+endif
+# -subsystem: 'ahrs'
+ifneq ($(strip $(wildcard $(CFG_ROTORCRAFT)/ahrs_int_cmpl_quat.makefile)),)
+	include $(CFG_ROTORCRAFT)/ahrs_int_cmpl_quat.makefile
+else
+	include $(CFG_SHARED)/ahrs_int_cmpl_quat.makefile
+endif
+endif
+
+
+###########
+# -target: 'sim'
+ifeq ($(TARGET), sim)
+include $(PAPARAZZI_SRC)/conf/boards/pc.makefile
+include $(PAPARAZZI_SRC)/conf/autopilot/rotorcraft.makefile
+# -subsystem: 'fdm'
+ifneq ($(strip $(wildcard $(CFG_ROTORCRAFT)/fdm_nps.makefile)),)
+	include $(CFG_ROTORCRAFT)/fdm_nps.makefile
+else
+	include $(CFG_SHARED)/fdm_nps.makefile
+endif
+# -subsystem: 'radio_control'
+ifneq ($(strip $(wildcard $(CFG_ROTORCRAFT)/radio_control_ppm.makefile)),)
+	include $(CFG_ROTORCRAFT)/radio_control_ppm.makefile
+else
+	include $(CFG_SHARED)/radio_control_ppm.makefile
+endif
+# -subsystem: 'actuators'
+ifneq ($(strip $(wildcard $(CFG_ROTORCRAFT)/actuators_mkk.makefile)),)
+	include $(CFG_ROTORCRAFT)/actuators_mkk.makefile
+else
+	include $(CFG_SHARED)/actuators_mkk.makefile
+endif
+# -subsystem: 'imu'
+ifneq ($(strip $(wildcard $(CFG_ROTORCRAFT)/imu_b2_v1.2.makefile)),)
+	include $(CFG_ROTORCRAFT)/imu_b2_v1.2.makefile
+else
+	include $(CFG_SHARED)/imu_b2_v1.2.makefile
+endif
+# -subsystem: 'gps'
+GPS_BAUD = B57600
+ifneq ($(strip $(wildcard $(CFG_ROTORCRAFT)/gps_ublox.makefile)),)
+	include $(CFG_ROTORCRAFT)/gps_ublox.makefile
+else
+	include $(CFG_SHARED)/gps_ublox.makefile
+endif
+# -subsystem: 'stabilization'
+ifneq ($(strip $(wildcard $(CFG_ROTORCRAFT)/stabilization_euler.makefile)),)
+	include $(CFG_ROTORCRAFT)/stabilization_euler.makefile
+else
+	include $(CFG_SHARED)/stabilization_euler.makefile
+endif
+# -subsystem: 'ahrs'
+ifneq ($(strip $(wildcard $(CFG_ROTORCRAFT)/ahrs_int_cmpl_quat.makefile)),)
+	include $(CFG_ROTORCRAFT)/ahrs_int_cmpl_quat.makefile
+else
+	include $(CFG_SHARED)/ahrs_int_cmpl_quat.makefile
+endif
+endif
+
+
+####################################################
+# modules makefile section
+####################################################
+
+# include modules directory for all targets
+$(TARGET).CFLAGS += -I modules -I arch/$(ARCH)/modules

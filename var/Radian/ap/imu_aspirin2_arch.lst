@@ -1,0 +1,209 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 18, 4
+  12              		.thumb
+  13              		.file	"imu_aspirin2_arch.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.imu_aspirin2_arch_int_enable,"ax",%progbits
+  18              		.align	1
+  19              		.global	imu_aspirin2_arch_int_enable
+  20              		.thumb
+  21              		.thumb_func
+  23              	imu_aspirin2_arch_int_enable:
+  24              	.LFB28:
+  25              		.file 1 "arch/stm32/subsystems/imu/imu_aspirin2_arch.c"
+   1:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** #include "subsystems/imu.h"
+   2:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** 
+   3:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** #include <stm32/gpio.h>
+   4:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** #include <stm32/misc.h>
+   5:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** #include <stm32/rcc.h>
+   6:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** #include <stm32/exti.h>
+   7:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** #include <stm32/spi.h>
+   8:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** #include <stm32/dma.h>
+   9:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** 
+  10:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** 
+  11:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** 
+  12:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** 
+  13:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** // gyro interupt handler
+  14:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** void exti15_10_irq_handler(void);
+  15:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** 
+  16:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** void imu_aspirin2_arch_int_enable(void) {
+  26              		.loc 1 16 0
+  27              		.cfi_startproc
+  28              		@ args = 0, pretend = 0, frame = 0
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  30              		@ link register save eliminated.
+  17:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** /*
+  18:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   NVIC_InitTypeDef NVIC_InitStructure;
+  19:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** 
+  20:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   NVIC_InitStructure.NVIC_IRQChannel = EXTI15_10_IRQn;
+  21:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x0F;
+  22:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x0F;
+  23:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+  24:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   NVIC_Init(&NVIC_InitStructure);
+  25:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** */
+  26:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** }
+  31              		.loc 1 26 0
+  32 0000 7047     		bx	lr
+  33              		.cfi_endproc
+  34              	.LFE28:
+  36              		.section	.text.imu_aspirin2_arch_int_disable,"ax",%progbits
+  37              		.align	1
+  38              		.global	imu_aspirin2_arch_int_disable
+  39              		.thumb
+  40              		.thumb_func
+  42              	imu_aspirin2_arch_int_disable:
+  43              	.LFB29:
+  27:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** 
+  28:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** void imu_aspirin2_arch_int_disable(void) {
+  44              		.loc 1 28 0
+  45              		.cfi_startproc
+  46              		@ args = 0, pretend = 0, frame = 0
+  47              		@ frame_needed = 0, uses_anonymous_args = 0
+  48              		@ link register save eliminated.
+  29:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** /*
+  30:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   NVIC_InitTypeDef NVIC_InitStructure;
+  31:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** 
+  32:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   NVIC_InitStructure.NVIC_IRQChannel = EXTI15_10_IRQn;
+  33:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x0F;
+  34:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x0F;
+  35:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   NVIC_InitStructure.NVIC_IRQChannelCmd = DISABLE;
+  36:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   NVIC_Init(&NVIC_InitStructure);
+  37:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** */
+  38:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** }
+  49              		.loc 1 38 0
+  50 0000 7047     		bx	lr
+  51              		.cfi_endproc
+  52              	.LFE29:
+  54              		.section	.text.imu_aspirin2_arch_init,"ax",%progbits
+  55              		.align	1
+  56              		.global	imu_aspirin2_arch_init
+  57              		.thumb
+  58              		.thumb_func
+  60              	imu_aspirin2_arch_init:
+  61              	.LFB30:
+  39:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** 
+  40:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** void imu_aspirin2_arch_init(void) {
+  62              		.loc 1 40 0
+  63              		.cfi_startproc
+  64              		@ args = 0, pretend = 0, frame = 0
+  65              		@ frame_needed = 0, uses_anonymous_args = 0
+  66              		@ link register save eliminated.
+  41:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** /*
+  42:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   GPIO_InitTypeDef GPIO_InitStructure;
+  43:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   EXTI_InitTypeDef EXTI_InitStructure;
+  44:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   SPI_InitTypeDef SPI_InitStructure;
+  45:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** 
+  46:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   // Set "mag ss" and "mag reset" as floating inputs ------------------------
+  47:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   // "mag ss"    (PC12) is shorted to I2C2 SDA
+  48:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   // "mag reset" (PC13) is shorted to I2C2 SCL
+  49:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);
+  50:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12|GPIO_Pin_13;
+  51:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+  52:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  53:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   GPIO_Init(GPIOC, &GPIO_InitStructure);
+  54:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** 
+  55:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   // Gyro --------------------------------------------------------------------
+  56:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   // set "eeprom ss" as floating input (on PC14) = gyro int          ---------
+  57:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   GPIO_InitStructure.GPIO_Pin = GPIO_Pin_14;
+  58:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+  59:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  60:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   GPIO_Init(GPIOC, &GPIO_InitStructure);
+  61:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   // configure external interrupt exti15_10 on PC14( gyro int )
+  62:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC | RCC_APB2Periph_AFIO, ENABLE);
+  63:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   GPIO_InitStructure.GPIO_Pin = GPIO_Pin_14;
+  64:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+  65:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  66:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   GPIO_Init(GPIOC, &GPIO_InitStructure);
+  67:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** 
+  68:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   // ifdef ASPIRIN_USE_GYRO_INT
+  69:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   GPIO_EXTILineConfig(GPIO_PortSourceGPIOC, GPIO_PinSource14);
+  70:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   EXTI_InitStructure.EXTI_Line = EXTI_Line14;
+  71:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+  72:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;
+  73:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+  74:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   EXTI_Init(&EXTI_InitStructure);
+  75:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** */
+  76:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** 
+  77:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** }
+  67              		.loc 1 77 0
+  68 0000 7047     		bx	lr
+  69              		.cfi_endproc
+  70              	.LFE30:
+  72              		.section	.text.exti15_10_irq_handler,"ax",%progbits
+  73              		.align	1
+  74              		.global	exti15_10_irq_handler
+  75              		.thumb
+  76              		.thumb_func
+  78              	exti15_10_irq_handler:
+  79              	.LFB31:
+  78:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** 
+  79:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** 
+  80:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** 
+  81:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** // Gyro data ready
+  82:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** void exti15_10_irq_handler(void) {
+  80              		.loc 1 82 0
+  81              		.cfi_startproc
+  82              		@ args = 0, pretend = 0, frame = 0
+  83              		@ frame_needed = 0, uses_anonymous_args = 0
+  84 0000 08B5     		push	{r3, lr}
+  85              	.LCFI0:
+  86              		.cfi_def_cfa_offset 8
+  87              		.cfi_offset 14, -4
+  88              		.cfi_offset 3, -8
+  83:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   // clear EXTI
+  84:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   if(EXTI_GetITStatus(EXTI_Line14) != RESET)
+  89              		.loc 1 84 0
+  90 0002 4FF48040 		mov	r0, #16384
+  91 0006 FFF7FEFF 		bl	EXTI_GetITStatus
+  92 000a 28B1     		cbz	r0, .L4
+  85:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****     EXTI_ClearITPendingBit(EXTI_Line14);
+  93              		.loc 1 85 0
+  94 000c 4FF48040 		mov	r0, #16384
+  86:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** 
+  87:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** /*
+  88:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   imu_aspirin.gyro_eoc = TRUE;
+  89:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****   imu_aspirin.status = AspirinStatusReadingGyro;
+  90:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** */
+  91:arch/stm32/subsystems/imu/imu_aspirin2_arch.c **** }
+  95              		.loc 1 91 0
+  96 0010 BDE80840 		pop	{r3, lr}
+  85:arch/stm32/subsystems/imu/imu_aspirin2_arch.c ****     EXTI_ClearITPendingBit(EXTI_Line14);
+  97              		.loc 1 85 0
+  98 0014 FFF7FEBF 		b	EXTI_ClearITPendingBit
+  99              	.L4:
+ 100 0018 08BD     		pop	{r3, pc}
+ 101              		.cfi_endproc
+ 102              	.LFE31:
+ 104              		.text
+ 105              	.Letext0:
+ 106              		.file 2 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+ 107              		.file 3 "./math/pprz_algebra_int.h"
+ 108              		.file 4 "./subsystems/imu.h"
+ 109              		.file 5 "./subsystems/imu/imu_aspirin2.h"
+ 110              		.file 6 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+DEFINED SYMBOLS
+                            *ABS*:00000000 imu_aspirin2_arch.c
+     /tmp/ccupty7S.s:18     .text.imu_aspirin2_arch_int_enable:00000000 $t
+     /tmp/ccupty7S.s:23     .text.imu_aspirin2_arch_int_enable:00000000 imu_aspirin2_arch_int_enable
+     /tmp/ccupty7S.s:37     .text.imu_aspirin2_arch_int_disable:00000000 $t
+     /tmp/ccupty7S.s:42     .text.imu_aspirin2_arch_int_disable:00000000 imu_aspirin2_arch_int_disable
+     /tmp/ccupty7S.s:55     .text.imu_aspirin2_arch_init:00000000 $t
+     /tmp/ccupty7S.s:60     .text.imu_aspirin2_arch_init:00000000 imu_aspirin2_arch_init
+     /tmp/ccupty7S.s:73     .text.exti15_10_irq_handler:00000000 $t
+     /tmp/ccupty7S.s:78     .text.exti15_10_irq_handler:00000000 exti15_10_irq_handler
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+EXTI_GetITStatus
+EXTI_ClearITPendingBit

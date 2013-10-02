@@ -1,0 +1,392 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 18, 4
+  12              		.thumb
+  13              		.file	"sys_time.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.global	__aeabi_f2d
+  18              		.global	__aeabi_ddiv
+  19              		.global	__aeabi_dadd
+  20              		.global	__aeabi_d2uiz
+  21              		.section	.text.sys_time_register_timer,"ax",%progbits
+  22              		.align	1
+  23              		.global	sys_time_register_timer
+  24              		.thumb
+  25              		.thumb_func
+  27              	sys_time_register_timer:
+  28              	.LFB26:
+  29              		.file 1 "mcu_periph/sys_time.c"
+   1:mcu_periph/sys_time.c **** /*
+   2:mcu_periph/sys_time.c ****  *
+   3:mcu_periph/sys_time.c ****  * Copyright (C) 2009-2011 The Paparazzi Team
+   4:mcu_periph/sys_time.c ****  *
+   5:mcu_periph/sys_time.c ****  * This file is part of paparazzi.
+   6:mcu_periph/sys_time.c ****  *
+   7:mcu_periph/sys_time.c ****  * paparazzi is free software; you can redistribute it and/or modify
+   8:mcu_periph/sys_time.c ****  * it under the terms of the GNU General Public License as published by
+   9:mcu_periph/sys_time.c ****  * the Free Software Foundation; either version 2, or (at your option)
+  10:mcu_periph/sys_time.c ****  * any later version.
+  11:mcu_periph/sys_time.c ****  *
+  12:mcu_periph/sys_time.c ****  * paparazzi is distributed in the hope that it will be useful,
+  13:mcu_periph/sys_time.c ****  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  14:mcu_periph/sys_time.c ****  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  15:mcu_periph/sys_time.c ****  * GNU General Public License for more details.
+  16:mcu_periph/sys_time.c ****  *
+  17:mcu_periph/sys_time.c ****  * You should have received a copy of the GNU General Public License
+  18:mcu_periph/sys_time.c ****  * along with paparazzi; see the file COPYING.  If not, write to
+  19:mcu_periph/sys_time.c ****  * the Free Software Foundation, 59 Temple Place - Suite 330,
+  20:mcu_periph/sys_time.c ****  * Boston, MA 02111-1307, USA.
+  21:mcu_periph/sys_time.c ****  *
+  22:mcu_periph/sys_time.c ****  */
+  23:mcu_periph/sys_time.c **** 
+  24:mcu_periph/sys_time.c **** /**
+  25:mcu_periph/sys_time.c ****  * @file mcu_periph/sys_time.c
+  26:mcu_periph/sys_time.c ****  * @brief Architecture independent timing functions.
+  27:mcu_periph/sys_time.c ****  *
+  28:mcu_periph/sys_time.c ****  */
+  29:mcu_periph/sys_time.c **** 
+  30:mcu_periph/sys_time.c **** #include "mcu_periph/sys_time.h"
+  31:mcu_periph/sys_time.c **** #include "mcu.h"
+  32:mcu_periph/sys_time.c **** 
+  33:mcu_periph/sys_time.c **** struct sys_time sys_time;
+  34:mcu_periph/sys_time.c **** 
+  35:mcu_periph/sys_time.c **** int sys_time_register_timer(float duration, sys_time_cb cb) {
+  30              		.loc 1 35 0
+  31              		.cfi_startproc
+  32              		@ args = 0, pretend = 0, frame = 0
+  33              		@ frame_needed = 0, uses_anonymous_args = 0
+  34              	.LVL0:
+  36:mcu_periph/sys_time.c **** 
+  37:mcu_periph/sys_time.c ****   uint32_t start_time = sys_time.nb_tick;
+  35              		.loc 1 37 0
+  36 0000 134B     		ldr	r3, .L6
+  35:mcu_periph/sys_time.c **** int sys_time_register_timer(float duration, sys_time_cb cb) {
+  37              		.loc 1 35 0
+  38 0002 70B5     		push	{r4, r5, r6, lr}
+  39              	.LCFI0:
+  40              		.cfi_def_cfa_offset 16
+  41              		.cfi_offset 14, -4
+  42              		.cfi_offset 6, -8
+  43              		.cfi_offset 5, -12
+  44              		.cfi_offset 4, -16
+  45              		.loc 1 37 0
+  46 0004 9E68     		ldr	r6, [r3, #8]
+  47              	.LVL1:
+  38:mcu_periph/sys_time.c ****   for (int i = 0; i< SYS_TIME_NB_TIMER; i++) {
+  48              		.loc 1 38 0
+  49 0006 0024     		movs	r4, #0
+  50 0008 1D46     		mov	r5, r3
+  51              	.LVL2:
+  52              	.L4:
+  53              	.LBB2:
+  39:mcu_periph/sys_time.c ****     if (!sys_time.timer[i].in_use) {
+  54              		.loc 1 39 0
+  55 000a 1A7B     		ldrb	r2, [r3, #12]	@ zero_extendqisi2
+  56 000c BAB9     		cbnz	r2, .L2
+  40:mcu_periph/sys_time.c ****       sys_time.timer[i].cb         = cb;
+  57              		.loc 1 40 0
+  58 000e 1423     		movs	r3, #20
+  59 0010 03FB0455 		mla	r5, r3, r4, r5
+  41:mcu_periph/sys_time.c ****       sys_time.timer[i].elapsed    = FALSE;
+  60              		.loc 1 41 0
+  61 0014 2A75     		strb	r2, [r5, #20]
+  40:mcu_periph/sys_time.c ****       sys_time.timer[i].cb         = cb;
+  62              		.loc 1 40 0
+  63 0016 2961     		str	r1, [r5, #16]
+  42:mcu_periph/sys_time.c ****       sys_time.timer[i].end_time   = start_time + SYS_TIME_TICKS_OF_SEC(duration);
+  64              		.loc 1 42 0
+  65 0018 FFF7FEFF 		bl	__aeabi_f2d
+  66              	.LVL3:
+  67 001c 4FF01132 		mov	r2, #286331153
+  68 0020 0C4B     		ldr	r3, .L6+4
+  69 0022 FFF7FEFF 		bl	__aeabi_ddiv
+  70 0026 0C4B     		ldr	r3, .L6+8
+  71 0028 0022     		movs	r2, #0
+  72 002a FFF7FEFF 		bl	__aeabi_dadd
+  73 002e FFF7FEFF 		bl	__aeabi_d2uiz
+  43:mcu_periph/sys_time.c ****       sys_time.timer[i].duration   = SYS_TIME_TICKS_OF_SEC(duration);
+  44:mcu_periph/sys_time.c ****       sys_time.timer[i].in_use     = TRUE;
+  74              		.loc 1 44 0
+  75 0032 0123     		movs	r3, #1
+  42:mcu_periph/sys_time.c ****       sys_time.timer[i].end_time   = start_time + SYS_TIME_TICKS_OF_SEC(duration);
+  76              		.loc 1 42 0
+  77 0034 8619     		adds	r6, r0, r6
+  78              	.LVL4:
+  79 0036 AE61     		str	r6, [r5, #24]
+  43:mcu_periph/sys_time.c ****       sys_time.timer[i].duration   = SYS_TIME_TICKS_OF_SEC(duration);
+  80              		.loc 1 43 0
+  81 0038 E861     		str	r0, [r5, #28]
+  82              		.loc 1 44 0
+  83 003a 2B73     		strb	r3, [r5, #12]
+  45:mcu_periph/sys_time.c ****       return i;
+  84              		.loc 1 45 0
+  85 003c 05E0     		b	.L3
+  86              	.LVL5:
+  87              	.L2:
+  38:mcu_periph/sys_time.c ****   for (int i = 0; i< SYS_TIME_NB_TIMER; i++) {
+  88              		.loc 1 38 0
+  89 003e 0134     		adds	r4, r4, #1
+  90              	.LVL6:
+  91 0040 1433     		adds	r3, r3, #20
+  92 0042 082C     		cmp	r4, #8
+  93 0044 E1D1     		bne	.L4
+  46:mcu_periph/sys_time.c ****     }
+  47:mcu_periph/sys_time.c ****   }
+  48:mcu_periph/sys_time.c ****   return -1;
+  94              		.loc 1 48 0
+  95 0046 4FF0FF34 		mov	r4, #-1
+  96              	.LVL7:
+  97              	.L3:
+  98              	.LBE2:
+  49:mcu_periph/sys_time.c **** }
+  99              		.loc 1 49 0
+ 100 004a 2046     		mov	r0, r4
+ 101 004c 70BD     		pop	{r4, r5, r6, pc}
+ 102              	.L7:
+ 103 004e 00BF     		.align	2
+ 104              	.L6:
+ 105 0050 00000000 		.word	.LANCHOR0
+ 106 0054 1111913F 		.word	1066471697
+ 107 0058 0000E03F 		.word	1071644672
+ 108              		.cfi_endproc
+ 109              	.LFE26:
+ 111              		.section	.text.sys_time_cancel_timer,"ax",%progbits
+ 112              		.align	1
+ 113              		.global	sys_time_cancel_timer
+ 114              		.thumb
+ 115              		.thumb_func
+ 117              	sys_time_cancel_timer:
+ 118              	.LFB27:
+  50:mcu_periph/sys_time.c **** 
+  51:mcu_periph/sys_time.c **** void sys_time_cancel_timer(tid_t id) {
+ 119              		.loc 1 51 0
+ 120              		.cfi_startproc
+ 121              		@ args = 0, pretend = 0, frame = 0
+ 122              		@ frame_needed = 0, uses_anonymous_args = 0
+ 123              		@ link register save eliminated.
+ 124              	.LVL8:
+  52:mcu_periph/sys_time.c ****   sys_time.timer[id].in_use     = FALSE;
+ 125              		.loc 1 52 0
+ 126 0000 034B     		ldr	r3, .L9
+ 127 0002 1422     		movs	r2, #20
+ 128 0004 02FB0033 		mla	r3, r2, r0, r3
+ 129 0008 0022     		movs	r2, #0
+ 130 000a 1A73     		strb	r2, [r3, #12]
+  53:mcu_periph/sys_time.c **** #if 0
+  54:mcu_periph/sys_time.c ****   sys_time.timer[id].cb         = NULL;
+  55:mcu_periph/sys_time.c ****   sys_time.timer[id].elapsed    = FALSE;
+  56:mcu_periph/sys_time.c ****   sys_time.timer[id].end_time   = 0;
+  57:mcu_periph/sys_time.c ****   sys_time.timer[id].duration   = 0;
+  58:mcu_periph/sys_time.c **** #endif
+  59:mcu_periph/sys_time.c **** }
+ 131              		.loc 1 59 0
+ 132 000c 7047     		bx	lr
+ 133              	.L10:
+ 134 000e 00BF     		.align	2
+ 135              	.L9:
+ 136 0010 00000000 		.word	.LANCHOR0
+ 137              		.cfi_endproc
+ 138              	.LFE27:
+ 140              		.section	.text.sys_time_update_timer,"ax",%progbits
+ 141              		.align	1
+ 142              		.global	sys_time_update_timer
+ 143              		.thumb
+ 144              		.thumb_func
+ 146              	sys_time_update_timer:
+ 147              	.LFB28:
+  60:mcu_periph/sys_time.c **** 
+  61:mcu_periph/sys_time.c **** // FIXME: race condition ??
+  62:mcu_periph/sys_time.c **** void sys_time_update_timer(tid_t id, float duration) {
+ 148              		.loc 1 62 0
+ 149              		.cfi_startproc
+ 150              		@ args = 0, pretend = 0, frame = 0
+ 151              		@ frame_needed = 0, uses_anonymous_args = 0
+ 152              	.LVL9:
+ 153 0000 10B5     		push	{r4, lr}
+ 154              	.LCFI1:
+ 155              		.cfi_def_cfa_offset 8
+ 156              		.cfi_offset 14, -4
+ 157              		.cfi_offset 4, -8
+ 158              		.loc 1 62 0
+ 159 0002 0446     		mov	r4, r0
+  63:mcu_periph/sys_time.c ****   mcu_int_disable();
+  64:mcu_periph/sys_time.c ****   sys_time.timer[id].end_time -= (sys_time.timer[id].duration - SYS_TIME_TICKS_OF_SEC(duration));
+ 160              		.loc 1 64 0
+ 161 0004 0846     		mov	r0, r1
+ 162              	.LVL10:
+ 163 0006 FFF7FEFF 		bl	__aeabi_f2d
+ 164              	.LVL11:
+ 165 000a 4FF01132 		mov	r2, #286331153
+ 166 000e 0A4B     		ldr	r3, .L12
+ 167 0010 FFF7FEFF 		bl	__aeabi_ddiv
+ 168 0014 0022     		movs	r2, #0
+ 169 0016 094B     		ldr	r3, .L12+4
+ 170 0018 FFF7FEFF 		bl	__aeabi_dadd
+ 171 001c FFF7FEFF 		bl	__aeabi_d2uiz
+ 172 0020 074B     		ldr	r3, .L12+8
+ 173 0022 1422     		movs	r2, #20
+ 174 0024 02FB0434 		mla	r4, r2, r4, r3
+ 175 0028 A269     		ldr	r2, [r4, #24]
+ 176 002a E369     		ldr	r3, [r4, #28]
+  65:mcu_periph/sys_time.c ****   sys_time.timer[id].duration = SYS_TIME_TICKS_OF_SEC(duration);
+ 177              		.loc 1 65 0
+ 178 002c E061     		str	r0, [r4, #28]
+  64:mcu_periph/sys_time.c ****   sys_time.timer[id].end_time -= (sys_time.timer[id].duration - SYS_TIME_TICKS_OF_SEC(duration));
+ 179              		.loc 1 64 0
+ 180 002e D31A     		subs	r3, r2, r3
+ 181 0030 1B18     		adds	r3, r3, r0
+ 182 0032 A361     		str	r3, [r4, #24]
+  66:mcu_periph/sys_time.c ****   mcu_int_enable();
+  67:mcu_periph/sys_time.c **** }
+ 183              		.loc 1 67 0
+ 184 0034 10BD     		pop	{r4, pc}
+ 185              	.L13:
+ 186 0036 00BF     		.align	2
+ 187              	.L12:
+ 188 0038 1111913F 		.word	1066471697
+ 189 003c 0000E03F 		.word	1071644672
+ 190 0040 00000000 		.word	.LANCHOR0
+ 191              		.cfi_endproc
+ 192              	.LFE28:
+ 194              		.section	.text.sys_time_init,"ax",%progbits
+ 195              		.align	1
+ 196              		.global	sys_time_init
+ 197              		.thumb
+ 198              		.thumb_func
+ 200              	sys_time_init:
+ 201              	.LFB29:
+  68:mcu_periph/sys_time.c **** 
+  69:mcu_periph/sys_time.c **** void sys_time_init( void ) {
+ 202              		.loc 1 69 0
+ 203              		.cfi_startproc
+ 204              		@ args = 0, pretend = 0, frame = 0
+ 205              		@ frame_needed = 0, uses_anonymous_args = 0
+ 206 0000 38B5     		push	{r3, r4, r5, lr}
+ 207              	.LCFI2:
+ 208              		.cfi_def_cfa_offset 16
+ 209              		.cfi_offset 14, -4
+ 210              		.cfi_offset 5, -8
+ 211              		.cfi_offset 4, -12
+ 212              		.cfi_offset 3, -16
+  70:mcu_periph/sys_time.c ****   sys_time_arch_init();
+ 213              		.loc 1 70 0
+ 214 0002 FFF7FEFF 		bl	sys_time_arch_init
+  71:mcu_periph/sys_time.c **** 
+  72:mcu_periph/sys_time.c ****   sys_time.nb_sec     = 0;
+ 215              		.loc 1 72 0
+ 216 0006 0A4B     		ldr	r3, .L17
+ 217 0008 0021     		movs	r1, #0
+ 218 000a 1960     		str	r1, [r3, #0]
+ 219              	.LBB3:
+  73:mcu_periph/sys_time.c ****   sys_time.nb_sec_rem = 0;
+  74:mcu_periph/sys_time.c ****   sys_time.nb_tick    = 0;
+  75:mcu_periph/sys_time.c **** 
+  76:mcu_periph/sys_time.c ****   for (unsigned int i=0; i<SYS_TIME_NB_TIMER; i++) {
+  77:mcu_periph/sys_time.c ****     sys_time.timer[i].in_use     = FALSE;
+ 220              		.loc 1 77 0
+ 221 000c 0A46     		mov	r2, r1
+ 222              	.LBE3:
+  73:mcu_periph/sys_time.c ****   sys_time.nb_sec_rem = 0;
+ 223              		.loc 1 73 0
+ 224 000e 5960     		str	r1, [r3, #4]
+ 225              	.LBB4:
+  78:mcu_periph/sys_time.c ****     sys_time.timer[i].cb         = NULL;
+  79:mcu_periph/sys_time.c ****     sys_time.timer[i].elapsed    = FALSE;
+ 226              		.loc 1 79 0
+ 227 0010 1C46     		mov	r4, r3
+ 228              	.LBE4:
+  74:mcu_periph/sys_time.c ****   sys_time.nb_tick    = 0;
+ 229              		.loc 1 74 0
+ 230 0012 9960     		str	r1, [r3, #8]
+ 231              	.LVL12:
+ 232              	.LBB5:
+ 233              		.loc 1 79 0
+ 234 0014 1420     		movs	r0, #20
+ 235              	.LVL13:
+ 236              	.L15:
+ 237              		.loc 1 79 0 is_stmt 0 discriminator 2
+ 238 0016 00FB0145 		mla	r5, r0, r1, r4
+  76:mcu_periph/sys_time.c ****   for (unsigned int i=0; i<SYS_TIME_NB_TIMER; i++) {
+ 239              		.loc 1 76 0 is_stmt 1 discriminator 2
+ 240 001a 0131     		adds	r1, r1, #1
+ 241              	.LVL14:
+  77:mcu_periph/sys_time.c ****     sys_time.timer[i].in_use     = FALSE;
+ 242              		.loc 1 77 0 discriminator 2
+ 243 001c 1A73     		strb	r2, [r3, #12]
+  78:mcu_periph/sys_time.c ****     sys_time.timer[i].cb         = NULL;
+ 244              		.loc 1 78 0 discriminator 2
+ 245 001e 1A61     		str	r2, [r3, #16]
+ 246              		.loc 1 79 0 discriminator 2
+ 247 0020 2A75     		strb	r2, [r5, #20]
+ 248 0022 1035     		adds	r5, r5, #16
+  80:mcu_periph/sys_time.c ****     sys_time.timer[i].end_time   = 0;
+ 249              		.loc 1 80 0 discriminator 2
+ 250 0024 9A61     		str	r2, [r3, #24]
+  81:mcu_periph/sys_time.c ****     sys_time.timer[i].duration   = 0;
+ 251              		.loc 1 81 0 discriminator 2
+ 252 0026 DA61     		str	r2, [r3, #28]
+  76:mcu_periph/sys_time.c ****   for (unsigned int i=0; i<SYS_TIME_NB_TIMER; i++) {
+ 253              		.loc 1 76 0 discriminator 2
+ 254 0028 1433     		adds	r3, r3, #20
+ 255 002a 0829     		cmp	r1, #8
+ 256 002c F3D1     		bne	.L15
+ 257              	.LBE5:
+  82:mcu_periph/sys_time.c ****   }
+  83:mcu_periph/sys_time.c **** }
+ 258              		.loc 1 83 0
+ 259 002e 38BD     		pop	{r3, r4, r5, pc}
+ 260              	.L18:
+ 261              		.align	2
+ 262              	.L17:
+ 263 0030 00000000 		.word	.LANCHOR0
+ 264              		.cfi_endproc
+ 265              	.LFE29:
+ 267              		.global	sys_time
+ 268              		.section	.bss.sys_time,"aw",%nobits
+ 269              		.align	2
+ 270              		.set	.LANCHOR0,. + 0
+ 273              	sys_time:
+ 274 0000 00000000 		.space	172
+ 274      00000000 
+ 274      00000000 
+ 274      00000000 
+ 274      00000000 
+ 275              		.text
+ 276              	.Letext0:
+ 277              		.file 2 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+ 278              		.file 3 "/home/mav/paparazzi/sw/include/std.h"
+ 279              		.file 4 "./mcu_periph/sys_time.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 sys_time.c
+     /tmp/cc3wQ3X9.s:22     .text.sys_time_register_timer:00000000 $t
+     /tmp/cc3wQ3X9.s:27     .text.sys_time_register_timer:00000000 sys_time_register_timer
+     /tmp/cc3wQ3X9.s:105    .text.sys_time_register_timer:00000050 $d
+     /tmp/cc3wQ3X9.s:112    .text.sys_time_cancel_timer:00000000 $t
+     /tmp/cc3wQ3X9.s:117    .text.sys_time_cancel_timer:00000000 sys_time_cancel_timer
+     /tmp/cc3wQ3X9.s:136    .text.sys_time_cancel_timer:00000010 $d
+     /tmp/cc3wQ3X9.s:141    .text.sys_time_update_timer:00000000 $t
+     /tmp/cc3wQ3X9.s:146    .text.sys_time_update_timer:00000000 sys_time_update_timer
+     /tmp/cc3wQ3X9.s:188    .text.sys_time_update_timer:00000038 $d
+     /tmp/cc3wQ3X9.s:195    .text.sys_time_init:00000000 $t
+     /tmp/cc3wQ3X9.s:200    .text.sys_time_init:00000000 sys_time_init
+     /tmp/cc3wQ3X9.s:263    .text.sys_time_init:00000030 $d
+     /tmp/cc3wQ3X9.s:273    .bss.sys_time:00000000 sys_time
+     /tmp/cc3wQ3X9.s:269    .bss.sys_time:00000000 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+__aeabi_f2d
+__aeabi_ddiv
+__aeabi_dadd
+__aeabi_d2uiz
+sys_time_arch_init

@@ -1,0 +1,21 @@
+<!DOCTYPE flight_plan SYSTEM "flight_plan.dtd">
+
+<flight_plan alt="730" ground_alt="728" lat0="32.233275" lon0="-110.933177" max_dist_from_home="200" name="Himmel Park" security_height="0">
+  <waypoints>
+    <waypoint name="HOME" x="0" y="0" height="15"/>
+    <waypoint name="NE" x="40" y="50" height="15"/>
+    <waypoint name="NW" x="-40" y ="50" height="15"/>
+    <waypoint name="SE" x="40" y ="-40" height="15"/>
+    <waypoint name="SW" x="-40" y ="-40" height="15"/>
+  </waypoints>
+  <blocks>
+    <block name="corners">
+      <while cond="TRUE">
+        <go wp="NE"/>
+        <go wp="NW"/>
+	<go wp="SW"/>
+        <go wp="SE"/>
+      </while>
+    </block>
+  </blocks>
+</flight_plan>

@@ -1,0 +1,613 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 18, 4
+  12              		.thumb
+  13              		.file	"stm32_vector_table.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.null_handler,"ax",%progbits
+  18              		.align	1
+  19              		.global	null_handler
+  20              		.thumb
+  21              		.thumb_func
+  23              	null_handler:
+  24              	.LFB28:
+  25              		.file 1 "arch/stm32/stm32_vector_table.c"
+   1:arch/stm32/stm32_vector_table.c **** /*
+   2:arch/stm32/stm32_vector_table.c ****  * $Id$
+   3:arch/stm32/stm32_vector_table.c ****  *
+   4:arch/stm32/stm32_vector_table.c ****  * Copyright (C) 2010 The Paparazzi Team
+   5:arch/stm32/stm32_vector_table.c ****  *
+   6:arch/stm32/stm32_vector_table.c ****  * This file is part of Paparazzi.
+   7:arch/stm32/stm32_vector_table.c ****  *
+   8:arch/stm32/stm32_vector_table.c ****  * Paparazzi is free software; you can redistribute it and/or modify
+   9:arch/stm32/stm32_vector_table.c ****  * it under the terms of the GNU General Public License as published by
+  10:arch/stm32/stm32_vector_table.c ****  * the Free Software Foundation; either version 2, or (at your option)
+  11:arch/stm32/stm32_vector_table.c ****  * any later version.
+  12:arch/stm32/stm32_vector_table.c ****  *
+  13:arch/stm32/stm32_vector_table.c ****  * Paparazzi is distributed in the hope that it will be useful,
+  14:arch/stm32/stm32_vector_table.c ****  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  15:arch/stm32/stm32_vector_table.c ****  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  16:arch/stm32/stm32_vector_table.c ****  * GNU General Public License for more details.
+  17:arch/stm32/stm32_vector_table.c ****  *
+  18:arch/stm32/stm32_vector_table.c ****  * You should have received a copy of the GNU General Public License
+  19:arch/stm32/stm32_vector_table.c ****  * along with Paparazzi; see the file COPYING.  If not, write to
+  20:arch/stm32/stm32_vector_table.c ****  * the Free Software Foundation, 59 Temple Place - Suite 330,
+  21:arch/stm32/stm32_vector_table.c ****  * Boston, MA 02111-1307, USA.
+  22:arch/stm32/stm32_vector_table.c ****  */
+  23:arch/stm32/stm32_vector_table.c **** 
+  24:arch/stm32/stm32_vector_table.c **** #include "stm32_vector_table.h"
+  25:arch/stm32/stm32_vector_table.c **** 
+  26:arch/stm32/stm32_vector_table.c **** #include <cmsis/stm32.h>
+  27:arch/stm32/stm32_vector_table.c **** 
+  28:arch/stm32/stm32_vector_table.c **** #include "stm32_exceptions.h"
+  29:arch/stm32/stm32_vector_table.c **** 
+  30:arch/stm32/stm32_vector_table.c **** #ifdef USE_SYS_TIME
+  31:arch/stm32/stm32_vector_table.c **** #include "mcu_periph/sys_time.h"
+  32:arch/stm32/stm32_vector_table.c **** #define SYS_TICK_IRQ_HANDLER sys_tick_irq_handler
+  33:arch/stm32/stm32_vector_table.c **** #else
+  34:arch/stm32/stm32_vector_table.c **** #define SYS_TICK_IRQ_HANDLER null_handler
+  35:arch/stm32/stm32_vector_table.c **** #endif
+  36:arch/stm32/stm32_vector_table.c **** 
+  37:arch/stm32/stm32_vector_table.c **** #if defined USE_UART1 || OVERRIDE_UART1_IRQ_HANDLER
+  38:arch/stm32/stm32_vector_table.c **** #include "mcu_periph/uart.h"
+  39:arch/stm32/stm32_vector_table.c **** #define USART1_IRQ_HANDLER usart1_irq_handler
+  40:arch/stm32/stm32_vector_table.c **** #else
+  41:arch/stm32/stm32_vector_table.c **** #define USART1_IRQ_HANDLER null_handler
+  42:arch/stm32/stm32_vector_table.c **** #endif
+  43:arch/stm32/stm32_vector_table.c **** 
+  44:arch/stm32/stm32_vector_table.c **** #if defined USE_UART2 || OVERRIDE_UART2_IRQ_HANDLER
+  45:arch/stm32/stm32_vector_table.c **** #include "mcu_periph/uart.h"
+  46:arch/stm32/stm32_vector_table.c **** #define USART2_IRQ_HANDLER usart2_irq_handler
+  47:arch/stm32/stm32_vector_table.c **** #else
+  48:arch/stm32/stm32_vector_table.c **** #define USART2_IRQ_HANDLER null_handler
+  49:arch/stm32/stm32_vector_table.c **** #endif
+  50:arch/stm32/stm32_vector_table.c **** 
+  51:arch/stm32/stm32_vector_table.c **** #if defined USE_UART3 || OVERRIDE_UART3_IRQ_HANDLER
+  52:arch/stm32/stm32_vector_table.c **** #include "mcu_periph/uart.h"
+  53:arch/stm32/stm32_vector_table.c **** #define USART3_IRQ_HANDLER usart3_irq_handler
+  54:arch/stm32/stm32_vector_table.c **** #else
+  55:arch/stm32/stm32_vector_table.c **** #define USART3_IRQ_HANDLER null_handler
+  56:arch/stm32/stm32_vector_table.c **** #endif
+  57:arch/stm32/stm32_vector_table.c **** 
+  58:arch/stm32/stm32_vector_table.c **** #if defined USE_UART5 || OVERRIDE_UART5_IRQ_HANDLER
+  59:arch/stm32/stm32_vector_table.c **** #include "mcu_periph/uart.h"
+  60:arch/stm32/stm32_vector_table.c **** #define USART5_IRQ_HANDLER usart5_irq_handler
+  61:arch/stm32/stm32_vector_table.c **** #else
+  62:arch/stm32/stm32_vector_table.c **** #define USART5_IRQ_HANDLER null_handler
+  63:arch/stm32/stm32_vector_table.c **** #endif
+  64:arch/stm32/stm32_vector_table.c **** 
+  65:arch/stm32/stm32_vector_table.c **** 
+  66:arch/stm32/stm32_vector_table.c **** #ifdef USE_I2C1
+  67:arch/stm32/stm32_vector_table.c **** #include "mcu_periph/i2c_arch.h"
+  68:arch/stm32/stm32_vector_table.c **** #define I2C1_EV_IRQ_HANDLER i2c1_ev_irq_handler
+  69:arch/stm32/stm32_vector_table.c **** #define I2C1_ER_IRQ_HANDLER i2c1_er_irq_handler
+  70:arch/stm32/stm32_vector_table.c **** #else
+  71:arch/stm32/stm32_vector_table.c **** #define I2C1_EV_IRQ_HANDLER null_handler
+  72:arch/stm32/stm32_vector_table.c **** #define I2C1_ER_IRQ_HANDLER null_handler
+  73:arch/stm32/stm32_vector_table.c **** #endif
+  74:arch/stm32/stm32_vector_table.c **** 
+  75:arch/stm32/stm32_vector_table.c **** #ifdef USE_I2C2
+  76:arch/stm32/stm32_vector_table.c **** #include "mcu_periph/i2c_arch.h"
+  77:arch/stm32/stm32_vector_table.c **** #define I2C2_EV_IRQ_HANDLER i2c2_ev_irq_handler
+  78:arch/stm32/stm32_vector_table.c **** #define I2C2_ER_IRQ_HANDLER i2c2_er_irq_handler
+  79:arch/stm32/stm32_vector_table.c **** #else
+  80:arch/stm32/stm32_vector_table.c **** #define I2C2_EV_IRQ_HANDLER null_handler
+  81:arch/stm32/stm32_vector_table.c **** #define I2C2_ER_IRQ_HANDLER null_handler
+  82:arch/stm32/stm32_vector_table.c **** #endif
+  83:arch/stm32/stm32_vector_table.c **** 
+  84:arch/stm32/stm32_vector_table.c **** #ifdef USE_SPI1_IRQ
+  85:arch/stm32/stm32_vector_table.c **** extern void spi1_irq_handler(void);
+  86:arch/stm32/stm32_vector_table.c **** #define SPI1_IRQ_HANDLER spi1_irq_handler
+  87:arch/stm32/stm32_vector_table.c **** #else
+  88:arch/stm32/stm32_vector_table.c **** #define SPI1_IRQ_HANDLER null_handler
+  89:arch/stm32/stm32_vector_table.c **** #endif
+  90:arch/stm32/stm32_vector_table.c **** 
+  91:arch/stm32/stm32_vector_table.c **** #ifdef USE_SPI2_IRQ
+  92:arch/stm32/stm32_vector_table.c **** extern void spi2_irq_handler(void);
+  93:arch/stm32/stm32_vector_table.c **** #define SPI2_IRQ_HANDLER spi2_irq_handler
+  94:arch/stm32/stm32_vector_table.c **** #else
+  95:arch/stm32/stm32_vector_table.c **** #define SPI2_IRQ_HANDLER null_handler
+  96:arch/stm32/stm32_vector_table.c **** #endif
+  97:arch/stm32/stm32_vector_table.c **** 
+  98:arch/stm32/stm32_vector_table.c **** #ifdef USE_EXTI0_IRQ
+  99:arch/stm32/stm32_vector_table.c **** extern void exti0_irq_handler(void);
+ 100:arch/stm32/stm32_vector_table.c **** #define EXTI0_IRQ_HANDLER exti0_irq_handler
+ 101:arch/stm32/stm32_vector_table.c **** #else
+ 102:arch/stm32/stm32_vector_table.c **** #define EXTI0_IRQ_HANDLER null_handler
+ 103:arch/stm32/stm32_vector_table.c **** #endif
+ 104:arch/stm32/stm32_vector_table.c **** 
+ 105:arch/stm32/stm32_vector_table.c **** #ifdef USE_EXTI2_IRQ
+ 106:arch/stm32/stm32_vector_table.c **** extern void exti2_irq_handler(void);
+ 107:arch/stm32/stm32_vector_table.c **** #define EXTI2_IRQ_HANDLER exti2_irq_handler
+ 108:arch/stm32/stm32_vector_table.c **** #else
+ 109:arch/stm32/stm32_vector_table.c **** #define EXTI2_IRQ_HANDLER null_handler
+ 110:arch/stm32/stm32_vector_table.c **** #endif
+ 111:arch/stm32/stm32_vector_table.c **** 
+ 112:arch/stm32/stm32_vector_table.c **** #ifdef USE_EXTI3_IRQ
+ 113:arch/stm32/stm32_vector_table.c **** extern void exti3_irq_handler(void);
+ 114:arch/stm32/stm32_vector_table.c **** #define EXTI3_IRQ_HANDLER exti3_irq_handler
+ 115:arch/stm32/stm32_vector_table.c **** #else
+ 116:arch/stm32/stm32_vector_table.c **** #define EXTI3_IRQ_HANDLER null_handler
+ 117:arch/stm32/stm32_vector_table.c **** #endif
+ 118:arch/stm32/stm32_vector_table.c **** 
+ 119:arch/stm32/stm32_vector_table.c **** #ifdef USE_EXTI4_IRQ
+ 120:arch/stm32/stm32_vector_table.c **** extern void exti4_irq_handler(void);
+ 121:arch/stm32/stm32_vector_table.c **** #define EXTI4_IRQ_HANDLER exti4_irq_handler
+ 122:arch/stm32/stm32_vector_table.c **** #else
+ 123:arch/stm32/stm32_vector_table.c **** #define EXTI4_IRQ_HANDLER null_handler
+ 124:arch/stm32/stm32_vector_table.c **** #endif
+ 125:arch/stm32/stm32_vector_table.c **** 
+ 126:arch/stm32/stm32_vector_table.c **** #ifdef USE_EXTI9_5_IRQ
+ 127:arch/stm32/stm32_vector_table.c **** extern void exti9_5_irq_handler(void);
+ 128:arch/stm32/stm32_vector_table.c **** #define EXTI9_5_IRQ_HANDLER exti9_5_irq_handler
+ 129:arch/stm32/stm32_vector_table.c **** #else
+ 130:arch/stm32/stm32_vector_table.c **** #define EXTI9_5_IRQ_HANDLER null_handler
+ 131:arch/stm32/stm32_vector_table.c **** #endif
+ 132:arch/stm32/stm32_vector_table.c **** 
+ 133:arch/stm32/stm32_vector_table.c **** #ifdef USE_EXTI15_10_IRQ
+ 134:arch/stm32/stm32_vector_table.c **** extern void exti15_10_irq_handler(void);
+ 135:arch/stm32/stm32_vector_table.c **** #define EXTI15_10_IRQ_HANDLER exti15_10_irq_handler
+ 136:arch/stm32/stm32_vector_table.c **** #else
+ 137:arch/stm32/stm32_vector_table.c **** #define EXTI15_10_IRQ_HANDLER null_handler
+ 138:arch/stm32/stm32_vector_table.c **** #endif
+ 139:arch/stm32/stm32_vector_table.c **** 
+ 140:arch/stm32/stm32_vector_table.c **** 
+ 141:arch/stm32/stm32_vector_table.c **** #ifdef USE_DMA1_C2_IRQ
+ 142:arch/stm32/stm32_vector_table.c **** extern void dma1_c2_irq_handler(void);
+ 143:arch/stm32/stm32_vector_table.c **** #define DMA1_C2_IRQ_HANDLER dma1_c2_irq_handler
+ 144:arch/stm32/stm32_vector_table.c **** #else
+ 145:arch/stm32/stm32_vector_table.c **** #define DMA1_C2_IRQ_HANDLER null_handler
+ 146:arch/stm32/stm32_vector_table.c **** #endif
+ 147:arch/stm32/stm32_vector_table.c **** 
+ 148:arch/stm32/stm32_vector_table.c **** #ifdef USE_DMA1_C4_IRQ
+ 149:arch/stm32/stm32_vector_table.c **** extern void dma1_c4_irq_handler(void);
+ 150:arch/stm32/stm32_vector_table.c **** #define DMA1_C4_IRQ_HANDLER dma1_c4_irq_handler
+ 151:arch/stm32/stm32_vector_table.c **** #else
+ 152:arch/stm32/stm32_vector_table.c **** #define DMA1_C4_IRQ_HANDLER null_handler
+ 153:arch/stm32/stm32_vector_table.c **** #endif
+ 154:arch/stm32/stm32_vector_table.c **** 
+ 155:arch/stm32/stm32_vector_table.c **** #ifdef USE_ADC1_2_IRQ_HANDLER
+ 156:arch/stm32/stm32_vector_table.c **** extern void adc1_2_irq_handler(void);
+ 157:arch/stm32/stm32_vector_table.c **** #define ADC1_2_IRQ_HANDLER adc1_2_irq_handler
+ 158:arch/stm32/stm32_vector_table.c **** #else
+ 159:arch/stm32/stm32_vector_table.c **** #define ADC1_2_IRQ_HANDLER null_handler
+ 160:arch/stm32/stm32_vector_table.c **** #endif
+ 161:arch/stm32/stm32_vector_table.c **** 
+ 162:arch/stm32/stm32_vector_table.c **** #ifdef USE_TIM2_IRQ
+ 163:arch/stm32/stm32_vector_table.c **** extern void tim2_irq_handler(void);
+ 164:arch/stm32/stm32_vector_table.c **** #define TIM2_IRQ_HANDLER tim2_irq_handler
+ 165:arch/stm32/stm32_vector_table.c **** #else
+ 166:arch/stm32/stm32_vector_table.c **** #define TIM2_IRQ_HANDLER null_handler
+ 167:arch/stm32/stm32_vector_table.c **** #endif
+ 168:arch/stm32/stm32_vector_table.c **** 
+ 169:arch/stm32/stm32_vector_table.c **** #ifdef USE_TIM6_IRQ
+ 170:arch/stm32/stm32_vector_table.c **** extern void tim6_irq_handler(void);
+ 171:arch/stm32/stm32_vector_table.c **** #define TIM6_IRQ_HANDLER tim6_irq_handler
+ 172:arch/stm32/stm32_vector_table.c **** #else
+ 173:arch/stm32/stm32_vector_table.c **** #define TIM6_IRQ_HANDLER null_handler
+ 174:arch/stm32/stm32_vector_table.c **** #endif
+ 175:arch/stm32/stm32_vector_table.c **** 
+ 176:arch/stm32/stm32_vector_table.c **** #ifdef USE_USB_HP_CAN1_TX_IRQ
+ 177:arch/stm32/stm32_vector_table.c **** extern void usb_hp_can1_tx_irq_handler(void);
+ 178:arch/stm32/stm32_vector_table.c **** #define USB_HP_CAN1_TX_IRQ_HANDLER usb_hp_can1_tx_irq_handler
+ 179:arch/stm32/stm32_vector_table.c **** #else
+ 180:arch/stm32/stm32_vector_table.c **** #define USB_HP_CAN1_TX_IRQ_HANDLER null_handler
+ 181:arch/stm32/stm32_vector_table.c **** #endif
+ 182:arch/stm32/stm32_vector_table.c **** 
+ 183:arch/stm32/stm32_vector_table.c **** #ifdef USE_USB_LP_CAN1_RX0_IRQ
+ 184:arch/stm32/stm32_vector_table.c **** extern void usb_lp_can1_rx0_irq_handler(void);
+ 185:arch/stm32/stm32_vector_table.c **** #define USB_LP_CAN1_RX0_IRQ_HANDLER usb_lp_can1_rx0_irq_handler
+ 186:arch/stm32/stm32_vector_table.c **** #else
+ 187:arch/stm32/stm32_vector_table.c **** #define USB_LP_CAN1_RX0_IRQ_HANDLER null_handler
+ 188:arch/stm32/stm32_vector_table.c **** #endif
+ 189:arch/stm32/stm32_vector_table.c **** 
+ 190:arch/stm32/stm32_vector_table.c **** /* addresses defined in the linker script */
+ 191:arch/stm32/stm32_vector_table.c **** extern unsigned long _etext;  /* end addr of .text section     */
+ 192:arch/stm32/stm32_vector_table.c **** extern unsigned long _sidata; /* init values for .data section */
+ 193:arch/stm32/stm32_vector_table.c **** extern unsigned long _sdata;  /* start addr of .data section   */
+ 194:arch/stm32/stm32_vector_table.c **** extern unsigned long _edata;  /* end addr of .data section     */
+ 195:arch/stm32/stm32_vector_table.c **** extern unsigned long _sbss;   /* start addr of .bss section    */
+ 196:arch/stm32/stm32_vector_table.c **** extern unsigned long _ebss;   /* end addr of .bss section      */
+ 197:arch/stm32/stm32_vector_table.c **** extern void _estack;          /* stack pointer init value      */
+ 198:arch/stm32/stm32_vector_table.c **** 
+ 199:arch/stm32/stm32_vector_table.c **** void reset_handler_stage1(void) __attribute__((__interrupt__));
+ 200:arch/stm32/stm32_vector_table.c **** void reset_handler_stage2(void);
+ 201:arch/stm32/stm32_vector_table.c **** void null_handler(void);
+ 202:arch/stm32/stm32_vector_table.c **** 
+ 203:arch/stm32/stm32_vector_table.c **** /* interrupt vector */
+ 204:arch/stm32/stm32_vector_table.c **** __attribute__ ((section(".isr_vector")))
+ 205:arch/stm32/stm32_vector_table.c **** void (* const vector_table[])(void) = {
+ 206:arch/stm32/stm32_vector_table.c ****     &_estack,              /* stack pointer init value*/
+ 207:arch/stm32/stm32_vector_table.c ****     reset_handler_stage1,  /* pc init value */
+ 208:arch/stm32/stm32_vector_table.c ****     nmi_exception,
+ 209:arch/stm32/stm32_vector_table.c ****     hard_fault_exception,
+ 210:arch/stm32/stm32_vector_table.c ****     mem_manage_exception,
+ 211:arch/stm32/stm32_vector_table.c ****     bus_fault_exception,
+ 212:arch/stm32/stm32_vector_table.c ****     usage_fault_exception,
+ 213:arch/stm32/stm32_vector_table.c ****     0, 0, 0, 0,               /* reserved */
+ 214:arch/stm32/stm32_vector_table.c ****     null_handler,             /* svc_handler */
+ 215:arch/stm32/stm32_vector_table.c ****     null_handler,             /* debug_monitor */
+ 216:arch/stm32/stm32_vector_table.c ****     0,                        /* reserved */
+ 217:arch/stm32/stm32_vector_table.c ****     null_handler,             /* pend_svc */
+ 218:arch/stm32/stm32_vector_table.c ****     SYS_TICK_IRQ_HANDLER,     /* sys_tick_handler, */
+ 219:arch/stm32/stm32_vector_table.c ****     null_handler,             /* wwdg_irq_handler */
+ 220:arch/stm32/stm32_vector_table.c ****     null_handler,             /* pvd_irq_handler */
+ 221:arch/stm32/stm32_vector_table.c ****     null_handler,             /* tamper_irq_handler */
+ 222:arch/stm32/stm32_vector_table.c ****     null_handler,             /* rtc_irq_handler */
+ 223:arch/stm32/stm32_vector_table.c ****     null_handler,             /* flash_irq_handler */
+ 224:arch/stm32/stm32_vector_table.c ****     null_handler,             /* rcc_irq_handler */
+ 225:arch/stm32/stm32_vector_table.c ****     EXTI0_IRQ_HANDLER,        /* exti0_irq_handler */
+ 226:arch/stm32/stm32_vector_table.c ****     null_handler,             /* exti1_irq_handler */
+ 227:arch/stm32/stm32_vector_table.c ****     EXTI2_IRQ_HANDLER,        /* exti2_irq_handler */
+ 228:arch/stm32/stm32_vector_table.c ****     EXTI3_IRQ_HANDLER,        /* exti3_irq_handler */
+ 229:arch/stm32/stm32_vector_table.c ****     EXTI4_IRQ_HANDLER,        /* exti4_irq_handler */
+ 230:arch/stm32/stm32_vector_table.c ****     null_handler,             /* dma1_channel1_irq_handler */
+ 231:arch/stm32/stm32_vector_table.c ****     DMA1_C2_IRQ_HANDLER,      /* dma1_channel2_irq_handler */
+ 232:arch/stm32/stm32_vector_table.c ****     null_handler,             /* dma1_channel3_irq_handler */
+ 233:arch/stm32/stm32_vector_table.c ****     DMA1_C4_IRQ_HANDLER,      /* dma1_channel4_irq_handler */
+ 234:arch/stm32/stm32_vector_table.c ****     null_handler,             /* dma1_channel5_irq_handler */
+ 235:arch/stm32/stm32_vector_table.c ****     null_handler,             /* dma1_channel6_irq_handler */
+ 236:arch/stm32/stm32_vector_table.c ****     null_handler,             /* dma1_channel7_irq_handler */
+ 237:arch/stm32/stm32_vector_table.c ****     ADC1_2_IRQ_HANDLER,       /* adc1_2_irq_handler */
+ 238:arch/stm32/stm32_vector_table.c ****     USB_HP_CAN1_TX_IRQ_HANDLER, /* usb_hp_can_tx_irq_handler */
+ 239:arch/stm32/stm32_vector_table.c ****     USB_LP_CAN1_RX0_IRQ_HANDLER, /* usb_lp_can_rx0_irq_handler */
+ 240:arch/stm32/stm32_vector_table.c ****     null_handler,             /* can_rx1_irq_handler */
+ 241:arch/stm32/stm32_vector_table.c ****     null_handler,             /* can_sce_irq_handler */
+ 242:arch/stm32/stm32_vector_table.c ****     EXTI9_5_IRQ_HANDLER,      /* exti9_5_irq_handler */
+ 243:arch/stm32/stm32_vector_table.c ****     null_handler,             /* tim1_brk_irq_handler */
+ 244:arch/stm32/stm32_vector_table.c ****     null_handler,             /* tim1_up_irq_handler */
+ 245:arch/stm32/stm32_vector_table.c ****     null_handler,             /* tim1_trg_com_irq_handler */
+ 246:arch/stm32/stm32_vector_table.c ****     null_handler,             /* tim1_cc_irq_handler */
+ 247:arch/stm32/stm32_vector_table.c ****     TIM2_IRQ_HANDLER,         /* tim2_irq_handler */
+ 248:arch/stm32/stm32_vector_table.c ****     null_handler,             /* tim3_irq_handler */
+ 249:arch/stm32/stm32_vector_table.c ****     null_handler,             /* tim4_irq_handler */
+ 250:arch/stm32/stm32_vector_table.c ****     I2C1_EV_IRQ_HANDLER,      /* i2c1_ev_irq_handler */
+ 251:arch/stm32/stm32_vector_table.c ****     I2C1_ER_IRQ_HANDLER,      /* i2c1_er_irq_handler */
+ 252:arch/stm32/stm32_vector_table.c ****     I2C2_EV_IRQ_HANDLER,      /* i2c2_ev_irq_handler */
+ 253:arch/stm32/stm32_vector_table.c ****     I2C2_ER_IRQ_HANDLER,      /* i2c2_er_irq_handler */
+ 254:arch/stm32/stm32_vector_table.c ****     SPI1_IRQ_HANDLER,         /* spi1_irq_handler */
+ 255:arch/stm32/stm32_vector_table.c ****     SPI2_IRQ_HANDLER,         /* spi2_irq_handler */
+ 256:arch/stm32/stm32_vector_table.c ****     USART1_IRQ_HANDLER,       /* usart1_irq_handler */
+ 257:arch/stm32/stm32_vector_table.c ****     USART2_IRQ_HANDLER,       /* usart2_irq_handler */
+ 258:arch/stm32/stm32_vector_table.c ****     USART3_IRQ_HANDLER,       /* usart3_irq_handler */
+ 259:arch/stm32/stm32_vector_table.c ****     EXTI15_10_IRQ_HANDLER,    /* exti15_10_irq_handler */
+ 260:arch/stm32/stm32_vector_table.c ****     null_handler,             /* rtc_alarm_irq_handler */
+ 261:arch/stm32/stm32_vector_table.c ****     null_handler,             /* usb_wake_up_irq_handler */
+ 262:arch/stm32/stm32_vector_table.c ****     null_handler,             /* tim8_brk_irq_handler */
+ 263:arch/stm32/stm32_vector_table.c ****     null_handler,             /* tim8_up_irq_handler */
+ 264:arch/stm32/stm32_vector_table.c ****     null_handler,             /* tim8_trg_com_irq_handler */
+ 265:arch/stm32/stm32_vector_table.c ****     null_handler,             /* tim8_cc_irq_handler */
+ 266:arch/stm32/stm32_vector_table.c ****     null_handler,             /* adc3_irq_handler */
+ 267:arch/stm32/stm32_vector_table.c ****     null_handler,             /* fsmc_irq_handler */
+ 268:arch/stm32/stm32_vector_table.c ****     null_handler,             /* sdio_irq_handler */
+ 269:arch/stm32/stm32_vector_table.c ****     null_handler,             /* tim5_irq_handler */
+ 270:arch/stm32/stm32_vector_table.c ****     null_handler,             /* spi3_irq_handler */
+ 271:arch/stm32/stm32_vector_table.c ****     null_handler,             /* uart4_irq_handler */
+ 272:arch/stm32/stm32_vector_table.c ****     USART5_IRQ_HANDLER,       /* uart5_irq_handler */
+ 273:arch/stm32/stm32_vector_table.c ****     TIM6_IRQ_HANDLER,         /* tim6_irq_handler */
+ 274:arch/stm32/stm32_vector_table.c ****     null_handler,             /* tim7_irq_handler */
+ 275:arch/stm32/stm32_vector_table.c ****     null_handler,             /* dma2_channel1_irq_handler */
+ 276:arch/stm32/stm32_vector_table.c ****     null_handler,             /* dma2_channel2_irq_handler */
+ 277:arch/stm32/stm32_vector_table.c ****     null_handler,             /* dma2_channel3_irq_handler */
+ 278:arch/stm32/stm32_vector_table.c ****     null_handler,             /* dma2_channel4_5_irq_handler */
+ 279:arch/stm32/stm32_vector_table.c **** };
+ 280:arch/stm32/stm32_vector_table.c **** 
+ 281:arch/stm32/stm32_vector_table.c **** /* Get's called directly after mcu reset */
+ 282:arch/stm32/stm32_vector_table.c **** void reset_handler_stage1(void){
+ 283:arch/stm32/stm32_vector_table.c ****     /* set stack align */
+ 284:arch/stm32/stm32_vector_table.c ****     SCB->CCR = SCB->CCR | SCB_CCR_STKALIGN;
+ 285:arch/stm32/stm32_vector_table.c **** 
+ 286:arch/stm32/stm32_vector_table.c ****     reset_handler_stage2();
+ 287:arch/stm32/stm32_vector_table.c **** }
+ 288:arch/stm32/stm32_vector_table.c **** 
+ 289:arch/stm32/stm32_vector_table.c **** //extern int main(int argc, char** argv);
+ 290:arch/stm32/stm32_vector_table.c **** extern void main( void);
+ 291:arch/stm32/stm32_vector_table.c **** 
+ 292:arch/stm32/stm32_vector_table.c **** void reset_handler_stage2(void){
+ 293:arch/stm32/stm32_vector_table.c ****     unsigned long *pul_src, *pul_dest;
+ 294:arch/stm32/stm32_vector_table.c **** 
+ 295:arch/stm32/stm32_vector_table.c ****     /* Copy the data segment initializers from flash to SRAM */
+ 296:arch/stm32/stm32_vector_table.c ****     pul_src = &_sidata;
+ 297:arch/stm32/stm32_vector_table.c ****     for(pul_dest = &_sdata; pul_dest < &_edata; ){
+ 298:arch/stm32/stm32_vector_table.c ****         *(pul_dest++) = *(pul_src++);
+ 299:arch/stm32/stm32_vector_table.c ****     }
+ 300:arch/stm32/stm32_vector_table.c ****     /* Zero fill the bss segment.  */
+ 301:arch/stm32/stm32_vector_table.c ****     for(pul_dest = &_sbss; pul_dest < &_ebss; ){
+ 302:arch/stm32/stm32_vector_table.c ****         *(pul_dest++) = 0;
+ 303:arch/stm32/stm32_vector_table.c ****     }
+ 304:arch/stm32/stm32_vector_table.c **** 
+ 305:arch/stm32/stm32_vector_table.c ****     /* Call the application's entry point.*/
+ 306:arch/stm32/stm32_vector_table.c ****     main();
+ 307:arch/stm32/stm32_vector_table.c **** }
+ 308:arch/stm32/stm32_vector_table.c **** 
+ 309:arch/stm32/stm32_vector_table.c **** void null_handler(void){
+  26              		.loc 1 309 0
+  27              		.cfi_startproc
+  28              		@ args = 0, pretend = 0, frame = 0
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  30              		@ link register save eliminated.
+ 310:arch/stm32/stm32_vector_table.c **** }
+  31              		.loc 1 310 0
+  32 0000 7047     		bx	lr
+  33              		.cfi_endproc
+  34              	.LFE28:
+  36              		.section	.text.reset_handler_stage2,"ax",%progbits
+  37              		.align	1
+  38              		.global	reset_handler_stage2
+  39              		.thumb
+  40              		.thumb_func
+  42              	reset_handler_stage2:
+  43              	.LFB27:
+ 292:arch/stm32/stm32_vector_table.c **** void reset_handler_stage2(void){
+  44              		.loc 1 292 0
+  45              		.cfi_startproc
+  46              		@ args = 0, pretend = 0, frame = 0
+  47              		@ frame_needed = 0, uses_anonymous_args = 0
+  48              		@ link register save eliminated.
+  49              	.LVL0:
+ 297:arch/stm32/stm32_vector_table.c ****     for(pul_dest = &_sdata; pul_dest < &_edata; ){
+  50              		.loc 1 297 0
+  51 0000 094A     		ldr	r2, .L7
+  52 0002 0A4B     		ldr	r3, .L7+4
+  53 0004 0A49     		ldr	r1, .L7+8
+  54 0006 03E0     		b	.L3
+  55              	.LVL1:
+  56              	.L4:
+ 298:arch/stm32/stm32_vector_table.c ****         *(pul_dest++) = *(pul_src++);
+  57              		.loc 1 298 0
+  58 0008 52F8040B 		ldr	r0, [r2], #4
+  59 000c 43F8040B 		str	r0, [r3], #4
+  60              	.LVL2:
+  61              	.L3:
+ 297:arch/stm32/stm32_vector_table.c ****     for(pul_dest = &_sdata; pul_dest < &_edata; ){
+  62              		.loc 1 297 0 discriminator 1
+  63 0010 8B42     		cmp	r3, r1
+  64 0012 F9D3     		bcc	.L4
+ 297:arch/stm32/stm32_vector_table.c ****     for(pul_dest = &_sdata; pul_dest < &_edata; ){
+  65              		.loc 1 297 0 is_stmt 0
+  66 0014 074B     		ldr	r3, .L7+12
+  67              	.LVL3:
+ 301:arch/stm32/stm32_vector_table.c ****     for(pul_dest = &_sbss; pul_dest < &_ebss; ){
+  68              		.loc 1 301 0 is_stmt 1
+  69 0016 0849     		ldr	r1, .L7+16
+ 302:arch/stm32/stm32_vector_table.c ****         *(pul_dest++) = 0;
+  70              		.loc 1 302 0
+  71 0018 0022     		movs	r2, #0
+  72 001a 01E0     		b	.L5
+  73              	.LVL4:
+  74              	.L6:
+  75 001c 43F8042B 		str	r2, [r3], #4
+  76              	.LVL5:
+  77              	.L5:
+ 301:arch/stm32/stm32_vector_table.c ****     for(pul_dest = &_sbss; pul_dest < &_ebss; ){
+  78              		.loc 1 301 0 discriminator 1
+  79 0020 8B42     		cmp	r3, r1
+  80 0022 FBD3     		bcc	.L6
+ 307:arch/stm32/stm32_vector_table.c **** }
+  81              		.loc 1 307 0
+ 306:arch/stm32/stm32_vector_table.c ****     main();
+  82              		.loc 1 306 0
+  83 0024 FFF7FEBF 		b	main
+  84              	.LVL6:
+  85              	.L8:
+  86              		.align	2
+  87              	.L7:
+  88 0028 00000000 		.word	_sidata
+  89 002c 00000000 		.word	_sdata
+  90 0030 00000000 		.word	_edata
+  91 0034 00000000 		.word	_sbss
+  92 0038 00000000 		.word	_ebss
+  93              		.cfi_endproc
+  94              	.LFE27:
+  96              		.section	.text.reset_handler_stage1,"ax",%progbits
+  97              		.align	1
+  98              		.global	reset_handler_stage1
+  99              		.thumb
+ 100              		.thumb_func
+ 102              	reset_handler_stage1:
+ 103              	.LFB26:
+ 282:arch/stm32/stm32_vector_table.c **** void reset_handler_stage1(void){
+ 104              		.loc 1 282 0
+ 105              		.cfi_startproc
+ 106              		@ Stack Align: May be called with mis-aligned SP.
+ 107              		@ args = 0, pretend = 0, frame = 0
+ 108              		@ frame_needed = 0, uses_anonymous_args = 0
+ 284:arch/stm32/stm32_vector_table.c ****     SCB->CCR = SCB->CCR | SCB_CCR_STKALIGN;
+ 109              		.loc 1 284 0
+ 110 0000 074B     		ldr	r3, .L10
+ 282:arch/stm32/stm32_vector_table.c **** void reset_handler_stage1(void){
+ 111              		.loc 1 282 0
+ 112 0002 6846     		mov	r0, sp
+ 113              		.cfi_register 13, 0
+ 284:arch/stm32/stm32_vector_table.c ****     SCB->CCR = SCB->CCR | SCB_CCR_STKALIGN;
+ 114              		.loc 1 284 0
+ 115 0004 5A69     		ldr	r2, [r3, #20]
+ 282:arch/stm32/stm32_vector_table.c **** void reset_handler_stage1(void){
+ 116              		.loc 1 282 0
+ 117 0006 20F00701 		bic	r1, r0, #7
+ 118 000a 8D46     		mov	sp, r1
+ 284:arch/stm32/stm32_vector_table.c ****     SCB->CCR = SCB->CCR | SCB_CCR_STKALIGN;
+ 119              		.loc 1 284 0
+ 120 000c 42F40072 		orr	r2, r2, #512
+ 282:arch/stm32/stm32_vector_table.c **** void reset_handler_stage1(void){
+ 121              		.loc 1 282 0
+ 122 0010 01B5     		push	{r0, lr}
+ 123              	.LCFI0:
+ 124              		.cfi_def_cfa_offset 8
+ 125              		.cfi_offset 14, -4
+ 126              		.cfi_offset 13, -8
+ 284:arch/stm32/stm32_vector_table.c ****     SCB->CCR = SCB->CCR | SCB_CCR_STKALIGN;
+ 127              		.loc 1 284 0
+ 128 0012 5A61     		str	r2, [r3, #20]
+ 286:arch/stm32/stm32_vector_table.c ****     reset_handler_stage2();
+ 129              		.loc 1 286 0
+ 130 0014 FFF7FEFF 		bl	reset_handler_stage2
+ 287:arch/stm32/stm32_vector_table.c **** }
+ 131              		.loc 1 287 0
+ 132 0018 BDE80140 		pop	{r0, lr}
+ 133 001c 8546     		mov	sp, r0
+ 134 001e 7047     		bx	lr
+ 135              	.L11:
+ 136              		.align	2
+ 137              	.L10:
+ 138 0020 00ED00E0 		.word	-536810240
+ 139              		.cfi_endproc
+ 140              	.LFE26:
+ 142              		.section	.text.assert_param,"ax",%progbits
+ 143              		.align	1
+ 144              		.global	assert_param
+ 145              		.thumb
+ 146              		.thumb_func
+ 148              	assert_param:
+ 149              	.LFB29:
+ 311:arch/stm32/stm32_vector_table.c **** 
+ 312:arch/stm32/stm32_vector_table.c **** /* FIXME: look deeper into what that is doing
+ 313:arch/stm32/stm32_vector_table.c ****  *
+ 314:arch/stm32/stm32_vector_table.c ****  */
+ 315:arch/stm32/stm32_vector_table.c **** 
+ 316:arch/stm32/stm32_vector_table.c **** void assert_param(void);
+ 317:arch/stm32/stm32_vector_table.c **** 
+ 318:arch/stm32/stm32_vector_table.c **** void assert_param(void){
+ 150              		.loc 1 318 0
+ 151              		.cfi_startproc
+ 152              		@ args = 0, pretend = 0, frame = 0
+ 153              		@ frame_needed = 0, uses_anonymous_args = 0
+ 154              		@ link register save eliminated.
+ 319:arch/stm32/stm32_vector_table.c **** 
+ 320:arch/stm32/stm32_vector_table.c **** }
+ 155              		.loc 1 320 0
+ 156 0000 7047     		bx	lr
+ 157              		.cfi_endproc
+ 158              	.LFE29:
+ 160              		.global	vector_table
+ 161              		.section	.isr_vector,"a",%progbits
+ 162              		.align	2
+ 165              	vector_table:
+ 166 0000 00000000 		.word	_estack
+ 167 0004 00000000 		.word	reset_handler_stage1
+ 168 0008 00000000 		.word	nmi_exception
+ 169 000c 00000000 		.word	hard_fault_exception
+ 170 0010 00000000 		.word	mem_manage_exception
+ 171 0014 00000000 		.word	bus_fault_exception
+ 172 0018 00000000 		.word	usage_fault_exception
+ 173 001c 00000000 		.word	0
+ 174 0020 00000000 		.word	0
+ 175 0024 00000000 		.word	0
+ 176 0028 00000000 		.word	0
+ 177 002c 00000000 		.word	null_handler
+ 178 0030 00000000 		.word	null_handler
+ 179 0034 00000000 		.word	0
+ 180 0038 00000000 		.word	null_handler
+ 181 003c 00000000 		.word	sys_tick_irq_handler
+ 182 0040 00000000 		.word	null_handler
+ 183 0044 00000000 		.word	null_handler
+ 184 0048 00000000 		.word	null_handler
+ 185 004c 00000000 		.word	null_handler
+ 186 0050 00000000 		.word	null_handler
+ 187 0054 00000000 		.word	null_handler
+ 188 0058 00000000 		.word	null_handler
+ 189 005c 00000000 		.word	null_handler
+ 190 0060 00000000 		.word	null_handler
+ 191 0064 00000000 		.word	null_handler
+ 192 0068 00000000 		.word	null_handler
+ 193 006c 00000000 		.word	null_handler
+ 194 0070 00000000 		.word	null_handler
+ 195 0074 00000000 		.word	null_handler
+ 196 0078 00000000 		.word	dma1_c4_irq_handler
+ 197 007c 00000000 		.word	null_handler
+ 198 0080 00000000 		.word	null_handler
+ 199 0084 00000000 		.word	null_handler
+ 200 0088 00000000 		.word	adc1_2_irq_handler
+ 201 008c 00000000 		.word	null_handler
+ 202 0090 00000000 		.word	null_handler
+ 203 0094 00000000 		.word	null_handler
+ 204 0098 00000000 		.word	null_handler
+ 205 009c 00000000 		.word	null_handler
+ 206 00a0 00000000 		.word	null_handler
+ 207 00a4 00000000 		.word	null_handler
+ 208 00a8 00000000 		.word	null_handler
+ 209 00ac 00000000 		.word	null_handler
+ 210 00b0 00000000 		.word	null_handler
+ 211 00b4 00000000 		.word	null_handler
+ 212 00b8 00000000 		.word	null_handler
+ 213 00bc 00000000 		.word	null_handler
+ 214 00c0 00000000 		.word	null_handler
+ 215 00c4 00000000 		.word	null_handler
+ 216 00c8 00000000 		.word	null_handler
+ 217 00cc 00000000 		.word	null_handler
+ 218 00d0 00000000 		.word	null_handler
+ 219 00d4 00000000 		.word	usart1_irq_handler
+ 220 00d8 00000000 		.word	usart2_irq_handler
+ 221 00dc 00000000 		.word	usart3_irq_handler
+ 222 00e0 00000000 		.word	null_handler
+ 223 00e4 00000000 		.word	null_handler
+ 224 00e8 00000000 		.word	null_handler
+ 225 00ec 00000000 		.word	null_handler
+ 226 00f0 00000000 		.word	null_handler
+ 227 00f4 00000000 		.word	null_handler
+ 228 00f8 00000000 		.word	null_handler
+ 229 00fc 00000000 		.word	null_handler
+ 230 0100 00000000 		.word	null_handler
+ 231 0104 00000000 		.word	null_handler
+ 232 0108 00000000 		.word	null_handler
+ 233 010c 00000000 		.word	null_handler
+ 234 0110 00000000 		.word	null_handler
+ 235 0114 00000000 		.word	null_handler
+ 236 0118 00000000 		.word	tim6_irq_handler
+ 237 011c 00000000 		.word	null_handler
+ 238 0120 00000000 		.word	null_handler
+ 239 0124 00000000 		.word	null_handler
+ 240 0128 00000000 		.word	null_handler
+ 241 012c 00000000 		.word	null_handler
+ 242              		.text
+ 243              	.Letext0:
+ 244              		.file 2 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+ 245              		.file 3 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+ 246              		.file 4 "/home/mav/paparazzi/sw/include/std.h"
+ 247              		.file 5 "./mcu_periph/sys_time.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 stm32_vector_table.c
+     /tmp/ccRl87Q8.s:18     .text.null_handler:00000000 $t
+     /tmp/ccRl87Q8.s:23     .text.null_handler:00000000 null_handler
+     /tmp/ccRl87Q8.s:37     .text.reset_handler_stage2:00000000 $t
+     /tmp/ccRl87Q8.s:42     .text.reset_handler_stage2:00000000 reset_handler_stage2
+     /tmp/ccRl87Q8.s:88     .text.reset_handler_stage2:00000028 $d
+     /tmp/ccRl87Q8.s:97     .text.reset_handler_stage1:00000000 $t
+     /tmp/ccRl87Q8.s:102    .text.reset_handler_stage1:00000000 reset_handler_stage1
+     /tmp/ccRl87Q8.s:138    .text.reset_handler_stage1:00000020 $d
+     /tmp/ccRl87Q8.s:143    .text.assert_param:00000000 $t
+     /tmp/ccRl87Q8.s:148    .text.assert_param:00000000 assert_param
+     /tmp/ccRl87Q8.s:165    .isr_vector:00000000 vector_table
+     /tmp/ccRl87Q8.s:162    .isr_vector:00000000 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+main
+_sidata
+_sdata
+_edata
+_sbss
+_ebss
+_estack
+nmi_exception
+hard_fault_exception
+mem_manage_exception
+bus_fault_exception
+usage_fault_exception
+sys_tick_irq_handler
+dma1_c4_irq_handler
+adc1_2_irq_handler
+usart1_irq_handler
+usart2_irq_handler
+usart3_irq_handler
+tim6_irq_handler

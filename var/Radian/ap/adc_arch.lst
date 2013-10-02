@@ -1,0 +1,1053 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 18, 4
+  12              		.thumb
+  13              		.file	"adc_arch.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.section	.text.adc_buf_channel,"ax",%progbits
+  18              		.align	1
+  19              		.global	adc_buf_channel
+  20              		.thumb
+  21              		.thumb_func
+  23              	adc_buf_channel:
+  24              	.LFB25:
+  25              		.file 1 "arch/stm32/mcu_periph/adc_arch.c"
+   1:arch/stm32/mcu_periph/adc_arch.c **** /*
+   2:arch/stm32/mcu_periph/adc_arch.c ****  *
+   3:arch/stm32/mcu_periph/adc_arch.c ****  * Copyright (C) 2010 The Paparazzi Team
+   4:arch/stm32/mcu_periph/adc_arch.c ****  *
+   5:arch/stm32/mcu_periph/adc_arch.c ****  * This file is part of paparazzi.
+   6:arch/stm32/mcu_periph/adc_arch.c ****  *
+   7:arch/stm32/mcu_periph/adc_arch.c ****  * paparazzi is free software; you can redistribute it and/or modify
+   8:arch/stm32/mcu_periph/adc_arch.c ****  * it under the terms of the GNU General Public License as published by
+   9:arch/stm32/mcu_periph/adc_arch.c ****  * the Free Software Foundation; either version 2, or (at your option)
+  10:arch/stm32/mcu_periph/adc_arch.c ****  * any later version.
+  11:arch/stm32/mcu_periph/adc_arch.c ****  *
+  12:arch/stm32/mcu_periph/adc_arch.c ****  * paparazzi is distributed in the hope that it will be useful,
+  13:arch/stm32/mcu_periph/adc_arch.c ****  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  14:arch/stm32/mcu_periph/adc_arch.c ****  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  15:arch/stm32/mcu_periph/adc_arch.c ****  * GNU General Public License for more details.
+  16:arch/stm32/mcu_periph/adc_arch.c ****  *
+  17:arch/stm32/mcu_periph/adc_arch.c ****  * You should have received a copy of the GNU General Public License
+  18:arch/stm32/mcu_periph/adc_arch.c ****  * along with paparazzi; see the file COPYING.  If not, write to
+  19:arch/stm32/mcu_periph/adc_arch.c ****  * the Free Software Foundation, 59 Temple Place - Suite 330,
+  20:arch/stm32/mcu_periph/adc_arch.c ****  * Boston, MA 02111-1307, USA.
+  21:arch/stm32/mcu_periph/adc_arch.c ****  *
+  22:arch/stm32/mcu_periph/adc_arch.c ****  */
+  23:arch/stm32/mcu_periph/adc_arch.c **** 
+  24:arch/stm32/mcu_periph/adc_arch.c **** /**
+  25:arch/stm32/mcu_periph/adc_arch.c ****  *
+  26:arch/stm32/mcu_periph/adc_arch.c ****  * This is the driver for the analog to digital converters
+  27:arch/stm32/mcu_periph/adc_arch.c ****  * on STM32
+  28:arch/stm32/mcu_periph/adc_arch.c ****  *
+  29:arch/stm32/mcu_periph/adc_arch.c ****  * Usage:
+  30:arch/stm32/mcu_periph/adc_arch.c ****  * Define flags for ADCs to use and their channels:
+  31:arch/stm32/mcu_periph/adc_arch.c ****  *
+  32:arch/stm32/mcu_periph/adc_arch.c ****  *   -DUSE_AD1 -DUSE_AD1_1 -DUSE_AD1_3
+  33:arch/stm32/mcu_periph/adc_arch.c ****  *
+  34:arch/stm32/mcu_periph/adc_arch.c ****  * would enable ADC1 and it's channels 1 and 3.
+  35:arch/stm32/mcu_periph/adc_arch.c ****  *
+  36:arch/stm32/mcu_periph/adc_arch.c ****  */
+  37:arch/stm32/mcu_periph/adc_arch.c **** 
+  38:arch/stm32/mcu_periph/adc_arch.c **** /*
+  39:arch/stm32/mcu_periph/adc_arch.c ****   For better understanding of timer and GPIO settings:
+  40:arch/stm32/mcu_periph/adc_arch.c **** 
+  41:arch/stm32/mcu_periph/adc_arch.c ****   Table of GPIO pins available per ADC:
+  42:arch/stm32/mcu_periph/adc_arch.c **** 
+  43:arch/stm32/mcu_periph/adc_arch.c ****   ADC1/2:                   ADC3:
+  44:arch/stm32/mcu_periph/adc_arch.c ****         C0  -> PA0				C0  -> PA0
+  45:arch/stm32/mcu_periph/adc_arch.c ****         C1  -> PA1				C1  -> PA1
+  46:arch/stm32/mcu_periph/adc_arch.c ****         C2  -> PA2				C2  -> PA2
+  47:arch/stm32/mcu_periph/adc_arch.c ****         C3  -> PA3				C3  -> PA3
+  48:arch/stm32/mcu_periph/adc_arch.c ****         C4  -> PA4				C4  -> PF6
+  49:arch/stm32/mcu_periph/adc_arch.c ****         C5  -> PA5				C5  -> PF7
+  50:arch/stm32/mcu_periph/adc_arch.c ****         C6  -> PA6				C6  -> PF8
+  51:arch/stm32/mcu_periph/adc_arch.c ****         C7  -> PA7				C7  -> PF9
+  52:arch/stm32/mcu_periph/adc_arch.c ****         C8  -> PB0				C8  -> PF10
+  53:arch/stm32/mcu_periph/adc_arch.c ****         C9  -> PB1
+  54:arch/stm32/mcu_periph/adc_arch.c ****         C10 -> PC0				C10 -> PC0
+  55:arch/stm32/mcu_periph/adc_arch.c ****         C11 -> PC1				C11 -> PC1
+  56:arch/stm32/mcu_periph/adc_arch.c ****         C12 -> PC2				C12 -> PC2
+  57:arch/stm32/mcu_periph/adc_arch.c ****         C13 -> PC3				C13 -> PC3
+  58:arch/stm32/mcu_periph/adc_arch.c ****         C14 -> PC4
+  59:arch/stm32/mcu_periph/adc_arch.c ****         C15 -> PC5
+  60:arch/stm32/mcu_periph/adc_arch.c **** 
+  61:arch/stm32/mcu_periph/adc_arch.c ****   Table of timers available per ADC (from libstm/src/stm32_adc.c):
+  62:arch/stm32/mcu_periph/adc_arch.c **** 
+  63:arch/stm32/mcu_periph/adc_arch.c ****         T1_TRGO:    Timer1 TRGO event (ADC1, ADC2 and ADC3)
+  64:arch/stm32/mcu_periph/adc_arch.c ****         T1_CC4:     Timer1 capture compare4 (ADC1, ADC2 and ADC3)
+  65:arch/stm32/mcu_periph/adc_arch.c ****         T2_TRGO:    Timer2 TRGO event (ADC1 and ADC2)
+  66:arch/stm32/mcu_periph/adc_arch.c ****         T2_CC1:     Timer2 capture compare1 (ADC1 and ADC2)
+  67:arch/stm32/mcu_periph/adc_arch.c ****         T3_CC4:     Timer3 capture compare4 (ADC1 and ADC2)
+  68:arch/stm32/mcu_periph/adc_arch.c ****         T4_TRGO:    Timer4 TRGO event (ADC1 and ADC2)
+  69:arch/stm32/mcu_periph/adc_arch.c ****         TIM8_CC4: External interrupt line 15 or Timer8 capture compare4 event (ADC1 and ADC2)
+  70:arch/stm32/mcu_periph/adc_arch.c ****         T4_CC3:     Timer4 capture compare3 (ADC3 only)
+  71:arch/stm32/mcu_periph/adc_arch.c ****         T8_CC2:     Timer8 capture compare2 (ADC3 only)
+  72:arch/stm32/mcu_periph/adc_arch.c ****         T8_CC4:     Timer8 capture compare4 (ADC3 only)
+  73:arch/stm32/mcu_periph/adc_arch.c ****         T5_TRGO:    Timer5 TRGO event (ADC3 only)
+  74:arch/stm32/mcu_periph/adc_arch.c ****         T5_CC4:     Timer5 capture compare4 (ADC3 only)
+  75:arch/stm32/mcu_periph/adc_arch.c **** 
+  76:arch/stm32/mcu_periph/adc_arch.c ****     By setting ADC_ExternalTrigInjecConv_None, injected conversion
+  77:arch/stm32/mcu_periph/adc_arch.c ****     is started by software instead of external trigger for any ADC.
+  78:arch/stm32/mcu_periph/adc_arch.c **** 
+  79:arch/stm32/mcu_periph/adc_arch.c ****     Table of APB per Timer (from libstm/src/stm32_tim.c):
+  80:arch/stm32/mcu_periph/adc_arch.c **** 
+  81:arch/stm32/mcu_periph/adc_arch.c ****         RCC_APB1: TIM2, TIM3, TIM4, TIM5, TIM7 (non-advanced timers)
+  82:arch/stm32/mcu_periph/adc_arch.c ****         RCC_APB2: TIM1, TIM8 (advanced timers)
+  83:arch/stm32/mcu_periph/adc_arch.c **** 
+  84:arch/stm32/mcu_periph/adc_arch.c **** */
+  85:arch/stm32/mcu_periph/adc_arch.c **** 
+  86:arch/stm32/mcu_periph/adc_arch.c **** #include "mcu_periph/adc.h"
+  87:arch/stm32/mcu_periph/adc_arch.c **** #include <stm32/rcc.h>
+  88:arch/stm32/mcu_periph/adc_arch.c **** #include <stm32/misc.h>
+  89:arch/stm32/mcu_periph/adc_arch.c **** #include <stm32/adc.h>
+  90:arch/stm32/mcu_periph/adc_arch.c **** #include <stm32/gpio.h>
+  91:arch/stm32/mcu_periph/adc_arch.c **** #include <stm32/rcc.h>
+  92:arch/stm32/mcu_periph/adc_arch.c **** #include <stm32/tim.h>
+  93:arch/stm32/mcu_periph/adc_arch.c **** #include <string.h>
+  94:arch/stm32/mcu_periph/adc_arch.c **** #include "std.h"
+  95:arch/stm32/mcu_periph/adc_arch.c **** #include "led.h"
+  96:arch/stm32/mcu_periph/adc_arch.c **** #include BOARD_CONFIG
+  97:arch/stm32/mcu_periph/adc_arch.c **** 
+  98:arch/stm32/mcu_periph/adc_arch.c **** void adc1_2_irq_handler(void);
+  99:arch/stm32/mcu_periph/adc_arch.c **** 
+ 100:arch/stm32/mcu_periph/adc_arch.c **** uint8_t adc_new_data_trigger;
+ 101:arch/stm32/mcu_periph/adc_arch.c **** 
+ 102:arch/stm32/mcu_periph/adc_arch.c **** /* Static functions */
+ 103:arch/stm32/mcu_periph/adc_arch.c **** 
+ 104:arch/stm32/mcu_periph/adc_arch.c **** static inline void adc_init_single(ADC_TypeDef * adc_t,
+ 105:arch/stm32/mcu_periph/adc_arch.c ****                    uint8_t chan1, uint8_t chan2,
+ 106:arch/stm32/mcu_periph/adc_arch.c ****                    uint8_t chan3, uint8_t chan4);
+ 107:arch/stm32/mcu_periph/adc_arch.c **** 
+ 108:arch/stm32/mcu_periph/adc_arch.c **** static inline void adc_push_sample(struct adc_buf * buf,
+ 109:arch/stm32/mcu_periph/adc_arch.c ****                    uint16_t sample);
+ 110:arch/stm32/mcu_periph/adc_arch.c **** 
+ 111:arch/stm32/mcu_periph/adc_arch.c **** static inline void adc_init_rcc( void );
+ 112:arch/stm32/mcu_periph/adc_arch.c **** static inline void adc_init_irq( void );
+ 113:arch/stm32/mcu_periph/adc_arch.c **** 
+ 114:arch/stm32/mcu_periph/adc_arch.c **** #ifdef USE_AD2
+ 115:arch/stm32/mcu_periph/adc_arch.c **** #error NOT_IMPLEMENTED__currently_only_ADC1_is_supported
+ 116:arch/stm32/mcu_periph/adc_arch.c **** #endif
+ 117:arch/stm32/mcu_periph/adc_arch.c **** 
+ 118:arch/stm32/mcu_periph/adc_arch.c **** /*
+ 119:arch/stm32/mcu_periph/adc_arch.c ****   Only 4 ADC channels may be enabled at the same time
+ 120:arch/stm32/mcu_periph/adc_arch.c ****   on each ADC, as there are only 4 injection registers.
+ 121:arch/stm32/mcu_periph/adc_arch.c **** */
+ 122:arch/stm32/mcu_periph/adc_arch.c **** 
+ 123:arch/stm32/mcu_periph/adc_arch.c **** // ADCx_GPIO_INIT
+ 124:arch/stm32/mcu_periph/adc_arch.c **** // {{{
+ 125:arch/stm32/mcu_periph/adc_arch.c **** 
+ 126:arch/stm32/mcu_periph/adc_arch.c **** /*
+ 127:arch/stm32/mcu_periph/adc_arch.c ****   GPIO mapping for ADC1 pins (PB.1, PB.0, PC.5, PC.3).
+ 128:arch/stm32/mcu_periph/adc_arch.c ****     Can be changed by predefining ADC1_GPIO_INIT.
+ 129:arch/stm32/mcu_periph/adc_arch.c **** */
+ 130:arch/stm32/mcu_periph/adc_arch.c **** #ifdef USE_AD1
+ 131:arch/stm32/mcu_periph/adc_arch.c **** #ifndef ADC1_GPIO_INIT
+ 132:arch/stm32/mcu_periph/adc_arch.c **** #define ADC1_GPIO_INIT(gpio) {			\
+ 133:arch/stm32/mcu_periph/adc_arch.c ****     (gpio).GPIO_Pin  = GPIO_Pin_1 | GPIO_Pin_0; \
+ 134:arch/stm32/mcu_periph/adc_arch.c ****     (gpio).GPIO_Mode = GPIO_Mode_AIN;		\
+ 135:arch/stm32/mcu_periph/adc_arch.c ****     GPIO_Init(GPIOB, (&gpio));			\
+ 136:arch/stm32/mcu_periph/adc_arch.c ****     (gpio).GPIO_Pin  = GPIO_Pin_5 | GPIO_Pin_3; \
+ 137:arch/stm32/mcu_periph/adc_arch.c ****     GPIO_Init(GPIOC, (&gpio));			\
+ 138:arch/stm32/mcu_periph/adc_arch.c **** }
+ 139:arch/stm32/mcu_periph/adc_arch.c **** #endif // ADC1_GPIO_INIT
+ 140:arch/stm32/mcu_periph/adc_arch.c **** #endif // USE_AD1
+ 141:arch/stm32/mcu_periph/adc_arch.c **** 
+ 142:arch/stm32/mcu_periph/adc_arch.c **** /*
+ 143:arch/stm32/mcu_periph/adc_arch.c ****   GPIO mapping for ADC2 pins.
+ 144:arch/stm32/mcu_periph/adc_arch.c ****     Can be changed by predefining ADC2_GPIO_INIT.
+ 145:arch/stm32/mcu_periph/adc_arch.c ****     Uses the same GPIOs as ADC1 (lisa specific).
+ 146:arch/stm32/mcu_periph/adc_arch.c **** */
+ 147:arch/stm32/mcu_periph/adc_arch.c **** #ifdef USE_AD2
+ 148:arch/stm32/mcu_periph/adc_arch.c **** #define ADC2_GPIO_INIT(gpio) {			\
+ 149:arch/stm32/mcu_periph/adc_arch.c ****     (gpio).GPIO_Pin  = GPIO_Pin_0 | GPIO_Pin_1; \
+ 150:arch/stm32/mcu_periph/adc_arch.c ****     (gpio).GPIO_Mode = GPIO_Mode_AIN;		\
+ 151:arch/stm32/mcu_periph/adc_arch.c ****     GPIO_Init(GPIOB, (&gpio));			\
+ 152:arch/stm32/mcu_periph/adc_arch.c ****     (gpio).GPIO_Pin  = GPIO_Pin_3 | GPIO_Pin_5; \
+ 153:arch/stm32/mcu_periph/adc_arch.c ****     GPIO_Init(GPIOC, (&gpio));			\
+ 154:arch/stm32/mcu_periph/adc_arch.c ****   }
+ 155:arch/stm32/mcu_periph/adc_arch.c **** #ifndef ADC2_GPIO_INIT
+ 156:arch/stm32/mcu_periph/adc_arch.c **** #define ADC2_GPIO_INIT(gpio) { }
+ 157:arch/stm32/mcu_periph/adc_arch.c **** #endif // ADC2_GPIO_INIT
+ 158:arch/stm32/mcu_periph/adc_arch.c **** #endif // USE_AD2
+ 159:arch/stm32/mcu_periph/adc_arch.c **** 
+ 160:arch/stm32/mcu_periph/adc_arch.c **** // }}}
+ 161:arch/stm32/mcu_periph/adc_arch.c **** 
+ 162:arch/stm32/mcu_periph/adc_arch.c **** /*
+ 163:arch/stm32/mcu_periph/adc_arch.c ****   Currently, the enums adc1_channels and adc2_channels only
+ 164:arch/stm32/mcu_periph/adc_arch.c ****   serve to resolve the number of channels on each ADC.
+ 165:arch/stm32/mcu_periph/adc_arch.c **** */
+ 166:arch/stm32/mcu_periph/adc_arch.c **** 
+ 167:arch/stm32/mcu_periph/adc_arch.c **** /*
+ 168:arch/stm32/mcu_periph/adc_arch.c ****     Separate buffers for each ADC.
+ 169:arch/stm32/mcu_periph/adc_arch.c ****     Every ADC has a list of buffers, one for each active
+ 170:arch/stm32/mcu_periph/adc_arch.c ****     channel.
+ 171:arch/stm32/mcu_periph/adc_arch.c **** */
+ 172:arch/stm32/mcu_periph/adc_arch.c **** 
+ 173:arch/stm32/mcu_periph/adc_arch.c **** #ifdef USE_AD1
+ 174:arch/stm32/mcu_periph/adc_arch.c **** static struct adc_buf * adc1_buffers[NB_ADC1_CHANNELS];
+ 175:arch/stm32/mcu_periph/adc_arch.c **** #endif
+ 176:arch/stm32/mcu_periph/adc_arch.c **** #ifdef USE_AD2
+ 177:arch/stm32/mcu_periph/adc_arch.c **** static struct adc_buf * adc2_buffers[NB_ADC2_CHANNELS];
+ 178:arch/stm32/mcu_periph/adc_arch.c **** #endif
+ 179:arch/stm32/mcu_periph/adc_arch.c **** 
+ 180:arch/stm32/mcu_periph/adc_arch.c **** /*
+ 181:arch/stm32/mcu_periph/adc_arch.c ****     Static mapping from channel index to channel injection
+ 182:arch/stm32/mcu_periph/adc_arch.c ****     index:
+ 183:arch/stm32/mcu_periph/adc_arch.c **** */
+ 184:arch/stm32/mcu_periph/adc_arch.c **** 
+ 185:arch/stm32/mcu_periph/adc_arch.c **** /*
+ 186:arch/stm32/mcu_periph/adc_arch.c ****  Maps integer value x to ADC_InjectedChannel_x,
+ 187:arch/stm32/mcu_periph/adc_arch.c ****  so they can be iterated safely
+ 188:arch/stm32/mcu_periph/adc_arch.c **** */
+ 189:arch/stm32/mcu_periph/adc_arch.c **** static uint8_t adc_injected_channels[4];
+ 190:arch/stm32/mcu_periph/adc_arch.c **** /*
+ 191:arch/stm32/mcu_periph/adc_arch.c ****  Maps integer value x to ADC_Channel_y, like
+ 192:arch/stm32/mcu_periph/adc_arch.c **** 
+ 193:arch/stm32/mcu_periph/adc_arch.c ****  0 --> ADC_Channel_5
+ 194:arch/stm32/mcu_periph/adc_arch.c ****  1 --> ADC_Channel_8
+ 195:arch/stm32/mcu_periph/adc_arch.c ****  2 --> ADC_Channel_13
+ 196:arch/stm32/mcu_periph/adc_arch.c **** 
+ 197:arch/stm32/mcu_periph/adc_arch.c ****  so they can be iterated incrementally.
+ 198:arch/stm32/mcu_periph/adc_arch.c **** */
+ 199:arch/stm32/mcu_periph/adc_arch.c **** static uint8_t adc_channel_map[4];
+ 200:arch/stm32/mcu_periph/adc_arch.c **** 
+ 201:arch/stm32/mcu_periph/adc_arch.c **** /*
+ 202:arch/stm32/mcu_periph/adc_arch.c ****   TODO: Extend interface to allow adressing a
+ 203:arch/stm32/mcu_periph/adc_arch.c ****   specific ADC (at least ADC1 and ADC2)?
+ 204:arch/stm32/mcu_periph/adc_arch.c **** */
+ 205:arch/stm32/mcu_periph/adc_arch.c **** void adc_buf_channel(uint8_t adc_channel,
+ 206:arch/stm32/mcu_periph/adc_arch.c ****              struct adc_buf * s,
+ 207:arch/stm32/mcu_periph/adc_arch.c ****              uint8_t av_nb_sample)
+ 208:arch/stm32/mcu_periph/adc_arch.c **** {
+  26              		.loc 1 208 0
+  27              		.cfi_startproc
+  28              		@ args = 0, pretend = 0, frame = 0
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  30              		@ link register save eliminated.
+  31              	.LVL0:
+ 209:arch/stm32/mcu_periph/adc_arch.c ****   adc1_buffers[adc_channel] = s;
+  32              		.loc 1 209 0
+  33 0000 024B     		ldr	r3, .L2
+ 210:arch/stm32/mcu_periph/adc_arch.c ****   s->av_nb_sample = av_nb_sample;
+  34              		.loc 1 210 0
+  35 0002 81F84520 		strb	r2, [r1, #69]
+ 209:arch/stm32/mcu_periph/adc_arch.c ****   adc1_buffers[adc_channel] = s;
+  36              		.loc 1 209 0
+  37 0006 43F82010 		str	r1, [r3, r0, lsl #2]
+ 211:arch/stm32/mcu_periph/adc_arch.c **** }
+  38              		.loc 1 211 0
+  39 000a 7047     		bx	lr
+  40              	.L3:
+  41              		.align	2
+  42              	.L2:
+  43 000c 00000000 		.word	.LANCHOR0
+  44              		.cfi_endproc
+  45              	.LFE25:
+  47              		.section	.text.adc_init,"ax",%progbits
+  48              		.align	1
+  49              		.global	adc_init
+  50              		.thumb
+  51              		.thumb_func
+  53              	adc_init:
+  54              	.LFB29:
+ 212:arch/stm32/mcu_periph/adc_arch.c **** 
+ 213:arch/stm32/mcu_periph/adc_arch.c **** // #define USE_AD_TIM4
+ 214:arch/stm32/mcu_periph/adc_arch.c **** /* Configure and enable RCC for peripherals (ADC1, ADC2, Timer) */
+ 215:arch/stm32/mcu_periph/adc_arch.c **** static inline void adc_init_rcc( void )
+ 216:arch/stm32/mcu_periph/adc_arch.c **** { // {{{
+ 217:arch/stm32/mcu_periph/adc_arch.c **** #if defined (USE_AD1) || defined (USE_AD2)
+ 218:arch/stm32/mcu_periph/adc_arch.c ****     TIM_TypeDef * timer;
+ 219:arch/stm32/mcu_periph/adc_arch.c ****     uint32_t rcc_apb;
+ 220:arch/stm32/mcu_periph/adc_arch.c **** #if defined(USE_AD_TIM4)
+ 221:arch/stm32/mcu_periph/adc_arch.c ****     timer   = TIM4;
+ 222:arch/stm32/mcu_periph/adc_arch.c ****     rcc_apb = RCC_APB1Periph_TIM4;
+ 223:arch/stm32/mcu_periph/adc_arch.c **** #elif defined(USE_AD_TIM1)
+ 224:arch/stm32/mcu_periph/adc_arch.c ****     timer   = TIM1;
+ 225:arch/stm32/mcu_periph/adc_arch.c ****     rcc_apb = RCC_APB2Periph_TIM1;
+ 226:arch/stm32/mcu_periph/adc_arch.c **** #else
+ 227:arch/stm32/mcu_periph/adc_arch.c ****     timer   = TIM2;
+ 228:arch/stm32/mcu_periph/adc_arch.c ****     rcc_apb = RCC_APB1Periph_TIM2;
+ 229:arch/stm32/mcu_periph/adc_arch.c **** #endif
+ 230:arch/stm32/mcu_periph/adc_arch.c **** 
+ 231:arch/stm32/mcu_periph/adc_arch.c ****     TIM_TimeBaseInitTypeDef TIM_TimeBaseStructure;
+ 232:arch/stm32/mcu_periph/adc_arch.c **** 
+ 233:arch/stm32/mcu_periph/adc_arch.c ****     RCC_ADCCLKConfig(RCC_PCLK2_Div2);
+ 234:arch/stm32/mcu_periph/adc_arch.c ****     RCC_APB1PeriphClockCmd(rcc_apb, ENABLE);
+ 235:arch/stm32/mcu_periph/adc_arch.c ****     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB |
+ 236:arch/stm32/mcu_periph/adc_arch.c ****                    RCC_APB2Periph_GPIOC, ENABLE);
+ 237:arch/stm32/mcu_periph/adc_arch.c **** #ifdef USE_AD1
+ 238:arch/stm32/mcu_periph/adc_arch.c ****     RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE);
+ 239:arch/stm32/mcu_periph/adc_arch.c **** #endif
+ 240:arch/stm32/mcu_periph/adc_arch.c **** #ifdef USE_AD2
+ 241:arch/stm32/mcu_periph/adc_arch.c ****     RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC2, ENABLE);
+ 242:arch/stm32/mcu_periph/adc_arch.c **** #endif
+ 243:arch/stm32/mcu_periph/adc_arch.c **** 
+ 244:arch/stm32/mcu_periph/adc_arch.c ****     /* Time Base configuration */
+ 245:arch/stm32/mcu_periph/adc_arch.c ****     TIM_TimeBaseStructInit(&TIM_TimeBaseStructure);
+ 246:arch/stm32/mcu_periph/adc_arch.c ****     TIM_TimeBaseStructure.TIM_Period        = 0xFF;
+ 247:arch/stm32/mcu_periph/adc_arch.c ****     TIM_TimeBaseStructure.TIM_Prescaler     = 0x8;
+ 248:arch/stm32/mcu_periph/adc_arch.c ****     TIM_TimeBaseStructure.TIM_ClockDivision = 0x0;
+ 249:arch/stm32/mcu_periph/adc_arch.c ****     TIM_TimeBaseStructure.TIM_CounterMode   = TIM_CounterMode_Up;
+ 250:arch/stm32/mcu_periph/adc_arch.c ****     TIM_TimeBaseInit(timer, &TIM_TimeBaseStructure);
+ 251:arch/stm32/mcu_periph/adc_arch.c ****     TIM_SelectOutputTrigger(timer, TIM_TRGOSource_Update);
+ 252:arch/stm32/mcu_periph/adc_arch.c ****     TIM_Cmd(timer, ENABLE);
+ 253:arch/stm32/mcu_periph/adc_arch.c **** 
+ 254:arch/stm32/mcu_periph/adc_arch.c **** #endif // defined (USE_AD1) || defined (USE_AD2)
+ 255:arch/stm32/mcu_periph/adc_arch.c **** } // }}}
+ 256:arch/stm32/mcu_periph/adc_arch.c **** 
+ 257:arch/stm32/mcu_periph/adc_arch.c **** /* Configure and enable ADC interrupt */
+ 258:arch/stm32/mcu_periph/adc_arch.c **** static inline void adc_init_irq( void )
+ 259:arch/stm32/mcu_periph/adc_arch.c **** { // {{{
+ 260:arch/stm32/mcu_periph/adc_arch.c ****     NVIC_InitTypeDef nvic;
+ 261:arch/stm32/mcu_periph/adc_arch.c ****     nvic.NVIC_IRQChannel                   = ADC1_2_IRQn;
+ 262:arch/stm32/mcu_periph/adc_arch.c ****     nvic.NVIC_IRQChannelPreemptionPriority = 0;
+ 263:arch/stm32/mcu_periph/adc_arch.c ****     nvic.NVIC_IRQChannelSubPriority        = 0;
+ 264:arch/stm32/mcu_periph/adc_arch.c ****     nvic.NVIC_IRQChannelCmd                = ENABLE;
+ 265:arch/stm32/mcu_periph/adc_arch.c ****     NVIC_Init(&nvic);
+ 266:arch/stm32/mcu_periph/adc_arch.c **** } // }}}
+ 267:arch/stm32/mcu_periph/adc_arch.c **** 
+ 268:arch/stm32/mcu_periph/adc_arch.c **** /*
+ 269:arch/stm32/mcu_periph/adc_arch.c ****     Usage:
+ 270:arch/stm32/mcu_periph/adc_arch.c **** 
+ 271:arch/stm32/mcu_periph/adc_arch.c ****         adc_init_single(ADC1, 1, 1, 0, 0);
+ 272:arch/stm32/mcu_periph/adc_arch.c **** 
+ 273:arch/stm32/mcu_periph/adc_arch.c ****     ... would enable ADC1, enabling channels 1 and 2,
+ 274:arch/stm32/mcu_periph/adc_arch.c ****     but not 3 and 4.
+ 275:arch/stm32/mcu_periph/adc_arch.c **** */
+ 276:arch/stm32/mcu_periph/adc_arch.c **** static inline void adc_init_single(ADC_TypeDef * adc_t,
+ 277:arch/stm32/mcu_periph/adc_arch.c ****                    uint8_t chan1, uint8_t chan2,
+ 278:arch/stm32/mcu_periph/adc_arch.c ****                    uint8_t chan3, uint8_t chan4)
+ 279:arch/stm32/mcu_periph/adc_arch.c **** {
+ 280:arch/stm32/mcu_periph/adc_arch.c ****     GPIO_InitTypeDef gpio;
+ 281:arch/stm32/mcu_periph/adc_arch.c ****     ADC_InitTypeDef adc;
+ 282:arch/stm32/mcu_periph/adc_arch.c ****     uint8_t num_channels, rank;
+ 283:arch/stm32/mcu_periph/adc_arch.c **** 
+ 284:arch/stm32/mcu_periph/adc_arch.c ****     // Paranoia, must be down for 2+ ADC clock cycles before calibration
+ 285:arch/stm32/mcu_periph/adc_arch.c ****     ADC_Cmd(adc_t, DISABLE);
+ 286:arch/stm32/mcu_periph/adc_arch.c **** 
+ 287:arch/stm32/mcu_periph/adc_arch.c ****     /* enable adc_t clock */
+ 288:arch/stm32/mcu_periph/adc_arch.c ****     if (adc_t == ADC1) {
+ 289:arch/stm32/mcu_periph/adc_arch.c **** #ifdef USE_AD1
+ 290:arch/stm32/mcu_periph/adc_arch.c ****         num_channels = NB_ADC1_CHANNELS;
+ 291:arch/stm32/mcu_periph/adc_arch.c ****         ADC1_GPIO_INIT(gpio);
+ 292:arch/stm32/mcu_periph/adc_arch.c **** #endif
+ 293:arch/stm32/mcu_periph/adc_arch.c ****     }
+ 294:arch/stm32/mcu_periph/adc_arch.c ****     else if (adc_t == ADC2) {
+ 295:arch/stm32/mcu_periph/adc_arch.c **** #ifdef USE_AD2
+ 296:arch/stm32/mcu_periph/adc_arch.c ****         num_channels = NB_ADC2_CHANNELS;
+ 297:arch/stm32/mcu_periph/adc_arch.c ****         ADC2_GPIO_INIT(gpio);
+ 298:arch/stm32/mcu_periph/adc_arch.c **** #endif
+ 299:arch/stm32/mcu_periph/adc_arch.c ****     }
+ 300:arch/stm32/mcu_periph/adc_arch.c **** 
+ 301:arch/stm32/mcu_periph/adc_arch.c ****     /* Configure ADC */
+ 302:arch/stm32/mcu_periph/adc_arch.c **** 
+ 303:arch/stm32/mcu_periph/adc_arch.c ****     adc.ADC_Mode               = ADC_Mode_Independent;
+ 304:arch/stm32/mcu_periph/adc_arch.c ****     adc.ADC_ScanConvMode       = ENABLE;
+ 305:arch/stm32/mcu_periph/adc_arch.c ****     adc.ADC_ContinuousConvMode = DISABLE;
+ 306:arch/stm32/mcu_periph/adc_arch.c ****     adc.ADC_ExternalTrigConv   = ADC_ExternalTrigConv_None;
+ 307:arch/stm32/mcu_periph/adc_arch.c ****     adc.ADC_DataAlign          = ADC_DataAlign_Right;
+ 308:arch/stm32/mcu_periph/adc_arch.c ****     adc.ADC_NbrOfChannel       = 0; // No. of channels in regular mode
+ 309:arch/stm32/mcu_periph/adc_arch.c ****     ADC_Init(adc_t, &adc);
+ 310:arch/stm32/mcu_periph/adc_arch.c **** 
+ 311:arch/stm32/mcu_periph/adc_arch.c ****     ADC_InjectedSequencerLengthConfig(adc_t, num_channels);
+ 312:arch/stm32/mcu_periph/adc_arch.c **** 
+ 313:arch/stm32/mcu_periph/adc_arch.c ****     rank = 1;
+ 314:arch/stm32/mcu_periph/adc_arch.c ****     if (chan1) {
+ 315:arch/stm32/mcu_periph/adc_arch.c ****         ADC_InjectedChannelConfig(adc_t, adc_channel_map[0], rank,
+ 316:arch/stm32/mcu_periph/adc_arch.c ****                       ADC_SampleTime_41Cycles5);
+ 317:arch/stm32/mcu_periph/adc_arch.c ****         rank++;
+ 318:arch/stm32/mcu_periph/adc_arch.c ****     }
+ 319:arch/stm32/mcu_periph/adc_arch.c ****     if (chan2) {
+ 320:arch/stm32/mcu_periph/adc_arch.c ****         ADC_InjectedChannelConfig(adc_t, adc_channel_map[1], rank,
+ 321:arch/stm32/mcu_periph/adc_arch.c ****                       ADC_SampleTime_41Cycles5);
+ 322:arch/stm32/mcu_periph/adc_arch.c ****         rank++;
+ 323:arch/stm32/mcu_periph/adc_arch.c ****     }
+ 324:arch/stm32/mcu_periph/adc_arch.c ****     if (chan3) {
+ 325:arch/stm32/mcu_periph/adc_arch.c ****         ADC_InjectedChannelConfig(adc_t, adc_channel_map[2], rank,
+ 326:arch/stm32/mcu_periph/adc_arch.c ****                       ADC_SampleTime_41Cycles5);
+ 327:arch/stm32/mcu_periph/adc_arch.c ****         rank++;
+ 328:arch/stm32/mcu_periph/adc_arch.c ****     }
+ 329:arch/stm32/mcu_periph/adc_arch.c ****     if (chan4) {
+ 330:arch/stm32/mcu_periph/adc_arch.c ****         ADC_InjectedChannelConfig(adc_t, adc_channel_map[3], rank,
+ 331:arch/stm32/mcu_periph/adc_arch.c ****                       ADC_SampleTime_41Cycles5);
+ 332:arch/stm32/mcu_periph/adc_arch.c ****     }
+ 333:arch/stm32/mcu_periph/adc_arch.c **** 
+ 334:arch/stm32/mcu_periph/adc_arch.c **** 
+ 335:arch/stm32/mcu_periph/adc_arch.c ****     ADC_ExternalTrigInjectedConvCmd(adc_t, ENABLE);
+ 336:arch/stm32/mcu_periph/adc_arch.c **** #if defined(USE_AD_TIM4)
+ 337:arch/stm32/mcu_periph/adc_arch.c ****     ADC_ExternalTrigInjectedConvConfig(adc_t, ADC_ExternalTrigInjecConv_T4_TRGO);
+ 338:arch/stm32/mcu_periph/adc_arch.c **** #elif defined(USE_AD_TIM1)
+ 339:arch/stm32/mcu_periph/adc_arch.c ****     ADC_ExternalTrigInjectedConvConfig(adc_t, ADC_ExternalTrigInjecConv_T1_TRGO);
+ 340:arch/stm32/mcu_periph/adc_arch.c **** #else
+ 341:arch/stm32/mcu_periph/adc_arch.c ****     ADC_ExternalTrigInjectedConvConfig(adc_t, ADC_ExternalTrigInjecConv_T2_TRGO);
+ 342:arch/stm32/mcu_periph/adc_arch.c **** #endif
+ 343:arch/stm32/mcu_periph/adc_arch.c **** 
+ 344:arch/stm32/mcu_periph/adc_arch.c ****     /* Enable ADC<X> JEOC interrupt */
+ 345:arch/stm32/mcu_periph/adc_arch.c ****     ADC_ITConfig(adc_t, ADC_IT_JEOC, ENABLE);
+ 346:arch/stm32/mcu_periph/adc_arch.c **** 
+ 347:arch/stm32/mcu_periph/adc_arch.c ****     /* Enable ADC<X> */
+ 348:arch/stm32/mcu_periph/adc_arch.c ****     ADC_Cmd(adc_t, ENABLE);
+ 349:arch/stm32/mcu_periph/adc_arch.c **** 
+ 350:arch/stm32/mcu_periph/adc_arch.c ****     /* Enable ADC<X> reset calibaration register */
+ 351:arch/stm32/mcu_periph/adc_arch.c ****     ADC_ResetCalibration(adc_t);
+ 352:arch/stm32/mcu_periph/adc_arch.c **** 
+ 353:arch/stm32/mcu_periph/adc_arch.c ****     /* Check the end of ADC<X> reset calibration */
+ 354:arch/stm32/mcu_periph/adc_arch.c ****     while (ADC_GetResetCalibrationStatus(adc_t)) ;
+ 355:arch/stm32/mcu_periph/adc_arch.c ****     /* Start ADC<X> calibaration */
+ 356:arch/stm32/mcu_periph/adc_arch.c ****     ADC_StartCalibration(adc_t);
+ 357:arch/stm32/mcu_periph/adc_arch.c ****     /* Check the end of ADC<X> calibration */
+ 358:arch/stm32/mcu_periph/adc_arch.c ****     while (ADC_GetCalibrationStatus(adc_t)) ;
+ 359:arch/stm32/mcu_periph/adc_arch.c **** 
+ 360:arch/stm32/mcu_periph/adc_arch.c **** } // adc_init_single
+ 361:arch/stm32/mcu_periph/adc_arch.c **** 
+ 362:arch/stm32/mcu_periph/adc_arch.c **** void adc_init( void ) {
+  55              		.loc 1 362 0
+  56              		.cfi_startproc
+  57              		@ args = 0, pretend = 0, frame = 40
+  58              		@ frame_needed = 0, uses_anonymous_args = 0
+  59              	.LVL1:
+ 363:arch/stm32/mcu_periph/adc_arch.c **** 
+ 364:arch/stm32/mcu_periph/adc_arch.c ****     /* initialize buffer pointers with 0 (not set).
+ 365:arch/stm32/mcu_periph/adc_arch.c ****        buffer null pointers will be ignored in interrupt
+ 366:arch/stm32/mcu_periph/adc_arch.c ****        handler, which is important as there are no
+ 367:arch/stm32/mcu_periph/adc_arch.c ****        buffers registered at the time the ADC trigger
+ 368:arch/stm32/mcu_periph/adc_arch.c ****        interrupt is enabled.
+ 369:arch/stm32/mcu_periph/adc_arch.c ****     */
+ 370:arch/stm32/mcu_periph/adc_arch.c ****     uint8_t channel;
+ 371:arch/stm32/mcu_periph/adc_arch.c **** #ifdef USE_AD1
+ 372:arch/stm32/mcu_periph/adc_arch.c ****     for(channel = 0; channel < NB_ADC1_CHANNELS; channel++)
+ 373:arch/stm32/mcu_periph/adc_arch.c ****         adc1_buffers[channel] = NULL;
+  60              		.loc 1 373 0
+  61 0000 594B     		ldr	r3, .L9
+ 362:arch/stm32/mcu_periph/adc_arch.c **** void adc_init( void ) {
+  62              		.loc 1 362 0
+  63 0002 F0B5     		push	{r4, r5, r6, r7, lr}
+  64              	.LCFI0:
+  65              		.cfi_def_cfa_offset 20
+  66              		.cfi_offset 14, -4
+  67              		.cfi_offset 7, -8
+  68              		.cfi_offset 6, -12
+  69              		.cfi_offset 5, -16
+  70              		.cfi_offset 4, -20
+  71              		.loc 1 373 0
+  72 0004 0026     		movs	r6, #0
+  73 0006 1E60     		str	r6, [r3, #0]
+  74              	.LVL2:
+  75 0008 5E60     		str	r6, [r3, #4]
+  76              	.LVL3:
+  77 000a 9E60     		str	r6, [r3, #8]
+  78              	.LVL4:
+  79 000c DE60     		str	r6, [r3, #12]
+  80              	.LVL5:
+ 374:arch/stm32/mcu_periph/adc_arch.c **** #endif
+ 375:arch/stm32/mcu_periph/adc_arch.c **** #ifdef USE_AD2
+ 376:arch/stm32/mcu_periph/adc_arch.c ****     for(channel = 0; channel < NB_ADC2_CHANNELS; channel++)
+ 377:arch/stm32/mcu_periph/adc_arch.c ****         adc2_buffers[channel] = NULL;
+ 378:arch/stm32/mcu_periph/adc_arch.c **** #endif
+ 379:arch/stm32/mcu_periph/adc_arch.c **** 
+ 380:arch/stm32/mcu_periph/adc_arch.c ****     adc_new_data_trigger = FALSE;
+  81              		.loc 1 380 0
+  82 000e 574B     		ldr	r3, .L9+4
+ 381:arch/stm32/mcu_periph/adc_arch.c ****     adc_injected_channels[0] = ADC_InjectedChannel_1;
+  83              		.loc 1 381 0
+  84 0010 1422     		movs	r2, #20
+ 380:arch/stm32/mcu_periph/adc_arch.c ****     adc_new_data_trigger = FALSE;
+  85              		.loc 1 380 0
+  86 0012 1E70     		strb	r6, [r3, #0]
+  87              		.loc 1 381 0
+  88 0014 564B     		ldr	r3, .L9+8
+ 382:arch/stm32/mcu_periph/adc_arch.c ****     adc_injected_channels[1] = ADC_InjectedChannel_2;
+ 383:arch/stm32/mcu_periph/adc_arch.c ****     adc_injected_channels[2] = ADC_InjectedChannel_3;
+ 384:arch/stm32/mcu_periph/adc_arch.c ****     adc_injected_channels[3] = ADC_InjectedChannel_4;
+ 385:arch/stm32/mcu_periph/adc_arch.c ****     adc_channel_map[0] = BOARD_ADC_CHANNEL_1;
+  89              		.loc 1 385 0
+  90 0016 574C     		ldr	r4, .L9+12
+ 382:arch/stm32/mcu_periph/adc_arch.c ****     adc_injected_channels[1] = ADC_InjectedChannel_2;
+  91              		.loc 1 382 0
+  92 0018 1827     		movs	r7, #24
+ 384:arch/stm32/mcu_periph/adc_arch.c ****     adc_injected_channels[3] = ADC_InjectedChannel_4;
+  93              		.loc 1 384 0
+  94 001a 2025     		movs	r5, #32
+ 381:arch/stm32/mcu_periph/adc_arch.c ****     adc_injected_channels[0] = ADC_InjectedChannel_1;
+  95              		.loc 1 381 0
+  96 001c 1A70     		strb	r2, [r3, #0]
+ 383:arch/stm32/mcu_periph/adc_arch.c ****     adc_injected_channels[2] = ADC_InjectedChannel_3;
+  97              		.loc 1 383 0
+  98 001e 1C22     		movs	r2, #28
+  99 0020 9A70     		strb	r2, [r3, #2]
+ 382:arch/stm32/mcu_periph/adc_arch.c ****     adc_injected_channels[1] = ADC_InjectedChannel_2;
+ 100              		.loc 1 382 0
+ 101 0022 5F70     		strb	r7, [r3, #1]
+ 384:arch/stm32/mcu_periph/adc_arch.c ****     adc_injected_channels[3] = ADC_InjectedChannel_4;
+ 102              		.loc 1 384 0
+ 103 0024 DD70     		strb	r5, [r3, #3]
+ 104              		.loc 1 385 0
+ 105 0026 0D23     		movs	r3, #13
+ 106 0028 2370     		strb	r3, [r4, #0]
+ 386:arch/stm32/mcu_periph/adc_arch.c ****     adc_channel_map[1] = BOARD_ADC_CHANNEL_2;
+ 107              		.loc 1 386 0
+ 108 002a 0A23     		movs	r3, #10
+ 109 002c 6370     		strb	r3, [r4, #1]
+ 387:arch/stm32/mcu_periph/adc_arch.c ****     // FIXME for now we get battery voltage this way
+ 388:arch/stm32/mcu_periph/adc_arch.c ****     //    adc_channel_map[2] = BOARD_ADC_CHANNEL_3;
+ 389:arch/stm32/mcu_periph/adc_arch.c ****     adc_channel_map[2] = BOARD_ADC_CHANNEL_3;
+ 110              		.loc 1 389 0
+ 111 002e 0B23     		movs	r3, #11
+ 362:arch/stm32/mcu_periph/adc_arch.c **** void adc_init( void ) {
+ 112              		.loc 1 362 0
+ 113 0030 8BB0     		sub	sp, sp, #44
+ 114              	.LCFI1:
+ 115              		.cfi_def_cfa_offset 64
+ 116              		.loc 1 389 0
+ 117 0032 A370     		strb	r3, [r4, #2]
+ 118              	.LBB10:
+ 119              	.LBB11:
+ 233:arch/stm32/mcu_periph/adc_arch.c ****     RCC_ADCCLKConfig(RCC_PCLK2_Div2);
+ 120              		.loc 1 233 0
+ 121 0034 3046     		mov	r0, r6
+ 122              	.LBE11:
+ 123              	.LBE10:
+ 390:arch/stm32/mcu_periph/adc_arch.c ****     adc_channel_map[3] = BOARD_ADC_CHANNEL_4;
+ 124              		.loc 1 390 0
+ 125 0036 0E23     		movs	r3, #14
+ 126 0038 E370     		strb	r3, [r4, #3]
+ 127              	.LVL6:
+ 128              	.LBB14:
+ 129              	.LBB12:
+ 233:arch/stm32/mcu_periph/adc_arch.c ****     RCC_ADCCLKConfig(RCC_PCLK2_Div2);
+ 130              		.loc 1 233 0
+ 131 003a FFF7FEFF 		bl	RCC_ADCCLKConfig
+ 234:arch/stm32/mcu_periph/adc_arch.c ****     RCC_APB1PeriphClockCmd(rcc_apb, ENABLE);
+ 132              		.loc 1 234 0
+ 133 003e 0120     		movs	r0, #1
+ 134 0040 0146     		mov	r1, r0
+ 135 0042 FFF7FEFF 		bl	RCC_APB1PeriphClockCmd
+ 235:arch/stm32/mcu_periph/adc_arch.c ****     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOB |
+ 136              		.loc 1 235 0
+ 137 0046 3846     		mov	r0, r7
+ 138 0048 0121     		movs	r1, #1
+ 139 004a FFF7FEFF 		bl	RCC_APB2PeriphClockCmd
+ 238:arch/stm32/mcu_periph/adc_arch.c ****     RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE);
+ 140              		.loc 1 238 0
+ 141 004e 0121     		movs	r1, #1
+ 142 0050 4FF40070 		mov	r0, #512
+ 143 0054 FFF7FEFF 		bl	RCC_APB2PeriphClockCmd
+ 245:arch/stm32/mcu_periph/adc_arch.c ****     TIM_TimeBaseStructInit(&TIM_TimeBaseStructure);
+ 144              		.loc 1 245 0
+ 145 0058 05A8     		add	r0, sp, #20
+ 146 005a FFF7FEFF 		bl	TIM_TimeBaseStructInit
+ 246:arch/stm32/mcu_periph/adc_arch.c ****     TIM_TimeBaseStructure.TIM_Period        = 0xFF;
+ 147              		.loc 1 246 0
+ 148 005e FF23     		movs	r3, #255
+ 149 0060 ADF81830 		strh	r3, [sp, #24]	@ movhi
+ 250:arch/stm32/mcu_periph/adc_arch.c ****     TIM_TimeBaseInit(timer, &TIM_TimeBaseStructure);
+ 150              		.loc 1 250 0
+ 151 0064 4FF08040 		mov	r0, #1073741824
+ 247:arch/stm32/mcu_periph/adc_arch.c ****     TIM_TimeBaseStructure.TIM_Prescaler     = 0x8;
+ 152              		.loc 1 247 0
+ 153 0068 0823     		movs	r3, #8
+ 250:arch/stm32/mcu_periph/adc_arch.c ****     TIM_TimeBaseInit(timer, &TIM_TimeBaseStructure);
+ 154              		.loc 1 250 0
+ 155 006a 05A9     		add	r1, sp, #20
+ 247:arch/stm32/mcu_periph/adc_arch.c ****     TIM_TimeBaseStructure.TIM_Prescaler     = 0x8;
+ 156              		.loc 1 247 0
+ 157 006c ADF81430 		strh	r3, [sp, #20]	@ movhi
+ 248:arch/stm32/mcu_periph/adc_arch.c ****     TIM_TimeBaseStructure.TIM_ClockDivision = 0x0;
+ 158              		.loc 1 248 0
+ 159 0070 ADF81A60 		strh	r6, [sp, #26]	@ movhi
+ 249:arch/stm32/mcu_periph/adc_arch.c ****     TIM_TimeBaseStructure.TIM_CounterMode   = TIM_CounterMode_Up;
+ 160              		.loc 1 249 0
+ 161 0074 ADF81660 		strh	r6, [sp, #22]	@ movhi
+ 250:arch/stm32/mcu_periph/adc_arch.c ****     TIM_TimeBaseInit(timer, &TIM_TimeBaseStructure);
+ 162              		.loc 1 250 0
+ 163 0078 FFF7FEFF 		bl	TIM_TimeBaseInit
+ 251:arch/stm32/mcu_periph/adc_arch.c ****     TIM_SelectOutputTrigger(timer, TIM_TRGOSource_Update);
+ 164              		.loc 1 251 0
+ 165 007c 2946     		mov	r1, r5
+ 166 007e 4FF08040 		mov	r0, #1073741824
+ 167 0082 FFF7FEFF 		bl	TIM_SelectOutputTrigger
+ 252:arch/stm32/mcu_periph/adc_arch.c ****     TIM_Cmd(timer, ENABLE);
+ 168              		.loc 1 252 0
+ 169 0086 0121     		movs	r1, #1
+ 170 0088 4FF08040 		mov	r0, #1073741824
+ 171 008c FFF7FEFF 		bl	TIM_Cmd
+ 172              	.LBE12:
+ 173              	.LBE14:
+ 174              	.LBB15:
+ 175              	.LBB16:
+ 264:arch/stm32/mcu_periph/adc_arch.c ****     nvic.NVIC_IRQChannelCmd                = ENABLE;
+ 176              		.loc 1 264 0
+ 177 0090 0125     		movs	r5, #1
+ 261:arch/stm32/mcu_periph/adc_arch.c ****     nvic.NVIC_IRQChannel                   = ADC1_2_IRQn;
+ 178              		.loc 1 261 0
+ 179 0092 1223     		movs	r3, #18
+ 265:arch/stm32/mcu_periph/adc_arch.c ****     NVIC_Init(&nvic);
+ 180              		.loc 1 265 0
+ 181 0094 08A8     		add	r0, sp, #32
+ 261:arch/stm32/mcu_periph/adc_arch.c ****     nvic.NVIC_IRQChannel                   = ADC1_2_IRQn;
+ 182              		.loc 1 261 0
+ 183 0096 8DF82030 		strb	r3, [sp, #32]
+ 262:arch/stm32/mcu_periph/adc_arch.c ****     nvic.NVIC_IRQChannelPreemptionPriority = 0;
+ 184              		.loc 1 262 0
+ 185 009a 8DF82160 		strb	r6, [sp, #33]
+ 263:arch/stm32/mcu_periph/adc_arch.c ****     nvic.NVIC_IRQChannelSubPriority        = 0;
+ 186              		.loc 1 263 0
+ 187 009e 8DF82260 		strb	r6, [sp, #34]
+ 264:arch/stm32/mcu_periph/adc_arch.c ****     nvic.NVIC_IRQChannelCmd                = ENABLE;
+ 188              		.loc 1 264 0
+ 189 00a2 8DF82350 		strb	r5, [sp, #35]
+ 265:arch/stm32/mcu_periph/adc_arch.c ****     NVIC_Init(&nvic);
+ 190              		.loc 1 265 0
+ 191 00a6 FFF7FEFF 		bl	NVIC_Init
+ 192              	.LVL7:
+ 193              	.LBE16:
+ 194              	.LBE15:
+ 195              	.LBB17:
+ 196              	.LBB18:
+ 285:arch/stm32/mcu_periph/adc_arch.c ****     ADC_Cmd(adc_t, DISABLE);
+ 197              		.loc 1 285 0
+ 198 00aa 3348     		ldr	r0, .L9+16
+ 199 00ac 3146     		mov	r1, r6
+ 200 00ae FFF7FEFF 		bl	ADC_Cmd
+ 201              	.LVL8:
+ 291:arch/stm32/mcu_periph/adc_arch.c ****         ADC1_GPIO_INIT(gpio);
+ 202              		.loc 1 291 0
+ 203 00b2 1B23     		movs	r3, #27
+ 204 00b4 3148     		ldr	r0, .L9+20
+ 205 00b6 09A9     		add	r1, sp, #36
+ 206 00b8 ADF82430 		strh	r3, [sp, #36]	@ movhi
+ 207 00bc 8DF82760 		strb	r6, [sp, #39]
+ 208 00c0 FFF7FEFF 		bl	GPIO_Init
+ 306:arch/stm32/mcu_periph/adc_arch.c ****     adc.ADC_ExternalTrigConv   = ADC_ExternalTrigConv_None;
+ 209              		.loc 1 306 0
+ 210 00c4 4FF46023 		mov	r3, #917504
+ 309:arch/stm32/mcu_periph/adc_arch.c ****     ADC_Init(adc_t, &adc);
+ 211              		.loc 1 309 0
+ 212 00c8 2B48     		ldr	r0, .L9+16
+ 213 00ca 6946     		mov	r1, sp
+ 306:arch/stm32/mcu_periph/adc_arch.c ****     adc.ADC_ExternalTrigConv   = ADC_ExternalTrigConv_None;
+ 214              		.loc 1 306 0
+ 215 00cc 0293     		str	r3, [sp, #8]
+ 303:arch/stm32/mcu_periph/adc_arch.c ****     adc.ADC_Mode               = ADC_Mode_Independent;
+ 216              		.loc 1 303 0
+ 217 00ce 0096     		str	r6, [sp, #0]
+ 304:arch/stm32/mcu_periph/adc_arch.c ****     adc.ADC_ScanConvMode       = ENABLE;
+ 218              		.loc 1 304 0
+ 219 00d0 8DF80450 		strb	r5, [sp, #4]
+ 305:arch/stm32/mcu_periph/adc_arch.c ****     adc.ADC_ContinuousConvMode = DISABLE;
+ 220              		.loc 1 305 0
+ 221 00d4 8DF80560 		strb	r6, [sp, #5]
+ 307:arch/stm32/mcu_periph/adc_arch.c ****     adc.ADC_DataAlign          = ADC_DataAlign_Right;
+ 222              		.loc 1 307 0
+ 223 00d8 0396     		str	r6, [sp, #12]
+ 308:arch/stm32/mcu_periph/adc_arch.c ****     adc.ADC_NbrOfChannel       = 0; // No. of channels in regular mode
+ 224              		.loc 1 308 0
+ 225 00da 8DF81060 		strb	r6, [sp, #16]
+ 309:arch/stm32/mcu_periph/adc_arch.c ****     ADC_Init(adc_t, &adc);
+ 226              		.loc 1 309 0
+ 227 00de FFF7FEFF 		bl	ADC_Init
+ 311:arch/stm32/mcu_periph/adc_arch.c ****     ADC_InjectedSequencerLengthConfig(adc_t, num_channels);
+ 228              		.loc 1 311 0
+ 229 00e2 0421     		movs	r1, #4
+ 230 00e4 2448     		ldr	r0, .L9+16
+ 231 00e6 FFF7FEFF 		bl	ADC_InjectedSequencerLengthConfig
+ 232              	.LVL9:
+ 315:arch/stm32/mcu_periph/adc_arch.c ****         ADC_InjectedChannelConfig(adc_t, adc_channel_map[0], rank,
+ 233              		.loc 1 315 0
+ 234 00ea 2348     		ldr	r0, .L9+16
+ 235 00ec 2178     		ldrb	r1, [r4, #0]	@ zero_extendqisi2
+ 236 00ee 2A46     		mov	r2, r5
+ 237 00f0 0423     		movs	r3, #4
+ 238 00f2 FFF7FEFF 		bl	ADC_InjectedChannelConfig
+ 239              	.LVL10:
+ 320:arch/stm32/mcu_periph/adc_arch.c ****         ADC_InjectedChannelConfig(adc_t, adc_channel_map[1], rank,
+ 240              		.loc 1 320 0
+ 241 00f6 2048     		ldr	r0, .L9+16
+ 242 00f8 6178     		ldrb	r1, [r4, #1]	@ zero_extendqisi2
+ 243 00fa 0222     		movs	r2, #2
+ 244 00fc 0423     		movs	r3, #4
+ 245 00fe FFF7FEFF 		bl	ADC_InjectedChannelConfig
+ 246              	.LVL11:
+ 325:arch/stm32/mcu_periph/adc_arch.c ****         ADC_InjectedChannelConfig(adc_t, adc_channel_map[2], rank,
+ 247              		.loc 1 325 0
+ 248 0102 1D48     		ldr	r0, .L9+16
+ 249 0104 A178     		ldrb	r1, [r4, #2]	@ zero_extendqisi2
+ 250 0106 0322     		movs	r2, #3
+ 251 0108 0423     		movs	r3, #4
+ 252 010a FFF7FEFF 		bl	ADC_InjectedChannelConfig
+ 253              	.LVL12:
+ 330:arch/stm32/mcu_periph/adc_arch.c ****         ADC_InjectedChannelConfig(adc_t, adc_channel_map[3], rank,
+ 254              		.loc 1 330 0
+ 255 010e 0422     		movs	r2, #4
+ 256 0110 1346     		mov	r3, r2
+ 257 0112 1948     		ldr	r0, .L9+16
+ 258 0114 E178     		ldrb	r1, [r4, #3]	@ zero_extendqisi2
+ 259 0116 FFF7FEFF 		bl	ADC_InjectedChannelConfig
+ 335:arch/stm32/mcu_periph/adc_arch.c ****     ADC_ExternalTrigInjectedConvCmd(adc_t, ENABLE);
+ 260              		.loc 1 335 0
+ 261 011a 1748     		ldr	r0, .L9+16
+ 262 011c 2946     		mov	r1, r5
+ 263 011e FFF7FEFF 		bl	ADC_ExternalTrigInjectedConvCmd
+ 341:arch/stm32/mcu_periph/adc_arch.c ****     ADC_ExternalTrigInjectedConvConfig(adc_t, ADC_ExternalTrigInjecConv_T2_TRGO);
+ 264              		.loc 1 341 0
+ 265 0122 1548     		ldr	r0, .L9+16
+ 266 0124 4FF40051 		mov	r1, #8192
+ 267 0128 FFF7FEFF 		bl	ADC_ExternalTrigInjectedConvConfig
+ 345:arch/stm32/mcu_periph/adc_arch.c ****     ADC_ITConfig(adc_t, ADC_IT_JEOC, ENABLE);
+ 268              		.loc 1 345 0
+ 269 012c 1248     		ldr	r0, .L9+16
+ 270 012e 4FF49061 		mov	r1, #1152
+ 271 0132 2A46     		mov	r2, r5
+ 272 0134 FFF7FEFF 		bl	ADC_ITConfig
+ 348:arch/stm32/mcu_periph/adc_arch.c ****     ADC_Cmd(adc_t, ENABLE);
+ 273              		.loc 1 348 0
+ 274 0138 0F48     		ldr	r0, .L9+16
+ 275 013a 2946     		mov	r1, r5
+ 276 013c FFF7FEFF 		bl	ADC_Cmd
+ 351:arch/stm32/mcu_periph/adc_arch.c ****     ADC_ResetCalibration(adc_t);
+ 277              		.loc 1 351 0
+ 278 0140 0D48     		ldr	r0, .L9+16
+ 279              	.LBE18:
+ 280              	.LBE17:
+ 281              	.LBB20:
+ 282              	.LBB13:
+ 248:arch/stm32/mcu_periph/adc_arch.c ****     TIM_TimeBaseStructure.TIM_ClockDivision = 0x0;
+ 283              		.loc 1 248 0
+ 284 0142 3746     		mov	r7, r6	@ movhi
+ 285              	.LBE13:
+ 286              	.LBE20:
+ 287              	.LBB21:
+ 288              	.LBB19:
+ 351:arch/stm32/mcu_periph/adc_arch.c ****     ADC_ResetCalibration(adc_t);
+ 289              		.loc 1 351 0
+ 290 0144 FFF7FEFF 		bl	ADC_ResetCalibration
+ 291              	.L5:
+ 354:arch/stm32/mcu_periph/adc_arch.c ****     while (ADC_GetResetCalibrationStatus(adc_t)) ;
+ 292              		.loc 1 354 0
+ 293 0148 0B48     		ldr	r0, .L9+16
+ 294 014a FFF7FEFF 		bl	ADC_GetResetCalibrationStatus
+ 295 014e 0028     		cmp	r0, #0
+ 296 0150 FAD1     		bne	.L5
+ 356:arch/stm32/mcu_periph/adc_arch.c ****     ADC_StartCalibration(adc_t);
+ 297              		.loc 1 356 0
+ 298 0152 0948     		ldr	r0, .L9+16
+ 299 0154 FFF7FEFF 		bl	ADC_StartCalibration
+ 300              	.L6:
+ 358:arch/stm32/mcu_periph/adc_arch.c ****     while (ADC_GetCalibrationStatus(adc_t)) ;
+ 301              		.loc 1 358 0
+ 302 0158 0748     		ldr	r0, .L9+16
+ 303 015a FFF7FEFF 		bl	ADC_GetCalibrationStatus
+ 304 015e 0028     		cmp	r0, #0
+ 305 0160 FAD1     		bne	.L6
+ 306              	.LBE19:
+ 307              	.LBE21:
+ 391:arch/stm32/mcu_periph/adc_arch.c **** 
+ 392:arch/stm32/mcu_periph/adc_arch.c ****     adc_init_rcc();
+ 393:arch/stm32/mcu_periph/adc_arch.c ****     adc_init_irq();
+ 394:arch/stm32/mcu_periph/adc_arch.c **** 
+ 395:arch/stm32/mcu_periph/adc_arch.c **** // adc_init_single(ADCx, c1, c2, c3, c4)
+ 396:arch/stm32/mcu_periph/adc_arch.c **** // {{{
+ 397:arch/stm32/mcu_periph/adc_arch.c **** #ifdef USE_AD1
+ 398:arch/stm32/mcu_periph/adc_arch.c ****     adc_init_single(ADC1,
+ 399:arch/stm32/mcu_periph/adc_arch.c **** #ifdef USE_AD1_1
+ 400:arch/stm32/mcu_periph/adc_arch.c ****             1,
+ 401:arch/stm32/mcu_periph/adc_arch.c **** #else
+ 402:arch/stm32/mcu_periph/adc_arch.c ****             0,
+ 403:arch/stm32/mcu_periph/adc_arch.c **** #endif
+ 404:arch/stm32/mcu_periph/adc_arch.c **** #ifdef USE_AD1_2
+ 405:arch/stm32/mcu_periph/adc_arch.c ****             1,
+ 406:arch/stm32/mcu_periph/adc_arch.c **** #else
+ 407:arch/stm32/mcu_periph/adc_arch.c ****             0,
+ 408:arch/stm32/mcu_periph/adc_arch.c **** #endif
+ 409:arch/stm32/mcu_periph/adc_arch.c **** #ifdef USE_AD1_3
+ 410:arch/stm32/mcu_periph/adc_arch.c ****             1,
+ 411:arch/stm32/mcu_periph/adc_arch.c **** #else
+ 412:arch/stm32/mcu_periph/adc_arch.c ****             0,
+ 413:arch/stm32/mcu_periph/adc_arch.c **** #endif
+ 414:arch/stm32/mcu_periph/adc_arch.c **** #ifdef USE_AD1_4
+ 415:arch/stm32/mcu_periph/adc_arch.c ****             1
+ 416:arch/stm32/mcu_periph/adc_arch.c **** #else
+ 417:arch/stm32/mcu_periph/adc_arch.c ****             0
+ 418:arch/stm32/mcu_periph/adc_arch.c **** #endif
+ 419:arch/stm32/mcu_periph/adc_arch.c ****     );
+ 420:arch/stm32/mcu_periph/adc_arch.c **** #endif // USE_AD1
+ 421:arch/stm32/mcu_periph/adc_arch.c **** 
+ 422:arch/stm32/mcu_periph/adc_arch.c **** #ifdef USE_AD2
+ 423:arch/stm32/mcu_periph/adc_arch.c ****     adc_init_single(ADC2,
+ 424:arch/stm32/mcu_periph/adc_arch.c **** #ifdef USE_AD2_1
+ 425:arch/stm32/mcu_periph/adc_arch.c ****             1,
+ 426:arch/stm32/mcu_periph/adc_arch.c **** #else
+ 427:arch/stm32/mcu_periph/adc_arch.c ****             0,
+ 428:arch/stm32/mcu_periph/adc_arch.c **** #endif
+ 429:arch/stm32/mcu_periph/adc_arch.c **** #ifdef USE_AD2_2
+ 430:arch/stm32/mcu_periph/adc_arch.c ****             1,
+ 431:arch/stm32/mcu_periph/adc_arch.c **** #else
+ 432:arch/stm32/mcu_periph/adc_arch.c ****             0,
+ 433:arch/stm32/mcu_periph/adc_arch.c **** #endif
+ 434:arch/stm32/mcu_periph/adc_arch.c **** #ifdef USE_AD2_3
+ 435:arch/stm32/mcu_periph/adc_arch.c ****             1,
+ 436:arch/stm32/mcu_periph/adc_arch.c **** #else
+ 437:arch/stm32/mcu_periph/adc_arch.c ****             0,
+ 438:arch/stm32/mcu_periph/adc_arch.c **** #endif
+ 439:arch/stm32/mcu_periph/adc_arch.c **** #ifdef USE_AD2_4
+ 440:arch/stm32/mcu_periph/adc_arch.c ****             1
+ 441:arch/stm32/mcu_periph/adc_arch.c **** #else
+ 442:arch/stm32/mcu_periph/adc_arch.c ****             0
+ 443:arch/stm32/mcu_periph/adc_arch.c **** #endif
+ 444:arch/stm32/mcu_periph/adc_arch.c ****     );
+ 445:arch/stm32/mcu_periph/adc_arch.c **** #endif // USE_AD2
+ 446:arch/stm32/mcu_periph/adc_arch.c **** 
+ 447:arch/stm32/mcu_periph/adc_arch.c **** // }}}
+ 448:arch/stm32/mcu_periph/adc_arch.c **** }
+ 308              		.loc 1 448 0
+ 309 0162 0BB0     		add	sp, sp, #44
+ 310 0164 F0BD     		pop	{r4, r5, r6, r7, pc}
+ 311              	.L10:
+ 312 0166 00BF     		.align	2
+ 313              	.L9:
+ 314 0168 00000000 		.word	.LANCHOR0
+ 315 016c 00000000 		.word	.LANCHOR1
+ 316 0170 00000000 		.word	.LANCHOR2
+ 317 0174 00000000 		.word	.LANCHOR3
+ 318 0178 00240140 		.word	1073816576
+ 319 017c 00100140 		.word	1073811456
+ 320              		.cfi_endproc
+ 321              	.LFE29:
+ 323              		.section	.text.adc1_2_irq_handler,"ax",%progbits
+ 324              		.align	1
+ 325              		.global	adc1_2_irq_handler
+ 326              		.thumb
+ 327              		.thumb_func
+ 329              	adc1_2_irq_handler:
+ 330              	.LFB31:
+ 449:arch/stm32/mcu_periph/adc_arch.c **** 
+ 450:arch/stm32/mcu_periph/adc_arch.c **** static inline void adc_push_sample(struct adc_buf * buf, uint16_t value) {
+ 451:arch/stm32/mcu_periph/adc_arch.c ****     uint8_t new_head = buf->head + 1;
+ 452:arch/stm32/mcu_periph/adc_arch.c **** 
+ 453:arch/stm32/mcu_periph/adc_arch.c ****     if (new_head >= buf->av_nb_sample) { new_head = 0; }
+ 454:arch/stm32/mcu_periph/adc_arch.c ****     buf->sum -= buf->values[new_head];
+ 455:arch/stm32/mcu_periph/adc_arch.c ****     buf->values[new_head] = value;
+ 456:arch/stm32/mcu_periph/adc_arch.c ****     buf->sum += value;
+ 457:arch/stm32/mcu_periph/adc_arch.c ****     buf->head = new_head;
+ 458:arch/stm32/mcu_periph/adc_arch.c **** }
+ 459:arch/stm32/mcu_periph/adc_arch.c **** 
+ 460:arch/stm32/mcu_periph/adc_arch.c **** /**
+ 461:arch/stm32/mcu_periph/adc_arch.c ****  * ADC1+2 interrupt hander
+ 462:arch/stm32/mcu_periph/adc_arch.c ****  */
+ 463:arch/stm32/mcu_periph/adc_arch.c **** void adc1_2_irq_handler(void)
+ 464:arch/stm32/mcu_periph/adc_arch.c **** {
+ 331              		.loc 1 464 0
+ 332              		.cfi_startproc
+ 333              		@ args = 0, pretend = 0, frame = 0
+ 334              		@ frame_needed = 0, uses_anonymous_args = 0
+ 335              	.LVL13:
+ 336 0000 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 337              	.LCFI2:
+ 338              		.cfi_def_cfa_offset 24
+ 339              		.cfi_offset 14, -4
+ 340              		.cfi_offset 7, -8
+ 341              		.cfi_offset 6, -12
+ 342              		.cfi_offset 5, -16
+ 343              		.cfi_offset 4, -20
+ 344              		.cfi_offset 3, -24
+ 465:arch/stm32/mcu_periph/adc_arch.c ****     uint8_t channel = 0;
+ 466:arch/stm32/mcu_periph/adc_arch.c ****     uint16_t value  = 0;
+ 467:arch/stm32/mcu_periph/adc_arch.c ****     struct adc_buf * buf;
+ 468:arch/stm32/mcu_periph/adc_arch.c **** 
+ 469:arch/stm32/mcu_periph/adc_arch.c **** #ifdef USE_AD1
+ 470:arch/stm32/mcu_periph/adc_arch.c ****     // Clear Injected End Of Conversion
+ 471:arch/stm32/mcu_periph/adc_arch.c ****     ADC_ClearITPendingBit(ADC1, ADC_IT_JEOC);
+ 345              		.loc 1 471 0
+ 346 0002 1548     		ldr	r0, .L17
+ 347 0004 4FF49061 		mov	r1, #1152
+ 348 0008 FFF7FEFF 		bl	ADC_ClearITPendingBit
+ 349 000c 134E     		ldr	r6, .L17+4
+ 472:arch/stm32/mcu_periph/adc_arch.c ****     for(channel = 0; channel < NB_ADC1_CHANNELS; channel++) {
+ 473:arch/stm32/mcu_periph/adc_arch.c ****         buf = adc1_buffers[channel];
+ 474:arch/stm32/mcu_periph/adc_arch.c ****         if(buf) {
+ 475:arch/stm32/mcu_periph/adc_arch.c ****             value = ADC_GetInjectedConversionValue(ADC1, adc_injected_channels[channel]);
+ 350              		.loc 1 475 0
+ 351 000e 144F     		ldr	r7, .L17+8
+ 471:arch/stm32/mcu_periph/adc_arch.c ****     ADC_ClearITPendingBit(ADC1, ADC_IT_JEOC);
+ 352              		.loc 1 471 0
+ 353 0010 0025     		movs	r5, #0
+ 354              	.LVL14:
+ 355              	.L14:
+ 473:arch/stm32/mcu_periph/adc_arch.c ****         buf = adc1_buffers[channel];
+ 356              		.loc 1 473 0
+ 357 0012 56F8044F 		ldr	r4, [r6, #4]!
+ 358              	.LVL15:
+ 474:arch/stm32/mcu_periph/adc_arch.c ****         if(buf) {
+ 359              		.loc 1 474 0
+ 360 0016 BCB1     		cbz	r4, .L12
+ 361              		.loc 1 475 0
+ 362 0018 795D     		ldrb	r1, [r7, r5]	@ zero_extendqisi2
+ 363 001a 0F48     		ldr	r0, .L17
+ 364 001c FFF7FEFF 		bl	ADC_GetInjectedConversionValue
+ 365              	.LVL16:
+ 366              	.LBB22:
+ 367              	.LBB23:
+ 451:arch/stm32/mcu_periph/adc_arch.c ****     uint8_t new_head = buf->head + 1;
+ 368              		.loc 1 451 0
+ 369 0020 94F84430 		ldrb	r3, [r4, #68]	@ zero_extendqisi2
+ 453:arch/stm32/mcu_periph/adc_arch.c ****     if (new_head >= buf->av_nb_sample) { new_head = 0; }
+ 370              		.loc 1 453 0
+ 371 0024 94F84520 		ldrb	r2, [r4, #69]	@ zero_extendqisi2
+ 451:arch/stm32/mcu_periph/adc_arch.c ****     uint8_t new_head = buf->head + 1;
+ 372              		.loc 1 451 0
+ 373 0028 0133     		adds	r3, r3, #1
+ 374 002a DBB2     		uxtb	r3, r3
+ 375              	.LVL17:
+ 453:arch/stm32/mcu_periph/adc_arch.c ****     if (new_head >= buf->av_nb_sample) { new_head = 0; }
+ 376              		.loc 1 453 0
+ 377 002c 9A42     		cmp	r2, r3
+ 378 002e 98BF     		it	ls
+ 379 0030 0023     		movls	r3, #0
+ 380              	.LVL18:
+ 454:arch/stm32/mcu_periph/adc_arch.c ****     buf->sum -= buf->values[new_head];
+ 381              		.loc 1 454 0
+ 382 0032 D4F800C0 		ldr	ip, [r4, #0]
+ 383 0036 04EB4302 		add	r2, r4, r3, lsl #1
+ 384 003a 9188     		ldrh	r1, [r2, #4]
+ 455:arch/stm32/mcu_periph/adc_arch.c ****     buf->values[new_head] = value;
+ 385              		.loc 1 455 0
+ 386 003c 9080     		strh	r0, [r2, #4]	@ movhi
+ 454:arch/stm32/mcu_periph/adc_arch.c ****     buf->sum -= buf->values[new_head];
+ 387              		.loc 1 454 0
+ 388 003e 6044     		add	r0, r0, ip
+ 389              	.LVL19:
+ 456:arch/stm32/mcu_periph/adc_arch.c ****     buf->sum += value;
+ 390              		.loc 1 456 0
+ 391 0040 401A     		subs	r0, r0, r1
+ 392 0042 2060     		str	r0, [r4, #0]
+ 457:arch/stm32/mcu_periph/adc_arch.c ****     buf->head = new_head;
+ 393              		.loc 1 457 0
+ 394 0044 84F84430 		strb	r3, [r4, #68]
+ 395              	.LVL20:
+ 396              	.L12:
+ 397 0048 0135     		adds	r5, r5, #1
+ 398              	.LBE23:
+ 399              	.LBE22:
+ 472:arch/stm32/mcu_periph/adc_arch.c ****     for(channel = 0; channel < NB_ADC1_CHANNELS; channel++) {
+ 400              		.loc 1 472 0
+ 401 004a 042D     		cmp	r5, #4
+ 402 004c E1D1     		bne	.L14
+ 476:arch/stm32/mcu_periph/adc_arch.c ****             adc_push_sample(buf, value);
+ 477:arch/stm32/mcu_periph/adc_arch.c ****         }
+ 478:arch/stm32/mcu_periph/adc_arch.c ****     }
+ 479:arch/stm32/mcu_periph/adc_arch.c ****     adc_new_data_trigger = 1;
+ 403              		.loc 1 479 0
+ 404 004e 054B     		ldr	r3, .L17+12
+ 405 0050 0122     		movs	r2, #1
+ 406 0052 1A70     		strb	r2, [r3, #0]
+ 480:arch/stm32/mcu_periph/adc_arch.c **** #endif
+ 481:arch/stm32/mcu_periph/adc_arch.c **** #ifdef USE_AD2
+ 482:arch/stm32/mcu_periph/adc_arch.c ****     // Clear Injected End Of Conversion
+ 483:arch/stm32/mcu_periph/adc_arch.c ****     ADC_ClearITPendingBit(ADC2, ADC_IT_JEOC);
+ 484:arch/stm32/mcu_periph/adc_arch.c ****     for(channel = 0; channel < NB_ADC2_CHANNELS; channel++) {
+ 485:arch/stm32/mcu_periph/adc_arch.c ****         buf = adc2_buffers[channel];
+ 486:arch/stm32/mcu_periph/adc_arch.c ****         if(buf) {
+ 487:arch/stm32/mcu_periph/adc_arch.c ****             value = ADC_GetInjectedConversionValue(ADC2, adc_injected_channels[channel]);
+ 488:arch/stm32/mcu_periph/adc_arch.c ****             adc_push_sample(buf, value);
+ 489:arch/stm32/mcu_periph/adc_arch.c ****         }
+ 490:arch/stm32/mcu_periph/adc_arch.c ****     }
+ 491:arch/stm32/mcu_periph/adc_arch.c ****     adc_new_data_trigger = 1;
+ 492:arch/stm32/mcu_periph/adc_arch.c **** #endif
+ 493:arch/stm32/mcu_periph/adc_arch.c **** }
+ 407              		.loc 1 493 0
+ 408 0054 F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 409              	.L18:
+ 410 0056 00BF     		.align	2
+ 411              	.L17:
+ 412 0058 00240140 		.word	1073816576
+ 413 005c FCFFFFFF 		.word	.LANCHOR0-4
+ 414 0060 00000000 		.word	.LANCHOR2
+ 415 0064 00000000 		.word	.LANCHOR1
+ 416              		.cfi_endproc
+ 417              	.LFE31:
+ 419              		.global	adc_new_data_trigger
+ 420              		.section	.bss.adc_new_data_trigger,"aw",%nobits
+ 421              		.set	.LANCHOR1,. + 0
+ 424              	adc_new_data_trigger:
+ 425 0000 00       		.space	1
+ 426              		.section	.bss.adc1_buffers,"aw",%nobits
+ 427              		.align	2
+ 428              		.set	.LANCHOR0,. + 0
+ 431              	adc1_buffers:
+ 432 0000 00000000 		.space	16
+ 432      00000000 
+ 432      00000000 
+ 432      00000000 
+ 433              		.section	.bss.adc_channel_map,"aw",%nobits
+ 434              		.set	.LANCHOR3,. + 0
+ 437              	adc_channel_map:
+ 438 0000 00000000 		.space	4
+ 439              		.section	.bss.adc_injected_channels,"aw",%nobits
+ 440              		.set	.LANCHOR2,. + 0
+ 443              	adc_injected_channels:
+ 444 0000 00000000 		.space	4
+ 445              		.text
+ 446              	.Letext0:
+ 447              		.file 2 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+ 448              		.file 3 "./mcu_periph/adc.h"
+ 449              		.file 4 "/home/mav/paparazzi/sw/airborne/arch/stm32/mcu_periph/adc_arch.h"
+ 450              		.file 5 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+ 451              		.file 6 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+ 452              		.file 7 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+ 453              		.file 8 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+ 454              		.file 9 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+DEFINED SYMBOLS
+                            *ABS*:00000000 adc_arch.c
+     /tmp/cc1kk0LO.s:18     .text.adc_buf_channel:00000000 $t
+     /tmp/cc1kk0LO.s:23     .text.adc_buf_channel:00000000 adc_buf_channel
+     /tmp/cc1kk0LO.s:43     .text.adc_buf_channel:0000000c $d
+     /tmp/cc1kk0LO.s:48     .text.adc_init:00000000 $t
+     /tmp/cc1kk0LO.s:53     .text.adc_init:00000000 adc_init
+     /tmp/cc1kk0LO.s:314    .text.adc_init:00000168 $d
+     /tmp/cc1kk0LO.s:324    .text.adc1_2_irq_handler:00000000 $t
+     /tmp/cc1kk0LO.s:329    .text.adc1_2_irq_handler:00000000 adc1_2_irq_handler
+     /tmp/cc1kk0LO.s:412    .text.adc1_2_irq_handler:00000058 $d
+     /tmp/cc1kk0LO.s:424    .bss.adc_new_data_trigger:00000000 adc_new_data_trigger
+     /tmp/cc1kk0LO.s:425    .bss.adc_new_data_trigger:00000000 $d
+     /tmp/cc1kk0LO.s:427    .bss.adc1_buffers:00000000 $d
+     /tmp/cc1kk0LO.s:431    .bss.adc1_buffers:00000000 adc1_buffers
+     /tmp/cc1kk0LO.s:437    .bss.adc_channel_map:00000000 adc_channel_map
+     /tmp/cc1kk0LO.s:438    .bss.adc_channel_map:00000000 $d
+     /tmp/cc1kk0LO.s:443    .bss.adc_injected_channels:00000000 adc_injected_channels
+     /tmp/cc1kk0LO.s:444    .bss.adc_injected_channels:00000000 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+RCC_ADCCLKConfig
+RCC_APB1PeriphClockCmd
+RCC_APB2PeriphClockCmd
+TIM_TimeBaseStructInit
+TIM_TimeBaseInit
+TIM_SelectOutputTrigger
+TIM_Cmd
+NVIC_Init
+ADC_Cmd
+GPIO_Init
+ADC_Init
+ADC_InjectedSequencerLengthConfig
+ADC_InjectedChannelConfig
+ADC_ExternalTrigInjectedConvCmd
+ADC_ExternalTrigInjectedConvConfig
+ADC_ITConfig
+ADC_ResetCalibration
+ADC_GetResetCalibrationStatus
+ADC_StartCalibration
+ADC_GetCalibrationStatus
+ADC_ClearITPendingBit
+ADC_GetInjectedConversionValue

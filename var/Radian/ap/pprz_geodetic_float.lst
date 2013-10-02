@@ -1,0 +1,3028 @@
+   1              		.syntax unified
+   2              		.cpu cortex-m3
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 18, 4
+  12              		.thumb
+  13              		.file	"pprz_geodetic_float.c"
+  14              		.text
+  15              	.Ltext0:
+  16              		.cfi_sections	.debug_frame
+  17              		.global	__aeabi_f2d
+  18              		.global	__aeabi_dmul
+  19              		.global	__aeabi_dadd
+  20              		.global	__aeabi_d2f
+  21              		.section	.text.isometric_latitude_fast_f,"ax",%progbits
+  22              		.align	1
+  23              		.thumb
+  24              		.thumb_func
+  26              	isometric_latitude_fast_f:
+  27              	.LFB17:
+  28              		.file 1 "math/pprz_geodetic_float.c"
+   1:math/pprz_geodetic_float.c **** #include "pprz_geodetic_float.h"
+   2:math/pprz_geodetic_float.c **** 
+   3:math/pprz_geodetic_float.c **** #include "pprz_algebra_float.h"
+   4:math/pprz_geodetic_float.c **** #include <math.h>
+   5:math/pprz_geodetic_float.c **** 
+   6:math/pprz_geodetic_float.c **** /* for ecef_of_XX functions the double versions are needed */
+   7:math/pprz_geodetic_float.c **** #include "pprz_geodetic_double.h"
+   8:math/pprz_geodetic_float.c **** 
+   9:math/pprz_geodetic_float.c **** void ltp_def_from_ecef_f(struct LtpDef_f* def, struct EcefCoor_f* ecef) {
+  10:math/pprz_geodetic_float.c **** 
+  11:math/pprz_geodetic_float.c ****   /* store the origin of the tangeant plane       */
+  12:math/pprz_geodetic_float.c ****   VECT3_COPY(def->ecef, *ecef);
+  13:math/pprz_geodetic_float.c ****   /* compute the lla representation of the origin */
+  14:math/pprz_geodetic_float.c ****   lla_of_ecef_f(&def->lla, &def->ecef);
+  15:math/pprz_geodetic_float.c ****   /* store the rotation matrix                    */
+  16:math/pprz_geodetic_float.c ****   const float sin_lat = sinf(def->lla.lat);
+  17:math/pprz_geodetic_float.c ****   const float cos_lat = cosf(def->lla.lat);
+  18:math/pprz_geodetic_float.c ****   const float sin_lon = sinf(def->lla.lon);
+  19:math/pprz_geodetic_float.c ****   const float cos_lon = cosf(def->lla.lon);
+  20:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[0] = -sin_lon;
+  21:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[1] =  cos_lon;
+  22:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[2] =  0.; /* this element is always zero http://en.wikipedia.org/wiki/Geodetic
+  23:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[3] = -sin_lat*cos_lon;
+  24:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[4] = -sin_lat*sin_lon;
+  25:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[5] =  cos_lat;
+  26:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[6] =  cos_lat*cos_lon;
+  27:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[7] =  cos_lat*sin_lon;
+  28:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[8] =  sin_lat;
+  29:math/pprz_geodetic_float.c **** 
+  30:math/pprz_geodetic_float.c **** }
+  31:math/pprz_geodetic_float.c **** 
+  32:math/pprz_geodetic_float.c **** void ltp_def_from_lla_f(struct LtpDef_f* def, struct LlaCoor_f* lla) {
+  33:math/pprz_geodetic_float.c ****   /* store the origin of the tangeant plane */
+  34:math/pprz_geodetic_float.c ****   LLA_COPY(def->lla, *lla);
+  35:math/pprz_geodetic_float.c ****   /* compute the ecef representation of the origin */
+  36:math/pprz_geodetic_float.c ****   ecef_of_lla_f(&def->ecef, &def->lla);
+  37:math/pprz_geodetic_float.c **** 
+  38:math/pprz_geodetic_float.c ****   /* store the rotation matrix                    */
+  39:math/pprz_geodetic_float.c ****   const float sin_lat = sinf(def->lla.lat);
+  40:math/pprz_geodetic_float.c ****   const float cos_lat = cosf(def->lla.lat);
+  41:math/pprz_geodetic_float.c ****   const float sin_lon = sinf(def->lla.lon);
+  42:math/pprz_geodetic_float.c ****   const float cos_lon = cosf(def->lla.lon);
+  43:math/pprz_geodetic_float.c **** 
+  44:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[0] = -sin_lon;
+  45:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[1] =  cos_lon;
+  46:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[2] =  0.; /* this element is always zero http://en.wikipedia.org/wiki/Geodetic
+  47:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[3] = -sin_lat*cos_lon;
+  48:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[4] = -sin_lat*sin_lon;
+  49:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[5] =  cos_lat;
+  50:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[6] =  cos_lat*cos_lon;
+  51:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[7] =  cos_lat*sin_lon;
+  52:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[8] =  sin_lat;
+  53:math/pprz_geodetic_float.c **** }
+  54:math/pprz_geodetic_float.c **** 
+  55:math/pprz_geodetic_float.c **** void enu_of_ecef_point_f(struct EnuCoor_f* enu, struct LtpDef_f* def, struct EcefCoor_f* ecef) {
+  56:math/pprz_geodetic_float.c ****   struct EcefCoor_f delta;
+  57:math/pprz_geodetic_float.c ****   VECT3_DIFF(delta, *ecef, def->ecef);
+  58:math/pprz_geodetic_float.c ****   MAT33_VECT3_MUL(*enu, def->ltp_of_ecef, delta);
+  59:math/pprz_geodetic_float.c **** }
+  60:math/pprz_geodetic_float.c **** 
+  61:math/pprz_geodetic_float.c **** void ned_of_ecef_point_f(struct NedCoor_f* ned, struct LtpDef_f* def, struct EcefCoor_f* ecef) {
+  62:math/pprz_geodetic_float.c ****   struct EnuCoor_f enu;
+  63:math/pprz_geodetic_float.c ****   enu_of_ecef_point_f(&enu, def, ecef);
+  64:math/pprz_geodetic_float.c ****   ENU_OF_TO_NED(*ned, enu);
+  65:math/pprz_geodetic_float.c **** }
+  66:math/pprz_geodetic_float.c **** 
+  67:math/pprz_geodetic_float.c **** 
+  68:math/pprz_geodetic_float.c **** void enu_of_ecef_vect_f(struct EnuCoor_f* enu, struct LtpDef_f* def, struct EcefCoor_f* ecef) {
+  69:math/pprz_geodetic_float.c ****   MAT33_VECT3_MUL(*enu, def->ltp_of_ecef, *ecef);
+  70:math/pprz_geodetic_float.c **** }
+  71:math/pprz_geodetic_float.c **** 
+  72:math/pprz_geodetic_float.c **** void ned_of_ecef_vect_f(struct NedCoor_f* ned, struct LtpDef_f* def, struct EcefCoor_f* ecef) {
+  73:math/pprz_geodetic_float.c ****   struct EnuCoor_f enu;
+  74:math/pprz_geodetic_float.c ****   enu_of_ecef_vect_f(&enu, def, ecef);
+  75:math/pprz_geodetic_float.c ****   ENU_OF_TO_NED(*ned, enu);
+  76:math/pprz_geodetic_float.c **** }
+  77:math/pprz_geodetic_float.c **** 
+  78:math/pprz_geodetic_float.c **** void enu_of_lla_point_f(struct EnuCoor_f* enu, struct LtpDef_f* def, struct LlaCoor_f* lla) {
+  79:math/pprz_geodetic_float.c ****   struct EcefCoor_f ecef;
+  80:math/pprz_geodetic_float.c ****   ecef_of_lla_f(&ecef,lla);
+  81:math/pprz_geodetic_float.c ****   enu_of_ecef_point_f(enu,def,&ecef);
+  82:math/pprz_geodetic_float.c **** }
+  83:math/pprz_geodetic_float.c **** 
+  84:math/pprz_geodetic_float.c **** void ned_of_lla_point_f(struct NedCoor_f* ned, struct LtpDef_f* def, struct LlaCoor_f* lla) {
+  85:math/pprz_geodetic_float.c ****   struct EcefCoor_f ecef;
+  86:math/pprz_geodetic_float.c ****   ecef_of_lla_f(&ecef,lla);
+  87:math/pprz_geodetic_float.c ****   ned_of_ecef_point_f(ned,def,&ecef);
+  88:math/pprz_geodetic_float.c **** }
+  89:math/pprz_geodetic_float.c **** 
+  90:math/pprz_geodetic_float.c **** /*
+  91:math/pprz_geodetic_float.c ****  * not enought precision with float - use double
+  92:math/pprz_geodetic_float.c ****  */
+  93:math/pprz_geodetic_float.c **** void ecef_of_enu_point_f(struct EcefCoor_f* ecef, struct LtpDef_f* def, struct EnuCoor_f* enu) {
+  94:math/pprz_geodetic_float.c ****   /* convert used floats to double */
+  95:math/pprz_geodetic_float.c ****   struct DoubleMat33 ltp_of_ecef_d;
+  96:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[0] = (double) def->ltp_of_ecef.m[0];
+  97:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[1] = (double) def->ltp_of_ecef.m[1];
+  98:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[2] = (double) def->ltp_of_ecef.m[2];
+  99:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[3] = (double) def->ltp_of_ecef.m[3];
+ 100:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[4] = (double) def->ltp_of_ecef.m[4];
+ 101:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[5] = (double) def->ltp_of_ecef.m[5];
+ 102:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[6] = (double) def->ltp_of_ecef.m[6];
+ 103:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[7] = (double) def->ltp_of_ecef.m[7];
+ 104:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[8] = (double) def->ltp_of_ecef.m[8];
+ 105:math/pprz_geodetic_float.c ****   struct EnuCoor_f enu_d;
+ 106:math/pprz_geodetic_float.c ****   enu_d.x = (double) enu->x;
+ 107:math/pprz_geodetic_float.c ****   enu_d.y = (double) enu->y;
+ 108:math/pprz_geodetic_float.c ****   enu_d.z = (double) enu->z;
+ 109:math/pprz_geodetic_float.c **** 
+ 110:math/pprz_geodetic_float.c ****   /* compute in double */
+ 111:math/pprz_geodetic_float.c ****   struct EcefCoor_d ecef_d;
+ 112:math/pprz_geodetic_float.c ****   MAT33_VECT3_TRANSP_MUL(ecef_d, ltp_of_ecef_d, enu_d);
+ 113:math/pprz_geodetic_float.c **** 
+ 114:math/pprz_geodetic_float.c ****   /* convert result back to float and add it*/
+ 115:math/pprz_geodetic_float.c ****   ecef->x = (float) ecef_d.x + def->ecef.x;
+ 116:math/pprz_geodetic_float.c ****   ecef->y = (float) ecef_d.y + def->ecef.y;
+ 117:math/pprz_geodetic_float.c ****   ecef->z = (float) ecef_d.z + def->ecef.z;
+ 118:math/pprz_geodetic_float.c **** }
+ 119:math/pprz_geodetic_float.c **** 
+ 120:math/pprz_geodetic_float.c **** void ecef_of_ned_point_f(struct EcefCoor_f* ecef, struct LtpDef_f* def, struct NedCoor_f* ned) {
+ 121:math/pprz_geodetic_float.c ****   struct EnuCoor_f enu;
+ 122:math/pprz_geodetic_float.c ****   ENU_OF_TO_NED(enu, *ned);
+ 123:math/pprz_geodetic_float.c ****   ecef_of_enu_point_f(ecef, def, &enu);
+ 124:math/pprz_geodetic_float.c **** }
+ 125:math/pprz_geodetic_float.c **** 
+ 126:math/pprz_geodetic_float.c **** void ecef_of_enu_vect_f(struct EcefCoor_f* ecef, struct LtpDef_f* def, struct EnuCoor_f* enu) {
+ 127:math/pprz_geodetic_float.c ****   /* convert used floats to double */
+ 128:math/pprz_geodetic_float.c ****   struct DoubleMat33 ltp_of_ecef_d;
+ 129:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[0] = (double) def->ltp_of_ecef.m[0];
+ 130:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[1] = (double) def->ltp_of_ecef.m[1];
+ 131:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[2] = (double) def->ltp_of_ecef.m[2];
+ 132:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[3] = (double) def->ltp_of_ecef.m[3];
+ 133:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[4] = (double) def->ltp_of_ecef.m[4];
+ 134:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[5] = (double) def->ltp_of_ecef.m[5];
+ 135:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[6] = (double) def->ltp_of_ecef.m[6];
+ 136:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[7] = (double) def->ltp_of_ecef.m[7];
+ 137:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[8] = (double) def->ltp_of_ecef.m[8];
+ 138:math/pprz_geodetic_float.c ****   struct EnuCoor_f enu_d;
+ 139:math/pprz_geodetic_float.c ****   enu_d.x = (double) enu->x;
+ 140:math/pprz_geodetic_float.c ****   enu_d.y = (double) enu->y;
+ 141:math/pprz_geodetic_float.c ****   enu_d.z = (double) enu->z;
+ 142:math/pprz_geodetic_float.c **** 
+ 143:math/pprz_geodetic_float.c ****   /* compute in double */
+ 144:math/pprz_geodetic_float.c ****   struct EcefCoor_d ecef_d;
+ 145:math/pprz_geodetic_float.c ****   MAT33_VECT3_TRANSP_MUL(ecef_d, ltp_of_ecef_d, enu_d);
+ 146:math/pprz_geodetic_float.c **** 
+ 147:math/pprz_geodetic_float.c ****   /* convert result back to float*/
+ 148:math/pprz_geodetic_float.c ****   ecef->x = (float) ecef_d.x;
+ 149:math/pprz_geodetic_float.c ****   ecef->y = (float) ecef_d.y;
+ 150:math/pprz_geodetic_float.c ****   ecef->z = (float) ecef_d.z;
+ 151:math/pprz_geodetic_float.c **** }
+ 152:math/pprz_geodetic_float.c **** 
+ 153:math/pprz_geodetic_float.c **** void ecef_of_ned_vect_f(struct EcefCoor_f* ecef, struct LtpDef_f* def, struct NedCoor_f* ned) {
+ 154:math/pprz_geodetic_float.c ****   struct EnuCoor_f enu;
+ 155:math/pprz_geodetic_float.c ****   ENU_OF_TO_NED(enu, *ned);
+ 156:math/pprz_geodetic_float.c ****   ecef_of_enu_vect_f(ecef, def, &enu);
+ 157:math/pprz_geodetic_float.c **** }
+ 158:math/pprz_geodetic_float.c **** /* end use double versions */
+ 159:math/pprz_geodetic_float.c **** 
+ 160:math/pprz_geodetic_float.c **** 
+ 161:math/pprz_geodetic_float.c **** 
+ 162:math/pprz_geodetic_float.c **** 
+ 163:math/pprz_geodetic_float.c **** /* http://en.wikipedia.org/wiki/Geodetic_system */
+ 164:math/pprz_geodetic_float.c **** void lla_of_ecef_f(struct LlaCoor_f* out, struct EcefCoor_f* in) {
+ 165:math/pprz_geodetic_float.c **** 
+ 166:math/pprz_geodetic_float.c ****   // FIXME : make an ellipsoid struct
+ 167:math/pprz_geodetic_float.c ****   static const float a = 6378137.0;           /* earth semimajor axis in meters */
+ 168:math/pprz_geodetic_float.c ****   static const float f = 1./298.257223563;    /* reciprocal flattening          */
+ 169:math/pprz_geodetic_float.c ****   const float b = a*(1.-f);                   /* semi-minor axis                */
+ 170:math/pprz_geodetic_float.c ****   const float b2 = b*b;
+ 171:math/pprz_geodetic_float.c **** 
+ 172:math/pprz_geodetic_float.c ****   const float e2 = 2.*f-(f*f);                /* first eccentricity squared     */
+ 173:math/pprz_geodetic_float.c ****   const float ep2 = f*(2.-f)/((1.-f)*(1.-f)); /* second eccentricity squared    */
+ 174:math/pprz_geodetic_float.c ****   const float E2 = a*a - b2;
+ 175:math/pprz_geodetic_float.c **** 
+ 176:math/pprz_geodetic_float.c **** 
+ 177:math/pprz_geodetic_float.c ****   const float z2 = in->z*in->z;
+ 178:math/pprz_geodetic_float.c ****   const float r2 = in->x*in->x+in->y*in->y;
+ 179:math/pprz_geodetic_float.c ****   const float r = sqrtf(r2);
+ 180:math/pprz_geodetic_float.c ****   const float F = 54.*b2*z2;
+ 181:math/pprz_geodetic_float.c ****   const float G = r2 + (1-e2)*z2 - e2*E2;
+ 182:math/pprz_geodetic_float.c ****   const float c = (e2*e2*F*r2)/(G*G*G);
+ 183:math/pprz_geodetic_float.c ****   const float s = powf( (1 + c + sqrtf(c*c + 2*c)), 1./3.);
+ 184:math/pprz_geodetic_float.c ****   const float s1 = 1+s+1/s;
+ 185:math/pprz_geodetic_float.c ****   const float P = F/(3*s1*s1*G*G);
+ 186:math/pprz_geodetic_float.c ****   const float Q = sqrtf(1+2*e2*e2*P);
+ 187:math/pprz_geodetic_float.c ****   const float ro = -(e2*P*r)/(1+Q) + sqrtf((a*a/2)*(1+1/Q) - ((1-e2)*P*z2)/(Q*(1+Q)) - P*r2/2);
+ 188:math/pprz_geodetic_float.c ****   const float tmp = (r - e2*ro)*(r - e2*ro);
+ 189:math/pprz_geodetic_float.c ****   const float U = sqrtf( tmp + z2 );
+ 190:math/pprz_geodetic_float.c ****   const float V = sqrtf( tmp + (1-e2)*z2 );
+ 191:math/pprz_geodetic_float.c ****   const float zo = (b2*in->z)/(a*V);
+ 192:math/pprz_geodetic_float.c **** 
+ 193:math/pprz_geodetic_float.c ****   out->alt = U*(1 - b2/(a*V));
+ 194:math/pprz_geodetic_float.c ****   out->lat = atanf((in->z + ep2*zo)/r);
+ 195:math/pprz_geodetic_float.c ****   out->lon = atan2f(in->y,in->x);
+ 196:math/pprz_geodetic_float.c **** 
+ 197:math/pprz_geodetic_float.c **** }
+ 198:math/pprz_geodetic_float.c **** 
+ 199:math/pprz_geodetic_float.c **** void ecef_of_lla_f(struct EcefCoor_f* out, struct LlaCoor_f* in) {
+ 200:math/pprz_geodetic_float.c **** 
+ 201:math/pprz_geodetic_float.c ****   // FIXME : make an ellipsoid struct
+ 202:math/pprz_geodetic_float.c ****   static const float a = 6378137.0;           /* earth semimajor axis in meters */
+ 203:math/pprz_geodetic_float.c ****   static const float f = 1./298.257223563;    /* reciprocal flattening          */
+ 204:math/pprz_geodetic_float.c ****   const float e2 = 2.*f-(f*f);                /* first eccentricity squared     */
+ 205:math/pprz_geodetic_float.c **** 
+ 206:math/pprz_geodetic_float.c ****   const float sin_lat = sinf(in->lat);
+ 207:math/pprz_geodetic_float.c ****   const float cos_lat = cosf(in->lat);
+ 208:math/pprz_geodetic_float.c ****   const float sin_lon = sinf(in->lon);
+ 209:math/pprz_geodetic_float.c ****   const float cos_lon = cosf(in->lon);
+ 210:math/pprz_geodetic_float.c ****   const float chi = sqrtf(1. - e2*sin_lat*sin_lat);
+ 211:math/pprz_geodetic_float.c ****   const float a_chi = a / chi;
+ 212:math/pprz_geodetic_float.c **** 
+ 213:math/pprz_geodetic_float.c ****   out->x = (a_chi + in->alt) * cos_lat * cos_lon;
+ 214:math/pprz_geodetic_float.c ****   out->y = (a_chi + in->alt) * cos_lat * sin_lon;
+ 215:math/pprz_geodetic_float.c ****   out->z = (a_chi*(1. - e2) + in->alt) * sin_lat;
+ 216:math/pprz_geodetic_float.c **** }
+ 217:math/pprz_geodetic_float.c **** 
+ 218:math/pprz_geodetic_float.c **** 
+ 219:math/pprz_geodetic_float.c **** 
+ 220:math/pprz_geodetic_float.c **** 
+ 221:math/pprz_geodetic_float.c **** #include "math/pprz_geodetic_utm.h"
+ 222:math/pprz_geodetic_float.c **** 
+ 223:math/pprz_geodetic_float.c **** struct complex { float re; float im; };
+ 224:math/pprz_geodetic_float.c **** #define CScal(k, z) { z.re *= k;  z.im *= k; }
+ 225:math/pprz_geodetic_float.c **** #define CAdd(z1, z2) { z2.re += z1.re;  z2.im += z1.im; }
+ 226:math/pprz_geodetic_float.c **** #define CSub(z1, z2) { z2.re -= z1.re;  z2.im -= z1.im; }
+ 227:math/pprz_geodetic_float.c **** #define CI(z) { float tmp = z.re; z.re = - z.im; z.im = tmp; }
+ 228:math/pprz_geodetic_float.c **** #define CExp(z) { float e = exp(z.re); z.re = e*cos(z.im); z.im = e*sin(z.im); }
+ 229:math/pprz_geodetic_float.c **** /* Expanded #define CSin(z) { CI(z); struct complex _z = {-z.re, -z.im}; CExp(z); CExp(_z); CSub(_z
+ 230:math/pprz_geodetic_float.c **** 
+ 231:math/pprz_geodetic_float.c **** #define CSin(z) { CI(z); struct complex _z = {-z.re, -z.im}; float e = exp(z.re); float cos_z_im = 
+ 232:math/pprz_geodetic_float.c **** 
+ 233:math/pprz_geodetic_float.c **** 
+ 234:math/pprz_geodetic_float.c **** static inline float isometric_latitude_f(float phi, float e) {
+ 235:math/pprz_geodetic_float.c ****   return log (tan (M_PI_4 + phi / 2.0)) - e / 2.0 * log((1.0 + e * sin(phi)) / (1.0 - e * sin(phi))
+ 236:math/pprz_geodetic_float.c **** }
+ 237:math/pprz_geodetic_float.c **** 
+ 238:math/pprz_geodetic_float.c **** static inline float isometric_latitude_fast_f(float phi) {
+  29              		.loc 1 238 0
+  30              		.cfi_startproc
+  31              		@ args = 0, pretend = 0, frame = 0
+  32              		@ frame_needed = 0, uses_anonymous_args = 0
+  33              	.LVL0:
+  34 0000 08B5     		push	{r3, lr}
+  35              	.LCFI0:
+  36              		.cfi_def_cfa_offset 8
+  37              		.cfi_offset 14, -4
+  38              		.cfi_offset 3, -8
+ 239:math/pprz_geodetic_float.c ****   return log (tan (M_PI_4 + phi / 2.0));
+  39              		.loc 1 239 0
+  40 0002 FFF7FEFF 		bl	__aeabi_f2d
+  41              	.LVL1:
+  42 0006 0022     		movs	r2, #0
+  43 0008 094B     		ldr	r3, .L2+8
+  44 000a FFF7FEFF 		bl	__aeabi_dmul
+  45 000e 06A3     		adr	r3, .L2
+  46 0010 D3E90023 		ldrd	r2, [r3]
+  47 0014 FFF7FEFF 		bl	__aeabi_dadd
+  48 0018 FFF7FEFF 		bl	tan
+  49 001c FFF7FEFF 		bl	log
+  50 0020 FFF7FEFF 		bl	__aeabi_d2f
+ 240:math/pprz_geodetic_float.c **** }
+  51              		.loc 1 240 0
+  52 0024 08BD     		pop	{r3, pc}
+  53              	.L3:
+  54 0026 00BF     		.align	3
+  55              	.L2:
+  56 0028 182D4454 		.word	1413754136
+  57 002c FB21E93F 		.word	1072243195
+  58 0030 0000E03F 		.word	1071644672
+  59              		.cfi_endproc
+  60              	.LFE17:
+  62              		.global	__aeabi_fsub
+  63              		.global	__aeabi_fmul
+  64              		.global	__aeabi_fadd
+  65 0034 AFF30080 		.section	.text.enu_of_ecef_point_f,"ax",%progbits
+  66              		.align	1
+  67              		.global	enu_of_ecef_point_f
+  68              		.thumb
+  69              		.thumb_func
+  71              	enu_of_ecef_point_f:
+  72              	.LFB4:
+  55:math/pprz_geodetic_float.c **** void enu_of_ecef_point_f(struct EnuCoor_f* enu, struct LtpDef_f* def, struct EcefCoor_f* ecef) {
+  73              		.loc 1 55 0
+  74              		.cfi_startproc
+  75              		@ args = 0, pretend = 0, frame = 0
+  76              		@ frame_needed = 0, uses_anonymous_args = 0
+  77              	.LVL2:
+  78 0000 2DE9F843 		push	{r3, r4, r5, r6, r7, r8, r9, lr}
+  79              	.LCFI1:
+  80              		.cfi_def_cfa_offset 32
+  81              		.cfi_offset 14, -4
+  82              		.cfi_offset 9, -8
+  83              		.cfi_offset 8, -12
+  84              		.cfi_offset 7, -16
+  85              		.cfi_offset 6, -20
+  86              		.cfi_offset 5, -24
+  87              		.cfi_offset 4, -28
+  88              		.cfi_offset 3, -32
+  55:math/pprz_geodetic_float.c **** void enu_of_ecef_point_f(struct EnuCoor_f* enu, struct LtpDef_f* def, struct EcefCoor_f* ecef) {
+  89              		.loc 1 55 0
+  90 0004 0C46     		mov	r4, r1
+  91 0006 0546     		mov	r5, r0
+  57:math/pprz_geodetic_float.c ****   VECT3_DIFF(delta, *ecef, def->ecef);
+  92              		.loc 1 57 0
+  93 0008 0968     		ldr	r1, [r1, #0]	@ float
+  94              	.LVL3:
+  95 000a 1068     		ldr	r0, [r2, #0]	@ float
+  96              	.LVL4:
+  55:math/pprz_geodetic_float.c **** void enu_of_ecef_point_f(struct EnuCoor_f* enu, struct LtpDef_f* def, struct EcefCoor_f* ecef) {
+  97              		.loc 1 55 0
+  98 000c 1646     		mov	r6, r2
+  57:math/pprz_geodetic_float.c ****   VECT3_DIFF(delta, *ecef, def->ecef);
+  99              		.loc 1 57 0
+ 100 000e FFF7FEFF 		bl	__aeabi_fsub
+ 101              	.LVL5:
+ 102 0012 6168     		ldr	r1, [r4, #4]	@ float
+ 103 0014 8046     		mov	r8, r0
+ 104              	.LVL6:
+ 105 0016 7068     		ldr	r0, [r6, #4]	@ float
+ 106              	.LVL7:
+ 107 0018 FFF7FEFF 		bl	__aeabi_fsub
+ 108 001c A168     		ldr	r1, [r4, #8]	@ float
+ 109 001e 0746     		mov	r7, r0
+ 110              	.LVL8:
+ 111 0020 B068     		ldr	r0, [r6, #8]	@ float
+ 112              	.LVL9:
+ 113 0022 FFF7FEFF 		bl	__aeabi_fsub
+  58:math/pprz_geodetic_float.c ****   MAT33_VECT3_MUL(*enu, def->ltp_of_ecef, delta);
+ 114              		.loc 1 58 0
+ 115 0026 A169     		ldr	r1, [r4, #24]	@ float
+  57:math/pprz_geodetic_float.c ****   VECT3_DIFF(delta, *ecef, def->ecef);
+ 116              		.loc 1 57 0
+ 117 0028 0646     		mov	r6, r0
+ 118              	.LVL10:
+  58:math/pprz_geodetic_float.c ****   MAT33_VECT3_MUL(*enu, def->ltp_of_ecef, delta);
+ 119              		.loc 1 58 0
+ 120 002a 4046     		mov	r0, r8
+ 121              	.LVL11:
+ 122 002c FFF7FEFF 		bl	__aeabi_fmul
+ 123 0030 E169     		ldr	r1, [r4, #28]	@ float
+ 124 0032 8146     		mov	r9, r0
+ 125 0034 3846     		mov	r0, r7
+ 126 0036 FFF7FEFF 		bl	__aeabi_fmul
+ 127 003a 0146     		mov	r1, r0
+ 128 003c 4846     		mov	r0, r9
+ 129 003e FFF7FEFF 		bl	__aeabi_fadd
+ 130 0042 216A     		ldr	r1, [r4, #32]	@ float
+ 131 0044 8146     		mov	r9, r0
+ 132 0046 3046     		mov	r0, r6
+ 133 0048 FFF7FEFF 		bl	__aeabi_fmul
+ 134 004c 0146     		mov	r1, r0
+ 135 004e 4846     		mov	r0, r9
+ 136 0050 FFF7FEFF 		bl	__aeabi_fadd
+ 137 0054 616A     		ldr	r1, [r4, #36]	@ float
+ 138 0056 2860     		str	r0, [r5, #0]	@ float
+ 139 0058 4046     		mov	r0, r8
+ 140 005a FFF7FEFF 		bl	__aeabi_fmul
+ 141 005e A16A     		ldr	r1, [r4, #40]	@ float
+ 142 0060 8146     		mov	r9, r0
+ 143 0062 3846     		mov	r0, r7
+ 144 0064 FFF7FEFF 		bl	__aeabi_fmul
+ 145 0068 0146     		mov	r1, r0
+ 146 006a 4846     		mov	r0, r9
+ 147 006c FFF7FEFF 		bl	__aeabi_fadd
+ 148 0070 E16A     		ldr	r1, [r4, #44]	@ float
+ 149 0072 8146     		mov	r9, r0
+ 150 0074 3046     		mov	r0, r6
+ 151 0076 FFF7FEFF 		bl	__aeabi_fmul
+ 152 007a 0146     		mov	r1, r0
+ 153 007c 4846     		mov	r0, r9
+ 154 007e FFF7FEFF 		bl	__aeabi_fadd
+ 155 0082 216B     		ldr	r1, [r4, #48]	@ float
+ 156 0084 6860     		str	r0, [r5, #4]	@ float
+ 157 0086 4046     		mov	r0, r8
+ 158 0088 FFF7FEFF 		bl	__aeabi_fmul
+ 159 008c 616B     		ldr	r1, [r4, #52]	@ float
+ 160 008e 8046     		mov	r8, r0
+ 161              	.LVL12:
+ 162 0090 3846     		mov	r0, r7
+ 163 0092 FFF7FEFF 		bl	__aeabi_fmul
+ 164 0096 0146     		mov	r1, r0
+ 165 0098 4046     		mov	r0, r8
+ 166 009a FFF7FEFF 		bl	__aeabi_fadd
+ 167 009e A16B     		ldr	r1, [r4, #56]	@ float
+ 168 00a0 0746     		mov	r7, r0
+ 169              	.LVL13:
+ 170 00a2 3046     		mov	r0, r6
+ 171 00a4 FFF7FEFF 		bl	__aeabi_fmul
+ 172 00a8 0146     		mov	r1, r0
+ 173 00aa 3846     		mov	r0, r7
+ 174 00ac FFF7FEFF 		bl	__aeabi_fadd
+ 175 00b0 A860     		str	r0, [r5, #8]	@ float
+  59:math/pprz_geodetic_float.c **** }
+ 176              		.loc 1 59 0
+ 177 00b2 BDE8F883 		pop	{r3, r4, r5, r6, r7, r8, r9, pc}
+ 178              		.cfi_endproc
+ 179              	.LFE4:
+ 181              		.section	.text.ned_of_ecef_point_f,"ax",%progbits
+ 182              		.align	1
+ 183              		.global	ned_of_ecef_point_f
+ 184              		.thumb
+ 185              		.thumb_func
+ 187              	ned_of_ecef_point_f:
+ 188              	.LFB5:
+  61:math/pprz_geodetic_float.c **** void ned_of_ecef_point_f(struct NedCoor_f* ned, struct LtpDef_f* def, struct EcefCoor_f* ecef) {
+ 189              		.loc 1 61 0
+ 190              		.cfi_startproc
+ 191              		@ args = 0, pretend = 0, frame = 16
+ 192              		@ frame_needed = 0, uses_anonymous_args = 0
+ 193              	.LVL14:
+ 194 0000 1FB5     		push	{r0, r1, r2, r3, r4, lr}
+ 195              	.LCFI2:
+ 196              		.cfi_def_cfa_offset 24
+ 197              		.cfi_offset 14, -4
+ 198              		.cfi_offset 4, -8
+ 199              		.cfi_offset 3, -12
+ 200              		.cfi_offset 2, -16
+ 201              		.cfi_offset 1, -20
+ 202              		.cfi_offset 0, -24
+  61:math/pprz_geodetic_float.c **** void ned_of_ecef_point_f(struct NedCoor_f* ned, struct LtpDef_f* def, struct EcefCoor_f* ecef) {
+ 203              		.loc 1 61 0
+ 204 0002 0446     		mov	r4, r0
+  63:math/pprz_geodetic_float.c ****   enu_of_ecef_point_f(&enu, def, ecef);
+ 205              		.loc 1 63 0
+ 206 0004 01A8     		add	r0, sp, #4
+ 207              	.LVL15:
+ 208 0006 FFF7FEFF 		bl	enu_of_ecef_point_f
+ 209              	.LVL16:
+  64:math/pprz_geodetic_float.c ****   ENU_OF_TO_NED(*ned, enu);
+ 210              		.loc 1 64 0
+ 211 000a 029B     		ldr	r3, [sp, #8]	@ float
+ 212 000c 2360     		str	r3, [r4, #0]	@ float
+ 213 000e 019B     		ldr	r3, [sp, #4]	@ float
+ 214 0010 6360     		str	r3, [r4, #4]	@ float
+ 215 0012 039B     		ldr	r3, [sp, #12]
+ 216 0014 03F10043 		add	r3, r3, #-2147483648
+ 217 0018 A360     		str	r3, [r4, #8]	@ float
+  65:math/pprz_geodetic_float.c **** }
+ 218              		.loc 1 65 0
+ 219 001a 1FBD     		pop	{r0, r1, r2, r3, r4, pc}
+ 220              		.cfi_endproc
+ 221              	.LFE5:
+ 223              		.section	.text.enu_of_ecef_vect_f,"ax",%progbits
+ 224              		.align	1
+ 225              		.global	enu_of_ecef_vect_f
+ 226              		.thumb
+ 227              		.thumb_func
+ 229              	enu_of_ecef_vect_f:
+ 230              	.LFB6:
+  68:math/pprz_geodetic_float.c **** void enu_of_ecef_vect_f(struct EnuCoor_f* enu, struct LtpDef_f* def, struct EcefCoor_f* ecef) {
+ 231              		.loc 1 68 0
+ 232              		.cfi_startproc
+ 233              		@ args = 0, pretend = 0, frame = 0
+ 234              		@ frame_needed = 0, uses_anonymous_args = 0
+ 235              	.LVL17:
+ 236 0000 2DE9F843 		push	{r3, r4, r5, r6, r7, r8, r9, lr}
+ 237              	.LCFI3:
+ 238              		.cfi_def_cfa_offset 32
+ 239              		.cfi_offset 14, -4
+ 240              		.cfi_offset 9, -8
+ 241              		.cfi_offset 8, -12
+ 242              		.cfi_offset 7, -16
+ 243              		.cfi_offset 6, -20
+ 244              		.cfi_offset 5, -24
+ 245              		.cfi_offset 4, -28
+ 246              		.cfi_offset 3, -32
+  69:math/pprz_geodetic_float.c ****   MAT33_VECT3_MUL(*enu, def->ltp_of_ecef, *ecef);
+ 247              		.loc 1 69 0
+ 248 0004 D2F80080 		ldr	r8, [r2, #0]	@ float
+  68:math/pprz_geodetic_float.c **** void enu_of_ecef_vect_f(struct EnuCoor_f* enu, struct LtpDef_f* def, struct EcefCoor_f* ecef) {
+ 249              		.loc 1 68 0
+ 250 0008 0C46     		mov	r4, r1
+ 251 000a 0546     		mov	r5, r0
+  69:math/pprz_geodetic_float.c ****   MAT33_VECT3_MUL(*enu, def->ltp_of_ecef, *ecef);
+ 252              		.loc 1 69 0
+ 253 000c 8969     		ldr	r1, [r1, #24]	@ float
+ 254              	.LVL18:
+ 255 000e 4046     		mov	r0, r8
+ 256              	.LVL19:
+ 257 0010 5768     		ldr	r7, [r2, #4]	@ float
+ 258 0012 9668     		ldr	r6, [r2, #8]	@ float
+ 259 0014 FFF7FEFF 		bl	__aeabi_fmul
+ 260              	.LVL20:
+ 261 0018 E169     		ldr	r1, [r4, #28]	@ float
+ 262 001a 8146     		mov	r9, r0
+ 263 001c 3846     		mov	r0, r7
+ 264 001e FFF7FEFF 		bl	__aeabi_fmul
+ 265 0022 0146     		mov	r1, r0
+ 266 0024 4846     		mov	r0, r9
+ 267 0026 FFF7FEFF 		bl	__aeabi_fadd
+ 268 002a 216A     		ldr	r1, [r4, #32]	@ float
+ 269 002c 8146     		mov	r9, r0
+ 270 002e 3046     		mov	r0, r6
+ 271 0030 FFF7FEFF 		bl	__aeabi_fmul
+ 272 0034 0146     		mov	r1, r0
+ 273 0036 4846     		mov	r0, r9
+ 274 0038 FFF7FEFF 		bl	__aeabi_fadd
+ 275 003c 616A     		ldr	r1, [r4, #36]	@ float
+ 276 003e 2860     		str	r0, [r5, #0]	@ float
+ 277 0040 4046     		mov	r0, r8
+ 278 0042 FFF7FEFF 		bl	__aeabi_fmul
+ 279 0046 A16A     		ldr	r1, [r4, #40]	@ float
+ 280 0048 8146     		mov	r9, r0
+ 281 004a 3846     		mov	r0, r7
+ 282 004c FFF7FEFF 		bl	__aeabi_fmul
+ 283 0050 0146     		mov	r1, r0
+ 284 0052 4846     		mov	r0, r9
+ 285 0054 FFF7FEFF 		bl	__aeabi_fadd
+ 286 0058 E16A     		ldr	r1, [r4, #44]	@ float
+ 287 005a 8146     		mov	r9, r0
+ 288 005c 3046     		mov	r0, r6
+ 289 005e FFF7FEFF 		bl	__aeabi_fmul
+ 290 0062 0146     		mov	r1, r0
+ 291 0064 4846     		mov	r0, r9
+ 292 0066 FFF7FEFF 		bl	__aeabi_fadd
+ 293 006a 216B     		ldr	r1, [r4, #48]	@ float
+ 294 006c 6860     		str	r0, [r5, #4]	@ float
+ 295 006e 4046     		mov	r0, r8
+ 296 0070 FFF7FEFF 		bl	__aeabi_fmul
+ 297 0074 616B     		ldr	r1, [r4, #52]	@ float
+ 298 0076 8046     		mov	r8, r0
+ 299 0078 3846     		mov	r0, r7
+ 300 007a FFF7FEFF 		bl	__aeabi_fmul
+ 301 007e 0146     		mov	r1, r0
+ 302 0080 4046     		mov	r0, r8
+ 303 0082 FFF7FEFF 		bl	__aeabi_fadd
+ 304 0086 A16B     		ldr	r1, [r4, #56]	@ float
+ 305 0088 0746     		mov	r7, r0
+ 306 008a 3046     		mov	r0, r6
+ 307 008c FFF7FEFF 		bl	__aeabi_fmul
+ 308 0090 0146     		mov	r1, r0
+ 309 0092 3846     		mov	r0, r7
+ 310 0094 FFF7FEFF 		bl	__aeabi_fadd
+ 311 0098 A860     		str	r0, [r5, #8]	@ float
+  70:math/pprz_geodetic_float.c **** }
+ 312              		.loc 1 70 0
+ 313 009a BDE8F883 		pop	{r3, r4, r5, r6, r7, r8, r9, pc}
+ 314              		.cfi_endproc
+ 315              	.LFE6:
+ 317              		.section	.text.ned_of_ecef_vect_f,"ax",%progbits
+ 318              		.align	1
+ 319              		.global	ned_of_ecef_vect_f
+ 320              		.thumb
+ 321              		.thumb_func
+ 323              	ned_of_ecef_vect_f:
+ 324              	.LFB7:
+  72:math/pprz_geodetic_float.c **** void ned_of_ecef_vect_f(struct NedCoor_f* ned, struct LtpDef_f* def, struct EcefCoor_f* ecef) {
+ 325              		.loc 1 72 0
+ 326              		.cfi_startproc
+ 327              		@ args = 0, pretend = 0, frame = 16
+ 328              		@ frame_needed = 0, uses_anonymous_args = 0
+ 329              	.LVL21:
+ 330 0000 1FB5     		push	{r0, r1, r2, r3, r4, lr}
+ 331              	.LCFI4:
+ 332              		.cfi_def_cfa_offset 24
+ 333              		.cfi_offset 14, -4
+ 334              		.cfi_offset 4, -8
+ 335              		.cfi_offset 3, -12
+ 336              		.cfi_offset 2, -16
+ 337              		.cfi_offset 1, -20
+ 338              		.cfi_offset 0, -24
+  72:math/pprz_geodetic_float.c **** void ned_of_ecef_vect_f(struct NedCoor_f* ned, struct LtpDef_f* def, struct EcefCoor_f* ecef) {
+ 339              		.loc 1 72 0
+ 340 0002 0446     		mov	r4, r0
+  74:math/pprz_geodetic_float.c ****   enu_of_ecef_vect_f(&enu, def, ecef);
+ 341              		.loc 1 74 0
+ 342 0004 01A8     		add	r0, sp, #4
+ 343              	.LVL22:
+ 344 0006 FFF7FEFF 		bl	enu_of_ecef_vect_f
+ 345              	.LVL23:
+  75:math/pprz_geodetic_float.c ****   ENU_OF_TO_NED(*ned, enu);
+ 346              		.loc 1 75 0
+ 347 000a 029B     		ldr	r3, [sp, #8]	@ float
+ 348 000c 2360     		str	r3, [r4, #0]	@ float
+ 349 000e 019B     		ldr	r3, [sp, #4]	@ float
+ 350 0010 6360     		str	r3, [r4, #4]	@ float
+ 351 0012 039B     		ldr	r3, [sp, #12]
+ 352 0014 03F10043 		add	r3, r3, #-2147483648
+ 353 0018 A360     		str	r3, [r4, #8]	@ float
+  76:math/pprz_geodetic_float.c **** }
+ 354              		.loc 1 76 0
+ 355 001a 1FBD     		pop	{r0, r1, r2, r3, r4, pc}
+ 356              		.cfi_endproc
+ 357              	.LFE7:
+ 359              		.section	.text.ecef_of_enu_point_f,"ax",%progbits
+ 360              		.align	1
+ 361              		.global	ecef_of_enu_point_f
+ 362              		.thumb
+ 363              		.thumb_func
+ 365              	ecef_of_enu_point_f:
+ 366              	.LFB10:
+  93:math/pprz_geodetic_float.c **** void ecef_of_enu_point_f(struct EcefCoor_f* ecef, struct LtpDef_f* def, struct EnuCoor_f* enu) {
+ 367              		.loc 1 93 0
+ 368              		.cfi_startproc
+ 369              		@ args = 0, pretend = 0, frame = 24
+ 370              		@ frame_needed = 0, uses_anonymous_args = 0
+ 371              	.LVL24:
+ 372 0000 2DE9F04F 		push	{r4, r5, r6, r7, r8, r9, sl, fp, lr}
+ 373              	.LCFI5:
+ 374              		.cfi_def_cfa_offset 36
+ 375              		.cfi_offset 14, -4
+ 376              		.cfi_offset 11, -8
+ 377              		.cfi_offset 10, -12
+ 378              		.cfi_offset 9, -16
+ 379              		.cfi_offset 8, -20
+ 380              		.cfi_offset 7, -24
+ 381              		.cfi_offset 6, -28
+ 382              		.cfi_offset 5, -32
+ 383              		.cfi_offset 4, -36
+ 384 0004 0546     		mov	r5, r0
+ 385 0006 87B0     		sub	sp, sp, #28
+ 386              	.LCFI6:
+ 387              		.cfi_def_cfa_offset 64
+ 112:math/pprz_geodetic_float.c ****   MAT33_VECT3_TRANSP_MUL(ecef_d, ltp_of_ecef_d, enu_d);
+ 388              		.loc 1 112 0
+ 389 0008 1068     		ldr	r0, [r2, #0]	@ float
+ 390              	.LVL25:
+  93:math/pprz_geodetic_float.c **** void ecef_of_enu_point_f(struct EcefCoor_f* ecef, struct LtpDef_f* def, struct EnuCoor_f* enu) {
+ 391              		.loc 1 93 0
+ 392 000a 0C46     		mov	r4, r1
+ 393              	.LVL26:
+ 394 000c 1646     		mov	r6, r2
+ 112:math/pprz_geodetic_float.c ****   MAT33_VECT3_TRANSP_MUL(ecef_d, ltp_of_ecef_d, enu_d);
+ 395              		.loc 1 112 0
+ 396 000e FFF7FEFF 		bl	__aeabi_f2d
+ 397              	.LVL27:
+ 398 0012 8046     		mov	r8, r0
+ 399 0014 7068     		ldr	r0, [r6, #4]	@ float
+ 400              	.LVL28:
+ 401 0016 8946     		mov	r9, r1
+ 402 0018 FFF7FEFF 		bl	__aeabi_f2d
+ 403              	.LVL29:
+ 404 001c 8246     		mov	sl, r0
+ 405 001e B068     		ldr	r0, [r6, #8]	@ float
+ 406              	.LVL30:
+ 407 0020 8B46     		mov	fp, r1
+ 408 0022 FFF7FEFF 		bl	__aeabi_f2d
+ 409              	.LVL31:
+ 410 0026 CDE90001 		strd	r0, [sp]
+  97:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[1] = (double) def->ltp_of_ecef.m[1];
+ 411              		.loc 1 97 0
+ 412 002a E069     		ldr	r0, [r4, #28]	@ float
+ 413              	.LVL32:
+ 414 002c FFF7FEFF 		bl	__aeabi_f2d
+ 415              	.LVL33:
+ 112:math/pprz_geodetic_float.c ****   MAT33_VECT3_TRANSP_MUL(ecef_d, ltp_of_ecef_d, enu_d);
+ 416              		.loc 1 112 0
+ 417 0030 4246     		mov	r2, r8
+ 418 0032 4B46     		mov	r3, r9
+ 419 0034 FFF7FEFF 		bl	__aeabi_dmul
+ 420 0038 0646     		mov	r6, r0
+ 421              	.LVL34:
+ 100:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[4] = (double) def->ltp_of_ecef.m[4];
+ 422              		.loc 1 100 0
+ 423 003a A06A     		ldr	r0, [r4, #40]	@ float
+ 112:math/pprz_geodetic_float.c ****   MAT33_VECT3_TRANSP_MUL(ecef_d, ltp_of_ecef_d, enu_d);
+ 424              		.loc 1 112 0
+ 425 003c 0F46     		mov	r7, r1
+ 100:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[4] = (double) def->ltp_of_ecef.m[4];
+ 426              		.loc 1 100 0
+ 427 003e FFF7FEFF 		bl	__aeabi_f2d
+ 112:math/pprz_geodetic_float.c ****   MAT33_VECT3_TRANSP_MUL(ecef_d, ltp_of_ecef_d, enu_d);
+ 428              		.loc 1 112 0
+ 429 0042 5246     		mov	r2, sl
+ 430 0044 5B46     		mov	r3, fp
+ 431 0046 FFF7FEFF 		bl	__aeabi_dmul
+ 432 004a 0246     		mov	r2, r0
+ 433 004c 0B46     		mov	r3, r1
+ 434 004e 3046     		mov	r0, r6
+ 435 0050 3946     		mov	r1, r7
+ 436 0052 FFF7FEFF 		bl	__aeabi_dadd
+ 437 0056 0646     		mov	r6, r0
+ 103:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[7] = (double) def->ltp_of_ecef.m[7];
+ 438              		.loc 1 103 0
+ 439 0058 606B     		ldr	r0, [r4, #52]	@ float
+ 112:math/pprz_geodetic_float.c ****   MAT33_VECT3_TRANSP_MUL(ecef_d, ltp_of_ecef_d, enu_d);
+ 440              		.loc 1 112 0
+ 441 005a 0F46     		mov	r7, r1
+ 103:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[7] = (double) def->ltp_of_ecef.m[7];
+ 442              		.loc 1 103 0
+ 443 005c FFF7FEFF 		bl	__aeabi_f2d
+ 112:math/pprz_geodetic_float.c ****   MAT33_VECT3_TRANSP_MUL(ecef_d, ltp_of_ecef_d, enu_d);
+ 444              		.loc 1 112 0
+ 445 0060 DDE90023 		ldrd	r2, [sp]
+ 446 0064 FFF7FEFF 		bl	__aeabi_dmul
+ 447 0068 0246     		mov	r2, r0
+ 448 006a 0B46     		mov	r3, r1
+ 449 006c 3046     		mov	r0, r6
+ 450 006e 3946     		mov	r1, r7
+ 451 0070 FFF7FEFF 		bl	__aeabi_dadd
+ 452 0074 CDE90201 		strd	r0, [sp, #8]
+ 453              	.LVL35:
+  98:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[2] = (double) def->ltp_of_ecef.m[2];
+ 454              		.loc 1 98 0
+ 455 0078 206A     		ldr	r0, [r4, #32]	@ float
+ 456              	.LVL36:
+ 457 007a FFF7FEFF 		bl	__aeabi_f2d
+ 458              	.LVL37:
+ 112:math/pprz_geodetic_float.c ****   MAT33_VECT3_TRANSP_MUL(ecef_d, ltp_of_ecef_d, enu_d);
+ 459              		.loc 1 112 0
+ 460 007e 4246     		mov	r2, r8
+ 461 0080 4B46     		mov	r3, r9
+ 462 0082 FFF7FEFF 		bl	__aeabi_dmul
+ 463 0086 0646     		mov	r6, r0
+ 101:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[5] = (double) def->ltp_of_ecef.m[5];
+ 464              		.loc 1 101 0
+ 465 0088 E06A     		ldr	r0, [r4, #44]	@ float
+ 112:math/pprz_geodetic_float.c ****   MAT33_VECT3_TRANSP_MUL(ecef_d, ltp_of_ecef_d, enu_d);
+ 466              		.loc 1 112 0
+ 467 008a 0F46     		mov	r7, r1
+ 101:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[5] = (double) def->ltp_of_ecef.m[5];
+ 468              		.loc 1 101 0
+ 469 008c FFF7FEFF 		bl	__aeabi_f2d
+ 112:math/pprz_geodetic_float.c ****   MAT33_VECT3_TRANSP_MUL(ecef_d, ltp_of_ecef_d, enu_d);
+ 470              		.loc 1 112 0
+ 471 0090 5246     		mov	r2, sl
+ 472 0092 5B46     		mov	r3, fp
+ 473 0094 FFF7FEFF 		bl	__aeabi_dmul
+ 474 0098 0246     		mov	r2, r0
+ 475 009a 0B46     		mov	r3, r1
+ 476 009c 3046     		mov	r0, r6
+ 477 009e 3946     		mov	r1, r7
+ 478 00a0 FFF7FEFF 		bl	__aeabi_dadd
+ 479 00a4 0646     		mov	r6, r0
+ 104:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[8] = (double) def->ltp_of_ecef.m[8];
+ 480              		.loc 1 104 0
+ 481 00a6 A06B     		ldr	r0, [r4, #56]	@ float
+ 112:math/pprz_geodetic_float.c ****   MAT33_VECT3_TRANSP_MUL(ecef_d, ltp_of_ecef_d, enu_d);
+ 482              		.loc 1 112 0
+ 483 00a8 0F46     		mov	r7, r1
+ 104:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[8] = (double) def->ltp_of_ecef.m[8];
+ 484              		.loc 1 104 0
+ 485 00aa FFF7FEFF 		bl	__aeabi_f2d
+ 112:math/pprz_geodetic_float.c ****   MAT33_VECT3_TRANSP_MUL(ecef_d, ltp_of_ecef_d, enu_d);
+ 486              		.loc 1 112 0
+ 487 00ae DDE90023 		ldrd	r2, [sp]
+ 488 00b2 FFF7FEFF 		bl	__aeabi_dmul
+ 489 00b6 0246     		mov	r2, r0
+ 490 00b8 0B46     		mov	r3, r1
+ 491 00ba 3046     		mov	r0, r6
+ 492 00bc 3946     		mov	r1, r7
+ 493 00be FFF7FEFF 		bl	__aeabi_dadd
+ 494 00c2 CDE90401 		strd	r0, [sp, #16]
+ 495              	.LVL38:
+  96:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[0] = (double) def->ltp_of_ecef.m[0];
+ 496              		.loc 1 96 0
+ 497 00c6 A069     		ldr	r0, [r4, #24]	@ float
+ 498              	.LVL39:
+ 499 00c8 FFF7FEFF 		bl	__aeabi_f2d
+ 500              	.LVL40:
+ 112:math/pprz_geodetic_float.c ****   MAT33_VECT3_TRANSP_MUL(ecef_d, ltp_of_ecef_d, enu_d);
+ 501              		.loc 1 112 0
+ 502 00cc 4246     		mov	r2, r8
+ 503 00ce 4B46     		mov	r3, r9
+ 504 00d0 FFF7FEFF 		bl	__aeabi_dmul
+ 505 00d4 0646     		mov	r6, r0
+  99:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[3] = (double) def->ltp_of_ecef.m[3];
+ 506              		.loc 1 99 0
+ 507 00d6 606A     		ldr	r0, [r4, #36]	@ float
+ 508              	.LVL41:
+ 112:math/pprz_geodetic_float.c ****   MAT33_VECT3_TRANSP_MUL(ecef_d, ltp_of_ecef_d, enu_d);
+ 509              		.loc 1 112 0
+ 510 00d8 0F46     		mov	r7, r1
+  99:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[3] = (double) def->ltp_of_ecef.m[3];
+ 511              		.loc 1 99 0
+ 512 00da FFF7FEFF 		bl	__aeabi_f2d
+ 513              	.LVL42:
+ 112:math/pprz_geodetic_float.c ****   MAT33_VECT3_TRANSP_MUL(ecef_d, ltp_of_ecef_d, enu_d);
+ 514              		.loc 1 112 0
+ 515 00de 5246     		mov	r2, sl
+ 516 00e0 5B46     		mov	r3, fp
+ 517 00e2 FFF7FEFF 		bl	__aeabi_dmul
+ 518 00e6 0246     		mov	r2, r0
+ 519 00e8 0B46     		mov	r3, r1
+ 520 00ea 3046     		mov	r0, r6
+ 521 00ec 3946     		mov	r1, r7
+ 522 00ee FFF7FEFF 		bl	__aeabi_dadd
+ 523 00f2 0646     		mov	r6, r0
+ 102:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[6] = (double) def->ltp_of_ecef.m[6];
+ 524              		.loc 1 102 0
+ 525 00f4 206B     		ldr	r0, [r4, #48]	@ float
+ 112:math/pprz_geodetic_float.c ****   MAT33_VECT3_TRANSP_MUL(ecef_d, ltp_of_ecef_d, enu_d);
+ 526              		.loc 1 112 0
+ 527 00f6 0F46     		mov	r7, r1
+ 102:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[6] = (double) def->ltp_of_ecef.m[6];
+ 528              		.loc 1 102 0
+ 529 00f8 FFF7FEFF 		bl	__aeabi_f2d
+ 112:math/pprz_geodetic_float.c ****   MAT33_VECT3_TRANSP_MUL(ecef_d, ltp_of_ecef_d, enu_d);
+ 530              		.loc 1 112 0
+ 531 00fc DDE90023 		ldrd	r2, [sp]
+ 532 0100 FFF7FEFF 		bl	__aeabi_dmul
+ 533 0104 0246     		mov	r2, r0
+ 534 0106 0B46     		mov	r3, r1
+ 535 0108 3046     		mov	r0, r6
+ 536 010a 3946     		mov	r1, r7
+ 537 010c FFF7FEFF 		bl	__aeabi_dadd
+ 115:math/pprz_geodetic_float.c ****   ecef->x = (float) ecef_d.x + def->ecef.x;
+ 538              		.loc 1 115 0
+ 539 0110 FFF7FEFF 		bl	__aeabi_d2f
+ 540 0114 2168     		ldr	r1, [r4, #0]	@ float
+ 541 0116 FFF7FEFF 		bl	__aeabi_fadd
+ 542 011a 2860     		str	r0, [r5, #0]	@ float
+ 116:math/pprz_geodetic_float.c ****   ecef->y = (float) ecef_d.y + def->ecef.y;
+ 543              		.loc 1 116 0
+ 544 011c DDE90201 		ldrd	r0, [sp, #8]
+ 545 0120 FFF7FEFF 		bl	__aeabi_d2f
+ 546 0124 6168     		ldr	r1, [r4, #4]	@ float
+ 547 0126 FFF7FEFF 		bl	__aeabi_fadd
+ 548 012a 6860     		str	r0, [r5, #4]	@ float
+ 117:math/pprz_geodetic_float.c ****   ecef->z = (float) ecef_d.z + def->ecef.z;
+ 549              		.loc 1 117 0
+ 550 012c DDE90401 		ldrd	r0, [sp, #16]
+ 551 0130 FFF7FEFF 		bl	__aeabi_d2f
+ 552 0134 A168     		ldr	r1, [r4, #8]	@ float
+ 553 0136 FFF7FEFF 		bl	__aeabi_fadd
+ 554 013a A860     		str	r0, [r5, #8]	@ float
+ 118:math/pprz_geodetic_float.c **** }
+ 555              		.loc 1 118 0
+ 556 013c 07B0     		add	sp, sp, #28
+ 557 013e BDE8F08F 		pop	{r4, r5, r6, r7, r8, r9, sl, fp, pc}
+ 558              		.cfi_endproc
+ 559              	.LFE10:
+ 561              		.section	.text.ecef_of_ned_point_f,"ax",%progbits
+ 562              		.align	1
+ 563              		.global	ecef_of_ned_point_f
+ 564              		.thumb
+ 565              		.thumb_func
+ 567              	ecef_of_ned_point_f:
+ 568              	.LFB11:
+ 120:math/pprz_geodetic_float.c **** void ecef_of_ned_point_f(struct EcefCoor_f* ecef, struct LtpDef_f* def, struct NedCoor_f* ned) {
+ 569              		.loc 1 120 0
+ 570              		.cfi_startproc
+ 571              		@ args = 0, pretend = 0, frame = 16
+ 572              		@ frame_needed = 0, uses_anonymous_args = 0
+ 573              	.LVL43:
+ 574 0000 1FB5     		push	{r0, r1, r2, r3, r4, lr}
+ 575              	.LCFI7:
+ 576              		.cfi_def_cfa_offset 24
+ 577              		.cfi_offset 14, -4
+ 578              		.cfi_offset 4, -8
+ 579              		.cfi_offset 3, -12
+ 580              		.cfi_offset 2, -16
+ 581              		.cfi_offset 1, -20
+ 582              		.cfi_offset 0, -24
+ 122:math/pprz_geodetic_float.c ****   ENU_OF_TO_NED(enu, *ned);
+ 583              		.loc 1 122 0
+ 584 0002 5368     		ldr	r3, [r2, #4]	@ float
+ 585 0004 0193     		str	r3, [sp, #4]	@ float
+ 586 0006 1368     		ldr	r3, [r2, #0]	@ float
+ 587 0008 0293     		str	r3, [sp, #8]	@ float
+ 588 000a 9368     		ldr	r3, [r2, #8]
+ 123:math/pprz_geodetic_float.c ****   ecef_of_enu_point_f(ecef, def, &enu);
+ 589              		.loc 1 123 0
+ 590 000c 01AA     		add	r2, sp, #4
+ 591              	.LVL44:
+ 122:math/pprz_geodetic_float.c ****   ENU_OF_TO_NED(enu, *ned);
+ 592              		.loc 1 122 0
+ 593 000e 03F10043 		add	r3, r3, #-2147483648
+ 594 0012 0393     		str	r3, [sp, #12]	@ float
+ 123:math/pprz_geodetic_float.c ****   ecef_of_enu_point_f(ecef, def, &enu);
+ 595              		.loc 1 123 0
+ 596 0014 FFF7FEFF 		bl	ecef_of_enu_point_f
+ 597              	.LVL45:
+ 124:math/pprz_geodetic_float.c **** }
+ 598              		.loc 1 124 0
+ 599 0018 05B0     		add	sp, sp, #20
+ 600 001a 00BD     		pop	{pc}
+ 601              		.cfi_endproc
+ 602              	.LFE11:
+ 604              		.section	.text.ecef_of_enu_vect_f,"ax",%progbits
+ 605              		.align	1
+ 606              		.global	ecef_of_enu_vect_f
+ 607              		.thumb
+ 608              		.thumb_func
+ 610              	ecef_of_enu_vect_f:
+ 611              	.LFB12:
+ 126:math/pprz_geodetic_float.c **** void ecef_of_enu_vect_f(struct EcefCoor_f* ecef, struct LtpDef_f* def, struct EnuCoor_f* enu) {
+ 612              		.loc 1 126 0
+ 613              		.cfi_startproc
+ 614              		@ args = 0, pretend = 0, frame = 24
+ 615              		@ frame_needed = 0, uses_anonymous_args = 0
+ 616              	.LVL46:
+ 617 0000 2DE9F04F 		push	{r4, r5, r6, r7, r8, r9, sl, fp, lr}
+ 618              	.LCFI8:
+ 619              		.cfi_def_cfa_offset 36
+ 620              		.cfi_offset 14, -4
+ 621              		.cfi_offset 11, -8
+ 622              		.cfi_offset 10, -12
+ 623              		.cfi_offset 9, -16
+ 624              		.cfi_offset 8, -20
+ 625              		.cfi_offset 7, -24
+ 626              		.cfi_offset 6, -28
+ 627              		.cfi_offset 5, -32
+ 628              		.cfi_offset 4, -36
+ 629 0004 0546     		mov	r5, r0
+ 630 0006 87B0     		sub	sp, sp, #28
+ 631              	.LCFI9:
+ 632              		.cfi_def_cfa_offset 64
+ 145:math/pprz_geodetic_float.c ****   MAT33_VECT3_TRANSP_MUL(ecef_d, ltp_of_ecef_d, enu_d);
+ 633              		.loc 1 145 0
+ 634 0008 1068     		ldr	r0, [r2, #0]	@ float
+ 635              	.LVL47:
+ 126:math/pprz_geodetic_float.c **** void ecef_of_enu_vect_f(struct EcefCoor_f* ecef, struct LtpDef_f* def, struct EnuCoor_f* enu) {
+ 636              		.loc 1 126 0
+ 637 000a 0C46     		mov	r4, r1
+ 638              	.LVL48:
+ 639 000c 1646     		mov	r6, r2
+ 145:math/pprz_geodetic_float.c ****   MAT33_VECT3_TRANSP_MUL(ecef_d, ltp_of_ecef_d, enu_d);
+ 640              		.loc 1 145 0
+ 641 000e FFF7FEFF 		bl	__aeabi_f2d
+ 642              	.LVL49:
+ 643 0012 8046     		mov	r8, r0
+ 644 0014 7068     		ldr	r0, [r6, #4]	@ float
+ 645              	.LVL50:
+ 646 0016 8946     		mov	r9, r1
+ 647 0018 FFF7FEFF 		bl	__aeabi_f2d
+ 648              	.LVL51:
+ 649 001c 8246     		mov	sl, r0
+ 650 001e B068     		ldr	r0, [r6, #8]	@ float
+ 651              	.LVL52:
+ 652 0020 8B46     		mov	fp, r1
+ 653 0022 FFF7FEFF 		bl	__aeabi_f2d
+ 654              	.LVL53:
+ 655 0026 CDE90001 		strd	r0, [sp]
+ 130:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[1] = (double) def->ltp_of_ecef.m[1];
+ 656              		.loc 1 130 0
+ 657 002a E069     		ldr	r0, [r4, #28]	@ float
+ 658              	.LVL54:
+ 659 002c FFF7FEFF 		bl	__aeabi_f2d
+ 660              	.LVL55:
+ 145:math/pprz_geodetic_float.c ****   MAT33_VECT3_TRANSP_MUL(ecef_d, ltp_of_ecef_d, enu_d);
+ 661              		.loc 1 145 0
+ 662 0030 4246     		mov	r2, r8
+ 663 0032 4B46     		mov	r3, r9
+ 664 0034 FFF7FEFF 		bl	__aeabi_dmul
+ 665 0038 0646     		mov	r6, r0
+ 666              	.LVL56:
+ 133:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[4] = (double) def->ltp_of_ecef.m[4];
+ 667              		.loc 1 133 0
+ 668 003a A06A     		ldr	r0, [r4, #40]	@ float
+ 145:math/pprz_geodetic_float.c ****   MAT33_VECT3_TRANSP_MUL(ecef_d, ltp_of_ecef_d, enu_d);
+ 669              		.loc 1 145 0
+ 670 003c 0F46     		mov	r7, r1
+ 133:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[4] = (double) def->ltp_of_ecef.m[4];
+ 671              		.loc 1 133 0
+ 672 003e FFF7FEFF 		bl	__aeabi_f2d
+ 145:math/pprz_geodetic_float.c ****   MAT33_VECT3_TRANSP_MUL(ecef_d, ltp_of_ecef_d, enu_d);
+ 673              		.loc 1 145 0
+ 674 0042 5246     		mov	r2, sl
+ 675 0044 5B46     		mov	r3, fp
+ 676 0046 FFF7FEFF 		bl	__aeabi_dmul
+ 677 004a 0246     		mov	r2, r0
+ 678 004c 0B46     		mov	r3, r1
+ 679 004e 3046     		mov	r0, r6
+ 680 0050 3946     		mov	r1, r7
+ 681 0052 FFF7FEFF 		bl	__aeabi_dadd
+ 682 0056 0646     		mov	r6, r0
+ 136:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[7] = (double) def->ltp_of_ecef.m[7];
+ 683              		.loc 1 136 0
+ 684 0058 606B     		ldr	r0, [r4, #52]	@ float
+ 145:math/pprz_geodetic_float.c ****   MAT33_VECT3_TRANSP_MUL(ecef_d, ltp_of_ecef_d, enu_d);
+ 685              		.loc 1 145 0
+ 686 005a 0F46     		mov	r7, r1
+ 136:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[7] = (double) def->ltp_of_ecef.m[7];
+ 687              		.loc 1 136 0
+ 688 005c FFF7FEFF 		bl	__aeabi_f2d
+ 145:math/pprz_geodetic_float.c ****   MAT33_VECT3_TRANSP_MUL(ecef_d, ltp_of_ecef_d, enu_d);
+ 689              		.loc 1 145 0
+ 690 0060 DDE90023 		ldrd	r2, [sp]
+ 691 0064 FFF7FEFF 		bl	__aeabi_dmul
+ 692 0068 0246     		mov	r2, r0
+ 693 006a 0B46     		mov	r3, r1
+ 694 006c 3046     		mov	r0, r6
+ 695 006e 3946     		mov	r1, r7
+ 696 0070 FFF7FEFF 		bl	__aeabi_dadd
+ 697 0074 CDE90201 		strd	r0, [sp, #8]
+ 698              	.LVL57:
+ 131:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[2] = (double) def->ltp_of_ecef.m[2];
+ 699              		.loc 1 131 0
+ 700 0078 206A     		ldr	r0, [r4, #32]	@ float
+ 701              	.LVL58:
+ 702 007a FFF7FEFF 		bl	__aeabi_f2d
+ 703              	.LVL59:
+ 145:math/pprz_geodetic_float.c ****   MAT33_VECT3_TRANSP_MUL(ecef_d, ltp_of_ecef_d, enu_d);
+ 704              		.loc 1 145 0
+ 705 007e 4246     		mov	r2, r8
+ 706 0080 4B46     		mov	r3, r9
+ 707 0082 FFF7FEFF 		bl	__aeabi_dmul
+ 708 0086 0646     		mov	r6, r0
+ 134:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[5] = (double) def->ltp_of_ecef.m[5];
+ 709              		.loc 1 134 0
+ 710 0088 E06A     		ldr	r0, [r4, #44]	@ float
+ 145:math/pprz_geodetic_float.c ****   MAT33_VECT3_TRANSP_MUL(ecef_d, ltp_of_ecef_d, enu_d);
+ 711              		.loc 1 145 0
+ 712 008a 0F46     		mov	r7, r1
+ 134:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[5] = (double) def->ltp_of_ecef.m[5];
+ 713              		.loc 1 134 0
+ 714 008c FFF7FEFF 		bl	__aeabi_f2d
+ 145:math/pprz_geodetic_float.c ****   MAT33_VECT3_TRANSP_MUL(ecef_d, ltp_of_ecef_d, enu_d);
+ 715              		.loc 1 145 0
+ 716 0090 5246     		mov	r2, sl
+ 717 0092 5B46     		mov	r3, fp
+ 718 0094 FFF7FEFF 		bl	__aeabi_dmul
+ 719 0098 0246     		mov	r2, r0
+ 720 009a 0B46     		mov	r3, r1
+ 721 009c 3046     		mov	r0, r6
+ 722 009e 3946     		mov	r1, r7
+ 723 00a0 FFF7FEFF 		bl	__aeabi_dadd
+ 724 00a4 0646     		mov	r6, r0
+ 137:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[8] = (double) def->ltp_of_ecef.m[8];
+ 725              		.loc 1 137 0
+ 726 00a6 A06B     		ldr	r0, [r4, #56]	@ float
+ 145:math/pprz_geodetic_float.c ****   MAT33_VECT3_TRANSP_MUL(ecef_d, ltp_of_ecef_d, enu_d);
+ 727              		.loc 1 145 0
+ 728 00a8 0F46     		mov	r7, r1
+ 137:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[8] = (double) def->ltp_of_ecef.m[8];
+ 729              		.loc 1 137 0
+ 730 00aa FFF7FEFF 		bl	__aeabi_f2d
+ 145:math/pprz_geodetic_float.c ****   MAT33_VECT3_TRANSP_MUL(ecef_d, ltp_of_ecef_d, enu_d);
+ 731              		.loc 1 145 0
+ 732 00ae DDE90023 		ldrd	r2, [sp]
+ 733 00b2 FFF7FEFF 		bl	__aeabi_dmul
+ 734 00b6 0246     		mov	r2, r0
+ 735 00b8 0B46     		mov	r3, r1
+ 736 00ba 3046     		mov	r0, r6
+ 737 00bc 3946     		mov	r1, r7
+ 738 00be FFF7FEFF 		bl	__aeabi_dadd
+ 739 00c2 CDE90401 		strd	r0, [sp, #16]
+ 740              	.LVL60:
+ 129:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[0] = (double) def->ltp_of_ecef.m[0];
+ 741              		.loc 1 129 0
+ 742 00c6 A069     		ldr	r0, [r4, #24]	@ float
+ 743              	.LVL61:
+ 744 00c8 FFF7FEFF 		bl	__aeabi_f2d
+ 745              	.LVL62:
+ 145:math/pprz_geodetic_float.c ****   MAT33_VECT3_TRANSP_MUL(ecef_d, ltp_of_ecef_d, enu_d);
+ 746              		.loc 1 145 0
+ 747 00cc 4246     		mov	r2, r8
+ 748 00ce 4B46     		mov	r3, r9
+ 749 00d0 FFF7FEFF 		bl	__aeabi_dmul
+ 750 00d4 0646     		mov	r6, r0
+ 132:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[3] = (double) def->ltp_of_ecef.m[3];
+ 751              		.loc 1 132 0
+ 752 00d6 606A     		ldr	r0, [r4, #36]	@ float
+ 753              	.LVL63:
+ 145:math/pprz_geodetic_float.c ****   MAT33_VECT3_TRANSP_MUL(ecef_d, ltp_of_ecef_d, enu_d);
+ 754              		.loc 1 145 0
+ 755 00d8 0F46     		mov	r7, r1
+ 132:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[3] = (double) def->ltp_of_ecef.m[3];
+ 756              		.loc 1 132 0
+ 757 00da FFF7FEFF 		bl	__aeabi_f2d
+ 758              	.LVL64:
+ 145:math/pprz_geodetic_float.c ****   MAT33_VECT3_TRANSP_MUL(ecef_d, ltp_of_ecef_d, enu_d);
+ 759              		.loc 1 145 0
+ 760 00de 5246     		mov	r2, sl
+ 761 00e0 5B46     		mov	r3, fp
+ 762 00e2 FFF7FEFF 		bl	__aeabi_dmul
+ 763 00e6 0246     		mov	r2, r0
+ 764 00e8 0B46     		mov	r3, r1
+ 765 00ea 3046     		mov	r0, r6
+ 766 00ec 3946     		mov	r1, r7
+ 767 00ee FFF7FEFF 		bl	__aeabi_dadd
+ 768 00f2 0646     		mov	r6, r0
+ 135:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[6] = (double) def->ltp_of_ecef.m[6];
+ 769              		.loc 1 135 0
+ 770 00f4 206B     		ldr	r0, [r4, #48]	@ float
+ 145:math/pprz_geodetic_float.c ****   MAT33_VECT3_TRANSP_MUL(ecef_d, ltp_of_ecef_d, enu_d);
+ 771              		.loc 1 145 0
+ 772 00f6 0F46     		mov	r7, r1
+ 135:math/pprz_geodetic_float.c ****   ltp_of_ecef_d.m[6] = (double) def->ltp_of_ecef.m[6];
+ 773              		.loc 1 135 0
+ 774 00f8 FFF7FEFF 		bl	__aeabi_f2d
+ 145:math/pprz_geodetic_float.c ****   MAT33_VECT3_TRANSP_MUL(ecef_d, ltp_of_ecef_d, enu_d);
+ 775              		.loc 1 145 0
+ 776 00fc DDE90023 		ldrd	r2, [sp]
+ 777 0100 FFF7FEFF 		bl	__aeabi_dmul
+ 778 0104 0246     		mov	r2, r0
+ 779 0106 0B46     		mov	r3, r1
+ 780 0108 3046     		mov	r0, r6
+ 781 010a 3946     		mov	r1, r7
+ 782 010c FFF7FEFF 		bl	__aeabi_dadd
+ 148:math/pprz_geodetic_float.c ****   ecef->x = (float) ecef_d.x;
+ 783              		.loc 1 148 0
+ 784 0110 FFF7FEFF 		bl	__aeabi_d2f
+ 785 0114 2860     		str	r0, [r5, #0]	@ float
+ 149:math/pprz_geodetic_float.c ****   ecef->y = (float) ecef_d.y;
+ 786              		.loc 1 149 0
+ 787 0116 DDE90201 		ldrd	r0, [sp, #8]
+ 788 011a FFF7FEFF 		bl	__aeabi_d2f
+ 789 011e 6860     		str	r0, [r5, #4]	@ float
+ 150:math/pprz_geodetic_float.c ****   ecef->z = (float) ecef_d.z;
+ 790              		.loc 1 150 0
+ 791 0120 DDE90401 		ldrd	r0, [sp, #16]
+ 792 0124 FFF7FEFF 		bl	__aeabi_d2f
+ 793 0128 A860     		str	r0, [r5, #8]	@ float
+ 151:math/pprz_geodetic_float.c **** }
+ 794              		.loc 1 151 0
+ 795 012a 07B0     		add	sp, sp, #28
+ 796 012c BDE8F08F 		pop	{r4, r5, r6, r7, r8, r9, sl, fp, pc}
+ 797              		.cfi_endproc
+ 798              	.LFE12:
+ 800              		.section	.text.ecef_of_ned_vect_f,"ax",%progbits
+ 801              		.align	1
+ 802              		.global	ecef_of_ned_vect_f
+ 803              		.thumb
+ 804              		.thumb_func
+ 806              	ecef_of_ned_vect_f:
+ 807              	.LFB13:
+ 153:math/pprz_geodetic_float.c **** void ecef_of_ned_vect_f(struct EcefCoor_f* ecef, struct LtpDef_f* def, struct NedCoor_f* ned) {
+ 808              		.loc 1 153 0
+ 809              		.cfi_startproc
+ 810              		@ args = 0, pretend = 0, frame = 16
+ 811              		@ frame_needed = 0, uses_anonymous_args = 0
+ 812              	.LVL65:
+ 813 0000 1FB5     		push	{r0, r1, r2, r3, r4, lr}
+ 814              	.LCFI10:
+ 815              		.cfi_def_cfa_offset 24
+ 816              		.cfi_offset 14, -4
+ 817              		.cfi_offset 4, -8
+ 818              		.cfi_offset 3, -12
+ 819              		.cfi_offset 2, -16
+ 820              		.cfi_offset 1, -20
+ 821              		.cfi_offset 0, -24
+ 155:math/pprz_geodetic_float.c ****   ENU_OF_TO_NED(enu, *ned);
+ 822              		.loc 1 155 0
+ 823 0002 5368     		ldr	r3, [r2, #4]	@ float
+ 824 0004 0193     		str	r3, [sp, #4]	@ float
+ 825 0006 1368     		ldr	r3, [r2, #0]	@ float
+ 826 0008 0293     		str	r3, [sp, #8]	@ float
+ 827 000a 9368     		ldr	r3, [r2, #8]
+ 156:math/pprz_geodetic_float.c ****   ecef_of_enu_vect_f(ecef, def, &enu);
+ 828              		.loc 1 156 0
+ 829 000c 01AA     		add	r2, sp, #4
+ 830              	.LVL66:
+ 155:math/pprz_geodetic_float.c ****   ENU_OF_TO_NED(enu, *ned);
+ 831              		.loc 1 155 0
+ 832 000e 03F10043 		add	r3, r3, #-2147483648
+ 833 0012 0393     		str	r3, [sp, #12]	@ float
+ 156:math/pprz_geodetic_float.c ****   ecef_of_enu_vect_f(ecef, def, &enu);
+ 834              		.loc 1 156 0
+ 835 0014 FFF7FEFF 		bl	ecef_of_enu_vect_f
+ 836              	.LVL67:
+ 157:math/pprz_geodetic_float.c **** }
+ 837              		.loc 1 157 0
+ 838 0018 05B0     		add	sp, sp, #20
+ 839 001a 00BD     		pop	{pc}
+ 840              		.cfi_endproc
+ 841              	.LFE13:
+ 843              		.global	__aeabi_fdiv
+ 844              		.section	.text.lla_of_ecef_f,"ax",%progbits
+ 845              		.align	1
+ 846              		.global	lla_of_ecef_f
+ 847              		.thumb
+ 848              		.thumb_func
+ 850              	lla_of_ecef_f:
+ 851              	.LFB14:
+ 164:math/pprz_geodetic_float.c **** void lla_of_ecef_f(struct LlaCoor_f* out, struct EcefCoor_f* in) {
+ 852              		.loc 1 164 0
+ 853              		.cfi_startproc
+ 854              		@ args = 0, pretend = 0, frame = 16
+ 855              		@ frame_needed = 0, uses_anonymous_args = 0
+ 856              	.LVL68:
+ 857 0000 2DE9F04F 		push	{r4, r5, r6, r7, r8, r9, sl, fp, lr}
+ 858              	.LCFI11:
+ 859              		.cfi_def_cfa_offset 36
+ 860              		.cfi_offset 14, -4
+ 861              		.cfi_offset 11, -8
+ 862              		.cfi_offset 10, -12
+ 863              		.cfi_offset 9, -16
+ 864              		.cfi_offset 8, -20
+ 865              		.cfi_offset 7, -24
+ 866              		.cfi_offset 6, -28
+ 867              		.cfi_offset 5, -32
+ 868              		.cfi_offset 4, -36
+ 869 0004 8046     		mov	r8, r0
+ 177:math/pprz_geodetic_float.c ****   const float z2 = in->z*in->z;
+ 870              		.loc 1 177 0
+ 871 0006 8868     		ldr	r0, [r1, #8]	@ float
+ 872              	.LVL69:
+ 164:math/pprz_geodetic_float.c **** void lla_of_ecef_f(struct LlaCoor_f* out, struct EcefCoor_f* in) {
+ 873              		.loc 1 164 0
+ 874 0008 85B0     		sub	sp, sp, #20
+ 875              	.LCFI12:
+ 876              		.cfi_def_cfa_offset 56
+ 164:math/pprz_geodetic_float.c **** void lla_of_ecef_f(struct LlaCoor_f* out, struct EcefCoor_f* in) {
+ 877              		.loc 1 164 0
+ 878 000a 0C46     		mov	r4, r1
+ 177:math/pprz_geodetic_float.c ****   const float z2 = in->z*in->z;
+ 879              		.loc 1 177 0
+ 880 000c 0146     		mov	r1, r0
+ 881              	.LVL70:
+ 882 000e FFF7FEFF 		bl	__aeabi_fmul
+ 883 0012 0546     		mov	r5, r0
+ 884              	.LVL71:
+ 178:math/pprz_geodetic_float.c ****   const float r2 = in->x*in->x+in->y*in->y;
+ 885              		.loc 1 178 0
+ 886 0014 2068     		ldr	r0, [r4, #0]	@ float
+ 887              	.LVL72:
+ 888 0016 6768     		ldr	r7, [r4, #4]	@ float
+ 889 0018 0146     		mov	r1, r0
+ 890 001a FFF7FEFF 		bl	__aeabi_fmul
+ 891 001e 3946     		mov	r1, r7
+ 892 0020 0646     		mov	r6, r0
+ 893 0022 3846     		mov	r0, r7
+ 894 0024 FFF7FEFF 		bl	__aeabi_fmul
+ 895 0028 0146     		mov	r1, r0
+ 896 002a 3046     		mov	r0, r6
+ 897 002c FFF7FEFF 		bl	__aeabi_fadd
+ 898 0030 0746     		mov	r7, r0
+ 899              	.LVL73:
+ 179:math/pprz_geodetic_float.c ****   const float r = sqrtf(r2);
+ 900              		.loc 1 179 0
+ 901 0032 FFF7FEFF 		bl	sqrtf
+ 902              	.LVL74:
+ 903 0036 0646     		mov	r6, r0
+ 904              	.LVL75:
+ 180:math/pprz_geodetic_float.c ****   const float F = 54.*b2*z2;
+ 905              		.loc 1 180 0
+ 906 0038 2846     		mov	r0, r5
+ 907              	.LVL76:
+ 908 003a FFF7FEFF 		bl	__aeabi_f2d
+ 909 003e 86A3     		adr	r3, .L13
+ 910 0040 D3E90023 		ldrd	r2, [r3]
+ 911 0044 FFF7FEFF 		bl	__aeabi_dmul
+ 912 0048 FFF7FEFF 		bl	__aeabi_d2f
+ 181:math/pprz_geodetic_float.c ****   const float G = r2 + (1-e2)*z2 - e2*E2;
+ 913              		.loc 1 181 0
+ 914 004c 8449     		ldr	r1, .L13+8
+ 180:math/pprz_geodetic_float.c ****   const float F = 54.*b2*z2;
+ 915              		.loc 1 180 0
+ 916 004e 8346     		mov	fp, r0
+ 917              	.LVL77:
+ 181:math/pprz_geodetic_float.c ****   const float G = r2 + (1-e2)*z2 - e2*E2;
+ 918              		.loc 1 181 0
+ 919 0050 2846     		mov	r0, r5
+ 920              	.LVL78:
+ 921 0052 FFF7FEFF 		bl	__aeabi_fmul
+ 922 0056 8446     		mov	ip, r0
+ 923 0058 6146     		mov	r1, ip
+ 924 005a 3846     		mov	r0, r7
+ 925 005c CDF804C0 		str	ip, [sp, #4]
+ 926 0060 FFF7FEFF 		bl	__aeabi_fadd
+ 927 0064 7F49     		ldr	r1, .L13+12
+ 928 0066 FFF7FEFF 		bl	__aeabi_fsub
+ 182:math/pprz_geodetic_float.c ****   const float c = (e2*e2*F*r2)/(G*G*G);
+ 929              		.loc 1 182 0
+ 930 006a 7F49     		ldr	r1, .L13+16
+ 181:math/pprz_geodetic_float.c ****   const float G = r2 + (1-e2)*z2 - e2*E2;
+ 931              		.loc 1 181 0
+ 932 006c 8146     		mov	r9, r0
+ 933              	.LVL79:
+ 182:math/pprz_geodetic_float.c ****   const float c = (e2*e2*F*r2)/(G*G*G);
+ 934              		.loc 1 182 0
+ 935 006e 5846     		mov	r0, fp
+ 936              	.LVL80:
+ 937 0070 FFF7FEFF 		bl	__aeabi_fmul
+ 938 0074 3946     		mov	r1, r7
+ 939 0076 FFF7FEFF 		bl	__aeabi_fmul
+ 940 007a 4946     		mov	r1, r9
+ 941 007c 8246     		mov	sl, r0
+ 942 007e 4846     		mov	r0, r9
+ 943 0080 FFF7FEFF 		bl	__aeabi_fmul
+ 944 0084 4946     		mov	r1, r9
+ 945 0086 FFF7FEFF 		bl	__aeabi_fmul
+ 946 008a 0146     		mov	r1, r0
+ 947 008c 5046     		mov	r0, sl
+ 948 008e FFF7FEFF 		bl	__aeabi_fdiv
+ 183:math/pprz_geodetic_float.c ****   const float s = powf( (1 + c + sqrtf(c*c + 2*c)), 1./3.);
+ 949              		.loc 1 183 0
+ 950 0092 0146     		mov	r1, r0
+ 182:math/pprz_geodetic_float.c ****   const float c = (e2*e2*F*r2)/(G*G*G);
+ 951              		.loc 1 182 0
+ 952 0094 8246     		mov	sl, r0
+ 953              	.LVL81:
+ 183:math/pprz_geodetic_float.c ****   const float s = powf( (1 + c + sqrtf(c*c + 2*c)), 1./3.);
+ 954              		.loc 1 183 0
+ 955 0096 FFF7FEFF 		bl	__aeabi_fmul
+ 956              	.LVL82:
+ 957 009a 5146     		mov	r1, sl
+ 958 009c 0346     		mov	r3, r0
+ 959 009e 5046     		mov	r0, sl
+ 960 00a0 0393     		str	r3, [sp, #12]
+ 961 00a2 FFF7FEFF 		bl	__aeabi_fadd
+ 962 00a6 039B     		ldr	r3, [sp, #12]
+ 963 00a8 0146     		mov	r1, r0
+ 964 00aa 1846     		mov	r0, r3
+ 965 00ac FFF7FEFF 		bl	__aeabi_fadd
+ 966 00b0 FFF7FEFF 		bl	sqrtf
+ 967 00b4 4FF07E51 		mov	r1, #1065353216
+ 968 00b8 0346     		mov	r3, r0
+ 969 00ba 5046     		mov	r0, sl
+ 970 00bc 0393     		str	r3, [sp, #12]
+ 971 00be FFF7FEFF 		bl	__aeabi_fadd
+ 972 00c2 039B     		ldr	r3, [sp, #12]
+ 973 00c4 1946     		mov	r1, r3
+ 974 00c6 FFF7FEFF 		bl	__aeabi_fadd
+ 975 00ca 6849     		ldr	r1, .L13+20
+ 976 00cc FFF7FEFF 		bl	powf
+ 184:math/pprz_geodetic_float.c ****   const float s1 = 1+s+1/s;
+ 977              		.loc 1 184 0
+ 978 00d0 4FF07E51 		mov	r1, #1065353216
+ 183:math/pprz_geodetic_float.c ****   const float s = powf( (1 + c + sqrtf(c*c + 2*c)), 1./3.);
+ 979              		.loc 1 183 0
+ 980 00d4 8246     		mov	sl, r0
+ 981              	.LVL83:
+ 184:math/pprz_geodetic_float.c ****   const float s1 = 1+s+1/s;
+ 982              		.loc 1 184 0
+ 983 00d6 FFF7FEFF 		bl	__aeabi_fadd
+ 984              	.LVL84:
+ 985 00da 5146     		mov	r1, sl
+ 986 00dc 0346     		mov	r3, r0
+ 987 00de 4FF07E50 		mov	r0, #1065353216
+ 988 00e2 0393     		str	r3, [sp, #12]
+ 989 00e4 FFF7FEFF 		bl	__aeabi_fdiv
+ 990 00e8 039B     		ldr	r3, [sp, #12]
+ 991 00ea 0146     		mov	r1, r0
+ 992 00ec 1846     		mov	r0, r3
+ 993 00ee FFF7FEFF 		bl	__aeabi_fadd
+ 185:math/pprz_geodetic_float.c ****   const float P = F/(3*s1*s1*G*G);
+ 994              		.loc 1 185 0
+ 995 00f2 5F49     		ldr	r1, .L13+24
+ 184:math/pprz_geodetic_float.c ****   const float s1 = 1+s+1/s;
+ 996              		.loc 1 184 0
+ 997 00f4 8246     		mov	sl, r0
+ 998              	.LVL85:
+ 185:math/pprz_geodetic_float.c ****   const float P = F/(3*s1*s1*G*G);
+ 999              		.loc 1 185 0
+ 1000 00f6 FFF7FEFF 		bl	__aeabi_fmul
+ 1001              	.LVL86:
+ 1002 00fa 5146     		mov	r1, sl
+ 1003 00fc FFF7FEFF 		bl	__aeabi_fmul
+ 1004 0100 4946     		mov	r1, r9
+ 1005 0102 FFF7FEFF 		bl	__aeabi_fmul
+ 1006 0106 4946     		mov	r1, r9
+ 1007 0108 FFF7FEFF 		bl	__aeabi_fmul
+ 1008 010c 0146     		mov	r1, r0
+ 1009 010e 5846     		mov	r0, fp
+ 1010 0110 FFF7FEFF 		bl	__aeabi_fdiv
+ 186:math/pprz_geodetic_float.c ****   const float Q = sqrtf(1+2*e2*e2*P);
+ 1011              		.loc 1 186 0
+ 1012 0114 5749     		ldr	r1, .L13+28
+ 185:math/pprz_geodetic_float.c ****   const float P = F/(3*s1*s1*G*G);
+ 1013              		.loc 1 185 0
+ 1014 0116 8146     		mov	r9, r0
+ 1015              	.LVL87:
+ 186:math/pprz_geodetic_float.c ****   const float Q = sqrtf(1+2*e2*e2*P);
+ 1016              		.loc 1 186 0
+ 1017 0118 FFF7FEFF 		bl	__aeabi_fmul
+ 1018              	.LVL88:
+ 1019 011c 4FF07E51 		mov	r1, #1065353216
+ 1020 0120 FFF7FEFF 		bl	__aeabi_fadd
+ 1021 0124 FFF7FEFF 		bl	sqrtf
+ 187:math/pprz_geodetic_float.c ****   const float ro = -(e2*P*r)/(1+Q) + sqrtf((a*a/2)*(1+1/Q) - ((1-e2)*P*z2)/(Q*(1+Q)) - P*r2/2);
+ 1022              		.loc 1 187 0
+ 1023 0128 4FF07E51 		mov	r1, #1065353216
+ 186:math/pprz_geodetic_float.c ****   const float Q = sqrtf(1+2*e2*e2*P);
+ 1024              		.loc 1 186 0
+ 1025 012c 8346     		mov	fp, r0
+ 1026              	.LVL89:
+ 187:math/pprz_geodetic_float.c ****   const float ro = -(e2*P*r)/(1+Q) + sqrtf((a*a/2)*(1+1/Q) - ((1-e2)*P*z2)/(Q*(1+Q)) - P*r2/2);
+ 1027              		.loc 1 187 0
+ 1028 012e FFF7FEFF 		bl	__aeabi_fadd
+ 1029              	.LVL90:
+ 1030 0132 5946     		mov	r1, fp
+ 1031 0134 8246     		mov	sl, r0
+ 1032              	.LVL91:
+ 1033 0136 4FF07E50 		mov	r0, #1065353216
+ 1034 013a FFF7FEFF 		bl	__aeabi_fdiv
+ 1035 013e 4FF07E51 		mov	r1, #1065353216
+ 1036 0142 FFF7FEFF 		bl	__aeabi_fadd
+ 1037 0146 4C49     		ldr	r1, .L13+32
+ 1038 0148 FFF7FEFF 		bl	__aeabi_fmul
+ 1039 014c 4449     		ldr	r1, .L13+8
+ 1040 014e 0246     		mov	r2, r0
+ 1041 0150 4846     		mov	r0, r9
+ 1042 0152 0292     		str	r2, [sp, #8]
+ 1043 0154 FFF7FEFF 		bl	__aeabi_fmul
+ 1044 0158 2946     		mov	r1, r5
+ 1045 015a FFF7FEFF 		bl	__aeabi_fmul
+ 1046 015e 5146     		mov	r1, sl
+ 1047 0160 0346     		mov	r3, r0
+ 1048 0162 5846     		mov	r0, fp
+ 1049 0164 0393     		str	r3, [sp, #12]
+ 1050 0166 FFF7FEFF 		bl	__aeabi_fmul
+ 1051 016a 039B     		ldr	r3, [sp, #12]
+ 1052 016c 0146     		mov	r1, r0
+ 1053 016e 1846     		mov	r0, r3
+ 1054 0170 FFF7FEFF 		bl	__aeabi_fdiv
+ 1055 0174 029A     		ldr	r2, [sp, #8]
+ 1056 0176 0146     		mov	r1, r0
+ 1057 0178 1046     		mov	r0, r2
+ 1058 017a FFF7FEFF 		bl	__aeabi_fsub
+ 1059 017e 3946     		mov	r1, r7
+ 1060 0180 8346     		mov	fp, r0
+ 1061              	.LVL92:
+ 1062 0182 4846     		mov	r0, r9
+ 1063 0184 FFF7FEFF 		bl	__aeabi_fmul
+ 1064 0188 4FF07C51 		mov	r1, #1056964608
+ 1065 018c FFF7FEFF 		bl	__aeabi_fmul
+ 1066 0190 0146     		mov	r1, r0
+ 1067 0192 5846     		mov	r0, fp
+ 1068 0194 FFF7FEFF 		bl	__aeabi_fsub
+ 1069 0198 FFF7FEFF 		bl	sqrtf
+ 1070 019c 3749     		ldr	r1, .L13+36
+ 1071 019e 0746     		mov	r7, r0
+ 1072              	.LVL93:
+ 1073 01a0 4846     		mov	r0, r9
+ 1074              	.LVL94:
+ 1075 01a2 FFF7FEFF 		bl	__aeabi_fmul
+ 1076 01a6 3146     		mov	r1, r6
+ 1077 01a8 FFF7FEFF 		bl	__aeabi_fmul
+ 1078 01ac 5146     		mov	r1, sl
+ 1079 01ae 00F10040 		add	r0, r0, #-2147483648
+ 1080 01b2 FFF7FEFF 		bl	__aeabi_fdiv
+ 1081 01b6 3946     		mov	r1, r7
+ 1082 01b8 FFF7FEFF 		bl	__aeabi_fadd
+ 188:math/pprz_geodetic_float.c ****   const float tmp = (r - e2*ro)*(r - e2*ro);
+ 1083              		.loc 1 188 0
+ 1084 01bc 2F49     		ldr	r1, .L13+36
+ 1085 01be FFF7FEFF 		bl	__aeabi_fmul
+ 1086 01c2 0146     		mov	r1, r0
+ 1087 01c4 3046     		mov	r0, r6
+ 1088 01c6 FFF7FEFF 		bl	__aeabi_fsub
+ 1089 01ca 0146     		mov	r1, r0
+ 1090 01cc FFF7FEFF 		bl	__aeabi_fmul
+ 189:math/pprz_geodetic_float.c ****   const float U = sqrtf( tmp + z2 );
+ 1091              		.loc 1 189 0
+ 1092 01d0 2946     		mov	r1, r5
+ 188:math/pprz_geodetic_float.c ****   const float tmp = (r - e2*ro)*(r - e2*ro);
+ 1093              		.loc 1 188 0
+ 1094 01d2 0746     		mov	r7, r0
+ 1095              	.LVL95:
+ 189:math/pprz_geodetic_float.c ****   const float U = sqrtf( tmp + z2 );
+ 1096              		.loc 1 189 0
+ 1097 01d4 FFF7FEFF 		bl	__aeabi_fadd
+ 1098              	.LVL96:
+ 1099 01d8 FFF7FEFF 		bl	sqrtf
+ 190:math/pprz_geodetic_float.c ****   const float V = sqrtf( tmp + (1-e2)*z2 );
+ 1100              		.loc 1 190 0
+ 1101 01dc DDF804C0 		ldr	ip, [sp, #4]
+ 189:math/pprz_geodetic_float.c ****   const float U = sqrtf( tmp + z2 );
+ 1102              		.loc 1 189 0
+ 1103 01e0 8146     		mov	r9, r0
+ 1104              	.LVL97:
+ 190:math/pprz_geodetic_float.c ****   const float V = sqrtf( tmp + (1-e2)*z2 );
+ 1105              		.loc 1 190 0
+ 1106 01e2 6146     		mov	r1, ip
+ 1107 01e4 3846     		mov	r0, r7
+ 1108              	.LVL98:
+ 1109 01e6 FFF7FEFF 		bl	__aeabi_fadd
+ 1110 01ea FFF7FEFF 		bl	sqrtf
+ 191:math/pprz_geodetic_float.c ****   const float zo = (b2*in->z)/(a*V);
+ 1111              		.loc 1 191 0
+ 1112 01ee 2449     		ldr	r1, .L13+40
+ 1113 01f0 FFF7FEFF 		bl	__aeabi_fmul
+ 1114 01f4 0746     		mov	r7, r0
+ 1115              	.LVL99:
+ 193:math/pprz_geodetic_float.c ****   out->alt = U*(1 - b2/(a*V));
+ 1116              		.loc 1 193 0
+ 1117 01f6 3946     		mov	r1, r7
+ 1118 01f8 2248     		ldr	r0, .L13+44
+ 1119 01fa FFF7FEFF 		bl	__aeabi_fdiv
+ 1120 01fe 0146     		mov	r1, r0
+ 1121 0200 4FF07E50 		mov	r0, #1065353216
+ 1122 0204 FFF7FEFF 		bl	__aeabi_fsub
+ 1123 0208 0146     		mov	r1, r0
+ 1124 020a 4846     		mov	r0, r9
+ 1125 020c FFF7FEFF 		bl	__aeabi_fmul
+ 191:math/pprz_geodetic_float.c ****   const float zo = (b2*in->z)/(a*V);
+ 1126              		.loc 1 191 0
+ 1127 0210 A568     		ldr	r5, [r4, #8]	@ float
+ 1128              	.LVL100:
+ 1129 0212 1C49     		ldr	r1, .L13+44
+ 193:math/pprz_geodetic_float.c ****   out->alt = U*(1 - b2/(a*V));
+ 1130              		.loc 1 193 0
+ 1131 0214 C8F80800 		str	r0, [r8, #8]	@ float
+ 191:math/pprz_geodetic_float.c ****   const float zo = (b2*in->z)/(a*V);
+ 1132              		.loc 1 191 0
+ 1133 0218 2846     		mov	r0, r5
+ 1134 021a FFF7FEFF 		bl	__aeabi_fmul
+ 1135              	.LVL101:
+ 1136 021e 3946     		mov	r1, r7
+ 1137 0220 FFF7FEFF 		bl	__aeabi_fdiv
+ 194:math/pprz_geodetic_float.c ****   out->lat = atanf((in->z + ep2*zo)/r);
+ 1138              		.loc 1 194 0
+ 1139 0224 1849     		ldr	r1, .L13+48
+ 1140 0226 FFF7FEFF 		bl	__aeabi_fmul
+ 1141 022a 0146     		mov	r1, r0
+ 1142 022c 2846     		mov	r0, r5
+ 1143 022e FFF7FEFF 		bl	__aeabi_fadd
+ 1144 0232 3146     		mov	r1, r6
+ 1145 0234 FFF7FEFF 		bl	__aeabi_fdiv
+ 1146 0238 FFF7FEFF 		bl	atanf
+ 195:math/pprz_geodetic_float.c ****   out->lon = atan2f(in->y,in->x);
+ 1147              		.loc 1 195 0
+ 1148 023c 2168     		ldr	r1, [r4, #0]	@ float
+ 194:math/pprz_geodetic_float.c ****   out->lat = atanf((in->z + ep2*zo)/r);
+ 1149              		.loc 1 194 0
+ 1150 023e C8F80400 		str	r0, [r8, #4]	@ float
+ 195:math/pprz_geodetic_float.c ****   out->lon = atan2f(in->y,in->x);
+ 1151              		.loc 1 195 0
+ 1152 0242 6068     		ldr	r0, [r4, #4]	@ float
+ 1153 0244 FFF7FEFF 		bl	atan2f
+ 1154 0248 C8F80000 		str	r0, [r8, #0]	@ float
+ 197:math/pprz_geodetic_float.c **** }
+ 1155              		.loc 1 197 0
+ 1156 024c 05B0     		add	sp, sp, #20
+ 1157 024e BDE8F08F 		pop	{r4, r5, r6, r7, r8, r9, sl, fp, pc}
+ 1158              	.L14:
+ 1159 0252 00BFAFF3 		.align	3
+ 1159      0080
+ 1160              	.L13:
+ 1161 0258 000000DC 		.word	-603979776
+ 1162 025c 3E021F43 		.word	1126105662
+ 1163 0260 47497E3F 		.word	1065240903
+ 1164 0264 8B53D94E 		.word	1322865547
+ 1165 0268 70F73B38 		.word	943454064
+ 1166 026c ABAAAA3E 		.word	1051372203
+ 1167 0270 00004040 		.word	1077936128
+ 1168 0274 70F7BB38 		.word	951842672
+ 1169 0278 CAFE9355 		.word	1435762378
+ 1170 027c 875CDB3B 		.word	1004231815
+ 1171 0280 32A5C24A 		.word	1254270258
+ 1172 0284 2A011356 		.word	1444086058
+ 1173 0288 FFD6DC3B 		.word	1004328703
+ 1174              		.cfi_endproc
+ 1175              	.LFE14:
+ 1177 028c AFF30080 		.section	.text.ltp_def_from_ecef_f,"ax",%progbits
+ 1178              		.align	1
+ 1179              		.global	ltp_def_from_ecef_f
+ 1180              		.thumb
+ 1181              		.thumb_func
+ 1183              	ltp_def_from_ecef_f:
+ 1184              	.LFB2:
+   9:math/pprz_geodetic_float.c **** void ltp_def_from_ecef_f(struct LtpDef_f* def, struct EcefCoor_f* ecef) {
+ 1185              		.loc 1 9 0
+ 1186              		.cfi_startproc
+ 1187              		@ args = 0, pretend = 0, frame = 0
+ 1188              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1189              	.LVL102:
+ 1190 0000 2DE9F843 		push	{r3, r4, r5, r6, r7, r8, r9, lr}
+ 1191              	.LCFI13:
+ 1192              		.cfi_def_cfa_offset 32
+ 1193              		.cfi_offset 14, -4
+ 1194              		.cfi_offset 9, -8
+ 1195              		.cfi_offset 8, -12
+ 1196              		.cfi_offset 7, -16
+ 1197              		.cfi_offset 6, -20
+ 1198              		.cfi_offset 5, -24
+ 1199              		.cfi_offset 4, -28
+ 1200              		.cfi_offset 3, -32
+  12:math/pprz_geodetic_float.c ****   VECT3_COPY(def->ecef, *ecef);
+ 1201              		.loc 1 12 0
+ 1202 0004 0B68     		ldr	r3, [r1, #0]	@ float
+   9:math/pprz_geodetic_float.c **** void ltp_def_from_ecef_f(struct LtpDef_f* def, struct EcefCoor_f* ecef) {
+ 1203              		.loc 1 9 0
+ 1204 0006 0446     		mov	r4, r0
+  12:math/pprz_geodetic_float.c ****   VECT3_COPY(def->ecef, *ecef);
+ 1205              		.loc 1 12 0
+ 1206 0008 0360     		str	r3, [r0, #0]	@ float
+ 1207 000a 4B68     		ldr	r3, [r1, #4]	@ float
+ 1208 000c 4360     		str	r3, [r0, #4]	@ float
+ 1209 000e 8B68     		ldr	r3, [r1, #8]	@ float
+  14:math/pprz_geodetic_float.c ****   lla_of_ecef_f(&def->lla, &def->ecef);
+ 1210              		.loc 1 14 0
+ 1211 0010 2146     		mov	r1, r4
+ 1212              	.LVL103:
+  12:math/pprz_geodetic_float.c ****   VECT3_COPY(def->ecef, *ecef);
+ 1213              		.loc 1 12 0
+ 1214 0012 8360     		str	r3, [r0, #8]	@ float
+  14:math/pprz_geodetic_float.c ****   lla_of_ecef_f(&def->lla, &def->ecef);
+ 1215              		.loc 1 14 0
+ 1216 0014 00F10C00 		add	r0, r0, #12
+ 1217              	.LVL104:
+ 1218 0018 FFF7FEFF 		bl	lla_of_ecef_f
+ 1219              	.LVL105:
+  16:math/pprz_geodetic_float.c ****   const float sin_lat = sinf(def->lla.lat);
+ 1220              		.loc 1 16 0
+ 1221 001c 2569     		ldr	r5, [r4, #16]	@ float
+ 1222 001e 2846     		mov	r0, r5
+ 1223 0020 FFF7FEFF 		bl	sinf
+ 1224 0024 8046     		mov	r8, r0
+ 1225              	.LVL106:
+  17:math/pprz_geodetic_float.c ****   const float cos_lat = cosf(def->lla.lat);
+ 1226              		.loc 1 17 0
+ 1227 0026 2846     		mov	r0, r5
+ 1228              	.LVL107:
+ 1229 0028 FFF7FEFF 		bl	cosf
+  18:math/pprz_geodetic_float.c ****   const float sin_lon = sinf(def->lla.lon);
+ 1230              		.loc 1 18 0
+ 1231 002c E768     		ldr	r7, [r4, #12]	@ float
+  17:math/pprz_geodetic_float.c ****   const float cos_lat = cosf(def->lla.lat);
+ 1232              		.loc 1 17 0
+ 1233 002e 0646     		mov	r6, r0
+ 1234              	.LVL108:
+  18:math/pprz_geodetic_float.c ****   const float sin_lon = sinf(def->lla.lon);
+ 1235              		.loc 1 18 0
+ 1236 0030 3846     		mov	r0, r7
+ 1237              	.LVL109:
+ 1238 0032 FFF7FEFF 		bl	sinf
+ 1239 0036 0546     		mov	r5, r0
+ 1240              	.LVL110:
+  19:math/pprz_geodetic_float.c ****   const float cos_lon = cosf(def->lla.lon);
+ 1241              		.loc 1 19 0
+ 1242 0038 3846     		mov	r0, r7
+ 1243              	.LVL111:
+ 1244 003a FFF7FEFF 		bl	cosf
+  20:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[0] = -sin_lon;
+ 1245              		.loc 1 20 0
+ 1246 003e 05F10043 		add	r3, r5, #-2147483648
+  19:math/pprz_geodetic_float.c ****   const float cos_lon = cosf(def->lla.lon);
+ 1247              		.loc 1 19 0
+ 1248 0042 0746     		mov	r7, r0
+ 1249              	.LVL112:
+  20:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[0] = -sin_lon;
+ 1250              		.loc 1 20 0
+ 1251 0044 A361     		str	r3, [r4, #24]	@ float
+  23:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[3] = -sin_lat*cos_lon;
+ 1252              		.loc 1 23 0
+ 1253 0046 08F10049 		add	r9, r8, #-2147483648
+  22:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[2] =  0.; /* this element is always zero http://en.wikipedia.org/wiki/Geodetic
+ 1254              		.loc 1 22 0
+ 1255 004a 0023     		movs	r3, #0
+ 1256 004c 2362     		str	r3, [r4, #32]	@ float
+  21:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[1] =  cos_lon;
+ 1257              		.loc 1 21 0
+ 1258 004e E061     		str	r0, [r4, #28]	@ float
+  23:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[3] = -sin_lat*cos_lon;
+ 1259              		.loc 1 23 0
+ 1260 0050 3946     		mov	r1, r7
+ 1261 0052 4846     		mov	r0, r9
+ 1262              	.LVL113:
+ 1263 0054 FFF7FEFF 		bl	__aeabi_fmul
+ 1264              	.LVL114:
+  24:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[4] = -sin_lat*sin_lon;
+ 1265              		.loc 1 24 0
+ 1266 0058 2946     		mov	r1, r5
+  23:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[3] = -sin_lat*cos_lon;
+ 1267              		.loc 1 23 0
+ 1268 005a 6062     		str	r0, [r4, #36]	@ float
+  24:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[4] = -sin_lat*sin_lon;
+ 1269              		.loc 1 24 0
+ 1270 005c 4846     		mov	r0, r9
+ 1271 005e FFF7FEFF 		bl	__aeabi_fmul
+  26:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[6] =  cos_lat*cos_lon;
+ 1272              		.loc 1 26 0
+ 1273 0062 3946     		mov	r1, r7
+  24:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[4] = -sin_lat*sin_lon;
+ 1274              		.loc 1 24 0
+ 1275 0064 A062     		str	r0, [r4, #40]	@ float
+  25:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[5] =  cos_lat;
+ 1276              		.loc 1 25 0
+ 1277 0066 E662     		str	r6, [r4, #44]	@ float
+  26:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[6] =  cos_lat*cos_lon;
+ 1278              		.loc 1 26 0
+ 1279 0068 3046     		mov	r0, r6
+ 1280 006a FFF7FEFF 		bl	__aeabi_fmul
+  27:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[7] =  cos_lat*sin_lon;
+ 1281              		.loc 1 27 0
+ 1282 006e 2946     		mov	r1, r5
+  26:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[6] =  cos_lat*cos_lon;
+ 1283              		.loc 1 26 0
+ 1284 0070 2063     		str	r0, [r4, #48]	@ float
+  27:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[7] =  cos_lat*sin_lon;
+ 1285              		.loc 1 27 0
+ 1286 0072 3046     		mov	r0, r6
+ 1287 0074 FFF7FEFF 		bl	__aeabi_fmul
+  28:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[8] =  sin_lat;
+ 1288              		.loc 1 28 0
+ 1289 0078 C4F83880 		str	r8, [r4, #56]	@ float
+  27:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[7] =  cos_lat*sin_lon;
+ 1290              		.loc 1 27 0
+ 1291 007c 6063     		str	r0, [r4, #52]	@ float
+  30:math/pprz_geodetic_float.c **** }
+ 1292              		.loc 1 30 0
+ 1293 007e BDE8F883 		pop	{r3, r4, r5, r6, r7, r8, r9, pc}
+ 1294              		.cfi_endproc
+ 1295              	.LFE2:
+ 1297              		.section	.text.ecef_of_lla_f,"ax",%progbits
+ 1298              		.align	1
+ 1299              		.global	ecef_of_lla_f
+ 1300              		.thumb
+ 1301              		.thumb_func
+ 1303              	ecef_of_lla_f:
+ 1304              	.LFB15:
+ 199:math/pprz_geodetic_float.c **** void ecef_of_lla_f(struct EcefCoor_f* out, struct LlaCoor_f* in) {
+ 1305              		.loc 1 199 0
+ 1306              		.cfi_startproc
+ 1307              		@ args = 0, pretend = 0, frame = 0
+ 1308              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1309              	.LVL115:
+ 1310 0000 2DE9F047 		push	{r4, r5, r6, r7, r8, r9, sl, lr}
+ 1311              	.LCFI14:
+ 1312              		.cfi_def_cfa_offset 32
+ 1313              		.cfi_offset 14, -4
+ 1314              		.cfi_offset 10, -8
+ 1315              		.cfi_offset 9, -12
+ 1316              		.cfi_offset 8, -16
+ 1317              		.cfi_offset 7, -20
+ 1318              		.cfi_offset 6, -24
+ 1319              		.cfi_offset 5, -28
+ 1320              		.cfi_offset 4, -32
+ 206:math/pprz_geodetic_float.c ****   const float sin_lat = sinf(in->lat);
+ 1321              		.loc 1 206 0
+ 1322 0004 4F68     		ldr	r7, [r1, #4]	@ float
+ 199:math/pprz_geodetic_float.c **** void ecef_of_lla_f(struct EcefCoor_f* out, struct LlaCoor_f* in) {
+ 1323              		.loc 1 199 0
+ 1324 0006 0646     		mov	r6, r0
+ 206:math/pprz_geodetic_float.c ****   const float sin_lat = sinf(in->lat);
+ 1325              		.loc 1 206 0
+ 1326 0008 3846     		mov	r0, r7
+ 1327              	.LVL116:
+ 199:math/pprz_geodetic_float.c **** void ecef_of_lla_f(struct EcefCoor_f* out, struct LlaCoor_f* in) {
+ 1328              		.loc 1 199 0
+ 1329 000a 0D46     		mov	r5, r1
+ 206:math/pprz_geodetic_float.c ****   const float sin_lat = sinf(in->lat);
+ 1330              		.loc 1 206 0
+ 1331 000c FFF7FEFF 		bl	sinf
+ 1332              	.LVL117:
+ 1333 0010 0446     		mov	r4, r0
+ 1334              	.LVL118:
+ 207:math/pprz_geodetic_float.c ****   const float cos_lat = cosf(in->lat);
+ 1335              		.loc 1 207 0
+ 1336 0012 3846     		mov	r0, r7
+ 1337              	.LVL119:
+ 1338 0014 FFF7FEFF 		bl	cosf
+ 208:math/pprz_geodetic_float.c ****   const float sin_lon = sinf(in->lon);
+ 1339              		.loc 1 208 0
+ 1340 0018 2F68     		ldr	r7, [r5, #0]	@ float
+ 207:math/pprz_geodetic_float.c ****   const float cos_lat = cosf(in->lat);
+ 1341              		.loc 1 207 0
+ 1342 001a 8146     		mov	r9, r0
+ 1343              	.LVL120:
+ 208:math/pprz_geodetic_float.c ****   const float sin_lon = sinf(in->lon);
+ 1344              		.loc 1 208 0
+ 1345 001c 3846     		mov	r0, r7
+ 1346              	.LVL121:
+ 1347 001e FFF7FEFF 		bl	sinf
+ 1348 0022 8046     		mov	r8, r0
+ 1349              	.LVL122:
+ 209:math/pprz_geodetic_float.c ****   const float cos_lon = cosf(in->lon);
+ 1350              		.loc 1 209 0
+ 1351 0024 3846     		mov	r0, r7
+ 1352              	.LVL123:
+ 1353 0026 FFF7FEFF 		bl	cosf
+ 210:math/pprz_geodetic_float.c ****   const float chi = sqrtf(1. - e2*sin_lat*sin_lat);
+ 1354              		.loc 1 210 0
+ 1355 002a 2749     		ldr	r1, .L17+8
+ 209:math/pprz_geodetic_float.c ****   const float cos_lon = cosf(in->lon);
+ 1356              		.loc 1 209 0
+ 1357 002c 8246     		mov	sl, r0
+ 1358              	.LVL124:
+ 210:math/pprz_geodetic_float.c ****   const float chi = sqrtf(1. - e2*sin_lat*sin_lat);
+ 1359              		.loc 1 210 0
+ 1360 002e 2046     		mov	r0, r4
+ 1361              	.LVL125:
+ 1362 0030 FFF7FEFF 		bl	__aeabi_fmul
+ 1363 0034 2146     		mov	r1, r4
+ 1364 0036 FFF7FEFF 		bl	__aeabi_fmul
+ 1365 003a 0146     		mov	r1, r0
+ 1366 003c 4FF07E50 		mov	r0, #1065353216
+ 1367 0040 FFF7FEFF 		bl	__aeabi_fsub
+ 1368 0044 FFF7FEFF 		bl	sqrtf
+ 1369 0048 0146     		mov	r1, r0
+ 1370              	.LVL126:
+ 211:math/pprz_geodetic_float.c ****   const float a_chi = a / chi;
+ 1371              		.loc 1 211 0
+ 1372 004a 2048     		ldr	r0, .L17+12
+ 1373              	.LVL127:
+ 1374 004c FFF7FEFF 		bl	__aeabi_fdiv
+ 1375              	.LVL128:
+ 213:math/pprz_geodetic_float.c ****   out->x = (a_chi + in->alt) * cos_lat * cos_lon;
+ 1376              		.loc 1 213 0
+ 1377 0050 AD68     		ldr	r5, [r5, #8]	@ float
+ 1378              	.LVL129:
+ 211:math/pprz_geodetic_float.c ****   const float a_chi = a / chi;
+ 1379              		.loc 1 211 0
+ 1380 0052 0746     		mov	r7, r0
+ 1381              	.LVL130:
+ 213:math/pprz_geodetic_float.c ****   out->x = (a_chi + in->alt) * cos_lat * cos_lon;
+ 1382              		.loc 1 213 0
+ 1383 0054 2946     		mov	r1, r5
+ 1384 0056 FFF7FEFF 		bl	__aeabi_fadd
+ 1385              	.LVL131:
+ 1386 005a 4946     		mov	r1, r9
+ 1387 005c FFF7FEFF 		bl	__aeabi_fmul
+ 1388 0060 5146     		mov	r1, sl
+ 1389 0062 8146     		mov	r9, r0
+ 1390              	.LVL132:
+ 1391 0064 FFF7FEFF 		bl	__aeabi_fmul
+ 214:math/pprz_geodetic_float.c ****   out->y = (a_chi + in->alt) * cos_lat * sin_lon;
+ 1392              		.loc 1 214 0
+ 1393 0068 4146     		mov	r1, r8
+ 213:math/pprz_geodetic_float.c ****   out->x = (a_chi + in->alt) * cos_lat * cos_lon;
+ 1394              		.loc 1 213 0
+ 1395 006a 3060     		str	r0, [r6, #0]	@ float
+ 214:math/pprz_geodetic_float.c ****   out->y = (a_chi + in->alt) * cos_lat * sin_lon;
+ 1396              		.loc 1 214 0
+ 1397 006c 4846     		mov	r0, r9
+ 1398 006e FFF7FEFF 		bl	__aeabi_fmul
+ 1399 0072 7060     		str	r0, [r6, #4]	@ float
+ 215:math/pprz_geodetic_float.c ****   out->z = (a_chi*(1. - e2) + in->alt) * sin_lat;
+ 1400              		.loc 1 215 0
+ 1401 0074 3846     		mov	r0, r7
+ 1402 0076 FFF7FEFF 		bl	__aeabi_f2d
+ 1403 007a 11A3     		adr	r3, .L17
+ 1404 007c D3E90023 		ldrd	r2, [r3]
+ 1405 0080 FFF7FEFF 		bl	__aeabi_dmul
+ 1406 0084 8046     		mov	r8, r0
+ 1407              	.LVL133:
+ 1408 0086 2846     		mov	r0, r5
+ 1409 0088 8946     		mov	r9, r1
+ 1410 008a FFF7FEFF 		bl	__aeabi_f2d
+ 1411 008e 0246     		mov	r2, r0
+ 1412 0090 0B46     		mov	r3, r1
+ 1413 0092 4046     		mov	r0, r8
+ 1414 0094 4946     		mov	r1, r9
+ 1415 0096 FFF7FEFF 		bl	__aeabi_dadd
+ 1416 009a 8046     		mov	r8, r0
+ 1417 009c 2046     		mov	r0, r4
+ 1418 009e 8946     		mov	r9, r1
+ 1419 00a0 FFF7FEFF 		bl	__aeabi_f2d
+ 1420 00a4 0246     		mov	r2, r0
+ 1421 00a6 0B46     		mov	r3, r1
+ 1422 00a8 4046     		mov	r0, r8
+ 1423 00aa 4946     		mov	r1, r9
+ 1424 00ac FFF7FEFF 		bl	__aeabi_dmul
+ 1425 00b0 FFF7FEFF 		bl	__aeabi_d2f
+ 1426 00b4 B060     		str	r0, [r6, #8]	@ float
+ 216:math/pprz_geodetic_float.c **** }
+ 1427              		.loc 1 216 0
+ 1428 00b6 BDE8F087 		pop	{r4, r5, r6, r7, r8, r9, sl, pc}
+ 1429              	.L18:
+ 1430 00ba 00BFAFF3 		.align	3
+ 1430      0080
+ 1431              	.L17:
+ 1432 00c0 000040DE 		.word	-566231040
+ 1433 00c4 28C9EF3F 		.word	1072679208
+ 1434 00c8 875CDB3B 		.word	1004231815
+ 1435 00cc 32A5C24A 		.word	1254270258
+ 1436              		.cfi_endproc
+ 1437              	.LFE15:
+ 1439              		.section	.text.ned_of_lla_point_f,"ax",%progbits
+ 1440              		.align	1
+ 1441              		.global	ned_of_lla_point_f
+ 1442              		.thumb
+ 1443              		.thumb_func
+ 1445              	ned_of_lla_point_f:
+ 1446              	.LFB9:
+  84:math/pprz_geodetic_float.c **** void ned_of_lla_point_f(struct NedCoor_f* ned, struct LtpDef_f* def, struct LlaCoor_f* lla) {
+ 1447              		.loc 1 84 0
+ 1448              		.cfi_startproc
+ 1449              		@ args = 0, pretend = 0, frame = 16
+ 1450              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1451              	.LVL134:
+ 1452 0000 30B5     		push	{r4, r5, lr}
+ 1453              	.LCFI15:
+ 1454              		.cfi_def_cfa_offset 12
+ 1455              		.cfi_offset 14, -4
+ 1456              		.cfi_offset 5, -8
+ 1457              		.cfi_offset 4, -12
+ 1458 0002 85B0     		sub	sp, sp, #20
+ 1459              	.LCFI16:
+ 1460              		.cfi_def_cfa_offset 32
+  84:math/pprz_geodetic_float.c **** void ned_of_lla_point_f(struct NedCoor_f* ned, struct LtpDef_f* def, struct LlaCoor_f* lla) {
+ 1461              		.loc 1 84 0
+ 1462 0004 0546     		mov	r5, r0
+ 1463 0006 0C46     		mov	r4, r1
+  86:math/pprz_geodetic_float.c ****   ecef_of_lla_f(&ecef,lla);
+ 1464              		.loc 1 86 0
+ 1465 0008 01A8     		add	r0, sp, #4
+ 1466              	.LVL135:
+ 1467 000a 1146     		mov	r1, r2
+ 1468              	.LVL136:
+ 1469 000c FFF7FEFF 		bl	ecef_of_lla_f
+ 1470              	.LVL137:
+  87:math/pprz_geodetic_float.c ****   ned_of_ecef_point_f(ned,def,&ecef);
+ 1471              		.loc 1 87 0
+ 1472 0010 2846     		mov	r0, r5
+ 1473 0012 2146     		mov	r1, r4
+ 1474 0014 01AA     		add	r2, sp, #4
+ 1475 0016 FFF7FEFF 		bl	ned_of_ecef_point_f
+  88:math/pprz_geodetic_float.c **** }
+ 1476              		.loc 1 88 0
+ 1477 001a 05B0     		add	sp, sp, #20
+ 1478 001c 30BD     		pop	{r4, r5, pc}
+ 1479              		.cfi_endproc
+ 1480              	.LFE9:
+ 1482              		.section	.text.enu_of_lla_point_f,"ax",%progbits
+ 1483              		.align	1
+ 1484              		.global	enu_of_lla_point_f
+ 1485              		.thumb
+ 1486              		.thumb_func
+ 1488              	enu_of_lla_point_f:
+ 1489              	.LFB8:
+  78:math/pprz_geodetic_float.c **** void enu_of_lla_point_f(struct EnuCoor_f* enu, struct LtpDef_f* def, struct LlaCoor_f* lla) {
+ 1490              		.loc 1 78 0
+ 1491              		.cfi_startproc
+ 1492              		@ args = 0, pretend = 0, frame = 16
+ 1493              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1494              	.LVL138:
+ 1495 0000 30B5     		push	{r4, r5, lr}
+ 1496              	.LCFI17:
+ 1497              		.cfi_def_cfa_offset 12
+ 1498              		.cfi_offset 14, -4
+ 1499              		.cfi_offset 5, -8
+ 1500              		.cfi_offset 4, -12
+ 1501 0002 85B0     		sub	sp, sp, #20
+ 1502              	.LCFI18:
+ 1503              		.cfi_def_cfa_offset 32
+  78:math/pprz_geodetic_float.c **** void enu_of_lla_point_f(struct EnuCoor_f* enu, struct LtpDef_f* def, struct LlaCoor_f* lla) {
+ 1504              		.loc 1 78 0
+ 1505 0004 0546     		mov	r5, r0
+ 1506 0006 0C46     		mov	r4, r1
+  80:math/pprz_geodetic_float.c ****   ecef_of_lla_f(&ecef,lla);
+ 1507              		.loc 1 80 0
+ 1508 0008 01A8     		add	r0, sp, #4
+ 1509              	.LVL139:
+ 1510 000a 1146     		mov	r1, r2
+ 1511              	.LVL140:
+ 1512 000c FFF7FEFF 		bl	ecef_of_lla_f
+ 1513              	.LVL141:
+  81:math/pprz_geodetic_float.c ****   enu_of_ecef_point_f(enu,def,&ecef);
+ 1514              		.loc 1 81 0
+ 1515 0010 2846     		mov	r0, r5
+ 1516 0012 2146     		mov	r1, r4
+ 1517 0014 01AA     		add	r2, sp, #4
+ 1518 0016 FFF7FEFF 		bl	enu_of_ecef_point_f
+  82:math/pprz_geodetic_float.c **** }
+ 1519              		.loc 1 82 0
+ 1520 001a 05B0     		add	sp, sp, #20
+ 1521 001c 30BD     		pop	{r4, r5, pc}
+ 1522              		.cfi_endproc
+ 1523              	.LFE8:
+ 1525              		.section	.text.ltp_def_from_lla_f,"ax",%progbits
+ 1526              		.align	1
+ 1527              		.global	ltp_def_from_lla_f
+ 1528              		.thumb
+ 1529              		.thumb_func
+ 1531              	ltp_def_from_lla_f:
+ 1532              	.LFB3:
+  32:math/pprz_geodetic_float.c **** void ltp_def_from_lla_f(struct LtpDef_f* def, struct LlaCoor_f* lla) {
+ 1533              		.loc 1 32 0
+ 1534              		.cfi_startproc
+ 1535              		@ args = 0, pretend = 0, frame = 0
+ 1536              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1537              	.LVL142:
+ 1538 0000 2DE9F843 		push	{r3, r4, r5, r6, r7, r8, r9, lr}
+ 1539              	.LCFI19:
+ 1540              		.cfi_def_cfa_offset 32
+ 1541              		.cfi_offset 14, -4
+ 1542              		.cfi_offset 9, -8
+ 1543              		.cfi_offset 8, -12
+ 1544              		.cfi_offset 7, -16
+ 1545              		.cfi_offset 6, -20
+ 1546              		.cfi_offset 5, -24
+ 1547              		.cfi_offset 4, -28
+ 1548              		.cfi_offset 3, -32
+  34:math/pprz_geodetic_float.c ****   LLA_COPY(def->lla, *lla);
+ 1549              		.loc 1 34 0
+ 1550 0004 4B68     		ldr	r3, [r1, #4]	@ float
+  32:math/pprz_geodetic_float.c **** void ltp_def_from_lla_f(struct LtpDef_f* def, struct LlaCoor_f* lla) {
+ 1551              		.loc 1 32 0
+ 1552 0006 0446     		mov	r4, r0
+  34:math/pprz_geodetic_float.c ****   LLA_COPY(def->lla, *lla);
+ 1553              		.loc 1 34 0
+ 1554 0008 0361     		str	r3, [r0, #16]	@ float
+ 1555 000a 0B68     		ldr	r3, [r1, #0]	@ float
+ 1556 000c C360     		str	r3, [r0, #12]	@ float
+ 1557 000e 8B68     		ldr	r3, [r1, #8]	@ float
+  36:math/pprz_geodetic_float.c ****   ecef_of_lla_f(&def->ecef, &def->lla);
+ 1558              		.loc 1 36 0
+ 1559 0010 00F10C01 		add	r1, r0, #12
+ 1560              	.LVL143:
+  34:math/pprz_geodetic_float.c ****   LLA_COPY(def->lla, *lla);
+ 1561              		.loc 1 34 0
+ 1562 0014 4361     		str	r3, [r0, #20]	@ float
+  36:math/pprz_geodetic_float.c ****   ecef_of_lla_f(&def->ecef, &def->lla);
+ 1563              		.loc 1 36 0
+ 1564 0016 FFF7FEFF 		bl	ecef_of_lla_f
+ 1565              	.LVL144:
+  39:math/pprz_geodetic_float.c ****   const float sin_lat = sinf(def->lla.lat);
+ 1566              		.loc 1 39 0
+ 1567 001a 2569     		ldr	r5, [r4, #16]	@ float
+ 1568 001c 2846     		mov	r0, r5
+ 1569 001e FFF7FEFF 		bl	sinf
+ 1570 0022 8046     		mov	r8, r0
+ 1571              	.LVL145:
+  40:math/pprz_geodetic_float.c ****   const float cos_lat = cosf(def->lla.lat);
+ 1572              		.loc 1 40 0
+ 1573 0024 2846     		mov	r0, r5
+ 1574              	.LVL146:
+ 1575 0026 FFF7FEFF 		bl	cosf
+  41:math/pprz_geodetic_float.c ****   const float sin_lon = sinf(def->lla.lon);
+ 1576              		.loc 1 41 0
+ 1577 002a E768     		ldr	r7, [r4, #12]	@ float
+  40:math/pprz_geodetic_float.c ****   const float cos_lat = cosf(def->lla.lat);
+ 1578              		.loc 1 40 0
+ 1579 002c 0646     		mov	r6, r0
+ 1580              	.LVL147:
+  41:math/pprz_geodetic_float.c ****   const float sin_lon = sinf(def->lla.lon);
+ 1581              		.loc 1 41 0
+ 1582 002e 3846     		mov	r0, r7
+ 1583              	.LVL148:
+ 1584 0030 FFF7FEFF 		bl	sinf
+ 1585 0034 0546     		mov	r5, r0
+ 1586              	.LVL149:
+  42:math/pprz_geodetic_float.c ****   const float cos_lon = cosf(def->lla.lon);
+ 1587              		.loc 1 42 0
+ 1588 0036 3846     		mov	r0, r7
+ 1589              	.LVL150:
+ 1590 0038 FFF7FEFF 		bl	cosf
+  44:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[0] = -sin_lon;
+ 1591              		.loc 1 44 0
+ 1592 003c 05F10043 		add	r3, r5, #-2147483648
+  42:math/pprz_geodetic_float.c ****   const float cos_lon = cosf(def->lla.lon);
+ 1593              		.loc 1 42 0
+ 1594 0040 0746     		mov	r7, r0
+ 1595              	.LVL151:
+  44:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[0] = -sin_lon;
+ 1596              		.loc 1 44 0
+ 1597 0042 A361     		str	r3, [r4, #24]	@ float
+  47:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[3] = -sin_lat*cos_lon;
+ 1598              		.loc 1 47 0
+ 1599 0044 08F10049 		add	r9, r8, #-2147483648
+  46:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[2] =  0.; /* this element is always zero http://en.wikipedia.org/wiki/Geodetic
+ 1600              		.loc 1 46 0
+ 1601 0048 0023     		movs	r3, #0
+ 1602 004a 2362     		str	r3, [r4, #32]	@ float
+  45:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[1] =  cos_lon;
+ 1603              		.loc 1 45 0
+ 1604 004c E061     		str	r0, [r4, #28]	@ float
+  47:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[3] = -sin_lat*cos_lon;
+ 1605              		.loc 1 47 0
+ 1606 004e 3946     		mov	r1, r7
+ 1607 0050 4846     		mov	r0, r9
+ 1608              	.LVL152:
+ 1609 0052 FFF7FEFF 		bl	__aeabi_fmul
+ 1610              	.LVL153:
+  48:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[4] = -sin_lat*sin_lon;
+ 1611              		.loc 1 48 0
+ 1612 0056 2946     		mov	r1, r5
+  47:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[3] = -sin_lat*cos_lon;
+ 1613              		.loc 1 47 0
+ 1614 0058 6062     		str	r0, [r4, #36]	@ float
+  48:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[4] = -sin_lat*sin_lon;
+ 1615              		.loc 1 48 0
+ 1616 005a 4846     		mov	r0, r9
+ 1617 005c FFF7FEFF 		bl	__aeabi_fmul
+  50:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[6] =  cos_lat*cos_lon;
+ 1618              		.loc 1 50 0
+ 1619 0060 3946     		mov	r1, r7
+  48:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[4] = -sin_lat*sin_lon;
+ 1620              		.loc 1 48 0
+ 1621 0062 A062     		str	r0, [r4, #40]	@ float
+  49:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[5] =  cos_lat;
+ 1622              		.loc 1 49 0
+ 1623 0064 E662     		str	r6, [r4, #44]	@ float
+  50:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[6] =  cos_lat*cos_lon;
+ 1624              		.loc 1 50 0
+ 1625 0066 3046     		mov	r0, r6
+ 1626 0068 FFF7FEFF 		bl	__aeabi_fmul
+  51:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[7] =  cos_lat*sin_lon;
+ 1627              		.loc 1 51 0
+ 1628 006c 2946     		mov	r1, r5
+  50:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[6] =  cos_lat*cos_lon;
+ 1629              		.loc 1 50 0
+ 1630 006e 2063     		str	r0, [r4, #48]	@ float
+  51:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[7] =  cos_lat*sin_lon;
+ 1631              		.loc 1 51 0
+ 1632 0070 3046     		mov	r0, r6
+ 1633 0072 FFF7FEFF 		bl	__aeabi_fmul
+  52:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[8] =  sin_lat;
+ 1634              		.loc 1 52 0
+ 1635 0076 C4F83880 		str	r8, [r4, #56]	@ float
+  51:math/pprz_geodetic_float.c ****   def->ltp_of_ecef.m[7] =  cos_lat*sin_lon;
+ 1636              		.loc 1 51 0
+ 1637 007a 6063     		str	r0, [r4, #52]	@ float
+  53:math/pprz_geodetic_float.c **** }
+ 1638              		.loc 1 53 0
+ 1639 007c BDE8F883 		pop	{r3, r4, r5, r6, r7, r8, r9, pc}
+ 1640              		.cfi_endproc
+ 1641              	.LFE3:
+ 1643              		.global	__aeabi_i2d
+ 1644              		.global	__aeabi_dsub
+ 1645              		.global	__aeabi_ddiv
+ 1646              		.global	__aeabi_i2f
+ 1647              		.section	.text.utm_of_lla_f,"ax",%progbits
+ 1648              		.align	1
+ 1649              		.global	utm_of_lla_f
+ 1650              		.thumb
+ 1651              		.thumb_func
+ 1653              	utm_of_lla_f:
+ 1654              	.LFB19:
+ 241:math/pprz_geodetic_float.c **** 
+ 242:math/pprz_geodetic_float.c **** static inline float inverse_isometric_latitude_f(float lat, float e, float epsilon) {
+ 243:math/pprz_geodetic_float.c ****   float exp_l = exp(lat);
+ 244:math/pprz_geodetic_float.c ****   float phi0 = 2 * atan(exp_l) - M_PI_2;
+ 245:math/pprz_geodetic_float.c ****   float phi_;
+ 246:math/pprz_geodetic_float.c ****   uint8_t max_iter = 3; /* To be sure to return */
+ 247:math/pprz_geodetic_float.c **** 
+ 248:math/pprz_geodetic_float.c ****   do {
+ 249:math/pprz_geodetic_float.c ****     phi_ = phi0;
+ 250:math/pprz_geodetic_float.c ****     float sin_phi = e * sin(phi_);
+ 251:math/pprz_geodetic_float.c ****     phi0 = 2 * atan (pow((1 + sin_phi) / (1. - sin_phi), e/2.) * exp_l) - M_PI_2;
+ 252:math/pprz_geodetic_float.c ****     max_iter--;
+ 253:math/pprz_geodetic_float.c ****   } while (max_iter && fabs(phi_ - phi0) > epsilon);
+ 254:math/pprz_geodetic_float.c ****   return phi0;
+ 255:math/pprz_geodetic_float.c **** }
+ 256:math/pprz_geodetic_float.c **** 
+ 257:math/pprz_geodetic_float.c **** void utm_of_lla_f(struct UtmCoor_f* utm, struct LlaCoor_f* lla) {
+ 1655              		.loc 1 257 0
+ 1656              		.cfi_startproc
+ 1657              		@ args = 0, pretend = 0, frame = 24
+ 1658              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1659              	.LVL154:
+ 1660 0000 2DE9F04F 		push	{r4, r5, r6, r7, r8, r9, sl, fp, lr}
+ 1661              	.LCFI20:
+ 1662              		.cfi_def_cfa_offset 36
+ 1663              		.cfi_offset 14, -4
+ 1664              		.cfi_offset 11, -8
+ 1665              		.cfi_offset 10, -12
+ 1666              		.cfi_offset 9, -16
+ 1667              		.cfi_offset 8, -20
+ 1668              		.cfi_offset 7, -24
+ 1669              		.cfi_offset 6, -28
+ 1670              		.cfi_offset 5, -32
+ 1671              		.cfi_offset 4, -36
+ 1672 0004 87B0     		sub	sp, sp, #28
+ 1673              	.LCFI21:
+ 1674              		.cfi_def_cfa_offset 64
+ 1675              		.loc 1 257 0
+ 1676 0006 0190     		str	r0, [sp, #4]
+ 258:math/pprz_geodetic_float.c ****   float lambda_c = LambdaOfUtmZone(utm->zone);
+ 1677              		.loc 1 258 0
+ 1678 0008 007B     		ldrb	r0, [r0, #12]	@ zero_extendqisi2
+ 1679              	.LVL155:
+ 1680 000a 0623     		movs	r3, #6
+ 1681 000c 0138     		subs	r0, r0, #1
+ 1682 000e 5843     		muls	r0, r3, r0
+ 1683 0010 B138     		subs	r0, r0, #177
+ 257:math/pprz_geodetic_float.c **** void utm_of_lla_f(struct UtmCoor_f* utm, struct LlaCoor_f* lla) {
+ 1684              		.loc 1 257 0
+ 1685 0012 0491     		str	r1, [sp, #16]
+ 1686              		.loc 1 258 0
+ 1687 0014 FFF7FEFF 		bl	__aeabi_i2d
+ 1688              	.LVL156:
+ 1689 0018 89A3     		adr	r3, .L25
+ 1690 001a D3E90023 		ldrd	r2, [r3]
+ 1691 001e FFF7FEFF 		bl	__aeabi_dmul
+ 1692 0022 FFF7FEFF 		bl	__aeabi_d2f
+ 1693              	.LBB15:
+ 1694              	.LBB16:
+ 235:math/pprz_geodetic_float.c ****   return log (tan (M_PI_4 + phi / 2.0)) - e / 2.0 * log((1.0 + e * sin(phi)) / (1.0 - e * sin(phi))
+ 1695              		.loc 1 235 0
+ 1696 0026 049A     		ldr	r2, [sp, #16]
+ 1697              	.LBE16:
+ 1698              	.LBE15:
+ 1699              		.loc 1 258 0
+ 1700 0028 0446     		mov	r4, r0
+ 1701              	.LVL157:
+ 1702              	.LBB21:
+ 1703              	.LBB17:
+ 235:math/pprz_geodetic_float.c ****   return log (tan (M_PI_4 + phi / 2.0)) - e / 2.0 * log((1.0 + e * sin(phi)) / (1.0 - e * sin(phi))
+ 1704              		.loc 1 235 0
+ 1705 002a 5068     		ldr	r0, [r2, #4]	@ float
+ 1706              	.LVL158:
+ 1707 002c FFF7FEFF 		bl	__aeabi_f2d
+ 1708              	.LVL159:
+ 1709 0030 0022     		movs	r2, #0
+ 1710 0032 8D4B     		ldr	r3, .L25+40
+ 1711 0034 0646     		mov	r6, r0
+ 1712 0036 0F46     		mov	r7, r1
+ 1713 0038 FFF7FEFF 		bl	__aeabi_dmul
+ 1714 003c 82A3     		adr	r3, .L25+8
+ 1715 003e D3E90023 		ldrd	r2, [r3]
+ 1716 0042 FFF7FEFF 		bl	__aeabi_dadd
+ 1717 0046 FFF7FEFF 		bl	tan
+ 1718 004a FFF7FEFF 		bl	log
+ 1719 004e CDE90201 		strd	r0, [sp, #8]
+ 1720 0052 3046     		mov	r0, r6
+ 1721 0054 3946     		mov	r1, r7
+ 1722 0056 FFF7FEFF 		bl	sin
+ 1723 005a 7DA3     		adr	r3, .L25+16
+ 1724 005c D3E90023 		ldrd	r2, [r3]
+ 1725 0060 FFF7FEFF 		bl	__aeabi_dmul
+ 1726 0064 0022     		movs	r2, #0
+ 1727 0066 814B     		ldr	r3, .L25+44
+ 1728 0068 0646     		mov	r6, r0
+ 1729 006a 0F46     		mov	r7, r1
+ 1730 006c FFF7FEFF 		bl	__aeabi_dadd
+ 1731 0070 3246     		mov	r2, r6
+ 1732 0072 8046     		mov	r8, r0
+ 1733 0074 8946     		mov	r9, r1
+ 1734 0076 3B46     		mov	r3, r7
+ 1735 0078 0020     		movs	r0, #0
+ 1736 007a 7C49     		ldr	r1, .L25+44
+ 1737 007c FFF7FEFF 		bl	__aeabi_dsub
+ 1738 0080 0246     		mov	r2, r0
+ 1739 0082 0B46     		mov	r3, r1
+ 1740 0084 4046     		mov	r0, r8
+ 1741 0086 4946     		mov	r1, r9
+ 1742 0088 FFF7FEFF 		bl	__aeabi_ddiv
+ 1743 008c FFF7FEFF 		bl	log
+ 1744              	.LBE17:
+ 1745              	.LBE21:
+ 259:math/pprz_geodetic_float.c ****   float ll = isometric_latitude_f(lla->lat , E);
+ 260:math/pprz_geodetic_float.c ****   float dl = lla->lon - lambda_c;
+ 1746              		.loc 1 260 0
+ 1747 0090 049B     		ldr	r3, [sp, #16]
+ 1748              	.LBB22:
+ 1749              	.LBB18:
+ 235:math/pprz_geodetic_float.c ****   return log (tan (M_PI_4 + phi / 2.0)) - e / 2.0 * log((1.0 + e * sin(phi)) / (1.0 - e * sin(phi))
+ 1750              		.loc 1 235 0
+ 1751 0092 0F46     		mov	r7, r1
+ 1752              	.LVL160:
+ 1753 0094 0646     		mov	r6, r0
+ 1754              	.LBE18:
+ 1755              	.LBE22:
+ 1756              		.loc 1 260 0
+ 1757 0096 2146     		mov	r1, r4
+ 1758 0098 1868     		ldr	r0, [r3, #0]	@ float
+ 1759 009a FFF7FEFF 		bl	__aeabi_fsub
+ 1760              	.LVL161:
+ 261:math/pprz_geodetic_float.c ****   float phi_ = asin(sin(dl) / cosh(ll));
+ 1761              		.loc 1 261 0
+ 1762 009e FFF7FEFF 		bl	__aeabi_f2d
+ 1763 00a2 8246     		mov	sl, r0
+ 1764 00a4 8B46     		mov	fp, r1
+ 1765 00a6 FFF7FEFF 		bl	sin
+ 1766              	.LBB23:
+ 1767              	.LBB19:
+ 235:math/pprz_geodetic_float.c ****   return log (tan (M_PI_4 + phi / 2.0)) - e / 2.0 * log((1.0 + e * sin(phi)) / (1.0 - e * sin(phi))
+ 1768              		.loc 1 235 0
+ 1769 00aa 6BA3     		adr	r3, .L25+24
+ 1770 00ac D3E90023 		ldrd	r2, [r3]
+ 1771              	.LBE19:
+ 1772              	.LBE23:
+ 1773              		.loc 1 261 0
+ 1774 00b0 8046     		mov	r8, r0
+ 1775 00b2 8946     		mov	r9, r1
+ 1776              	.LBB24:
+ 1777              	.LBB20:
+ 235:math/pprz_geodetic_float.c ****   return log (tan (M_PI_4 + phi / 2.0)) - e / 2.0 * log((1.0 + e * sin(phi)) / (1.0 - e * sin(phi))
+ 1778              		.loc 1 235 0
+ 1779 00b4 3046     		mov	r0, r6
+ 1780 00b6 3946     		mov	r1, r7
+ 1781 00b8 FFF7FEFF 		bl	__aeabi_dmul
+ 1782 00bc 0246     		mov	r2, r0
+ 1783 00be 0B46     		mov	r3, r1
+ 1784 00c0 DDE90201 		ldrd	r0, [sp, #8]
+ 1785 00c4 FFF7FEFF 		bl	__aeabi_dsub
+ 1786 00c8 FFF7FEFF 		bl	__aeabi_d2f
+ 1787              	.LBE20:
+ 1788              	.LBE24:
+ 1789              		.loc 1 261 0
+ 1790 00cc FFF7FEFF 		bl	__aeabi_f2d
+ 1791 00d0 0446     		mov	r4, r0
+ 1792              	.LVL162:
+ 1793 00d2 0D46     		mov	r5, r1
+ 1794 00d4 FFF7FEFF 		bl	cosh
+ 1795 00d8 0246     		mov	r2, r0
+ 1796 00da 0B46     		mov	r3, r1
+ 1797 00dc 4046     		mov	r0, r8
+ 1798 00de 4946     		mov	r1, r9
+ 1799 00e0 FFF7FEFF 		bl	__aeabi_ddiv
+ 1800 00e4 FFF7FEFF 		bl	asin
+ 1801 00e8 FFF7FEFF 		bl	__aeabi_d2f
+ 262:math/pprz_geodetic_float.c ****   float ll_ = isometric_latitude_fast_f(phi_);
+ 1802              		.loc 1 262 0
+ 1803 00ec FFF7FEFF 		bl	isometric_latitude_fast_f
+ 263:math/pprz_geodetic_float.c ****   float lambda_ = atan(sinh(ll) / cos(dl));
+ 1804              		.loc 1 263 0
+ 1805 00f0 2946     		mov	r1, r5
+ 262:math/pprz_geodetic_float.c ****   float ll_ = isometric_latitude_fast_f(phi_);
+ 1806              		.loc 1 262 0
+ 1807 00f2 0290     		str	r0, [sp, #8]	@ float
+ 1808              	.LVL163:
+ 1809              		.loc 1 263 0
+ 1810 00f4 2046     		mov	r0, r4
+ 1811              	.LVL164:
+ 1812 00f6 FFF7FEFF 		bl	sinh
+ 1813 00fa 0446     		mov	r4, r0
+ 1814 00fc 0D46     		mov	r5, r1
+ 1815 00fe 5046     		mov	r0, sl
+ 1816 0100 5946     		mov	r1, fp
+ 1817 0102 FFF7FEFF 		bl	cos
+ 1818 0106 0246     		mov	r2, r0
+ 1819 0108 0B46     		mov	r3, r1
+ 1820 010a 2046     		mov	r0, r4
+ 1821 010c 2946     		mov	r1, r5
+ 1822 010e FFF7FEFF 		bl	__aeabi_ddiv
+ 1823 0112 FFF7FEFF 		bl	atan
+ 1824 0116 FFF7FEFF 		bl	__aeabi_d2f
+ 264:math/pprz_geodetic_float.c ****   struct complex z_ = { lambda_,  ll_ };
+ 265:math/pprz_geodetic_float.c ****   CScal(serie_coeff_proj_mercator[0], z_);
+ 1825              		.loc 1 265 0
+ 1826 011a 5549     		ldr	r1, .L25+48
+ 263:math/pprz_geodetic_float.c ****   float lambda_ = atan(sinh(ll) / cos(dl));
+ 1827              		.loc 1 263 0
+ 1828 011c 0590     		str	r0, [sp, #20]	@ float
+ 1829              	.LVL165:
+ 1830              		.loc 1 265 0
+ 1831 011e FFF7FEFF 		bl	__aeabi_fmul
+ 1832              	.LVL166:
+ 1833 0122 5349     		ldr	r1, .L25+48
+ 1834 0124 0446     		mov	r4, r0
+ 1835              	.LVL167:
+ 1836 0126 0298     		ldr	r0, [sp, #8]	@ float
+ 1837              	.LVL168:
+ 1838 0128 FFF7FEFF 		bl	__aeabi_fmul
+ 1839 012c 514F     		ldr	r7, .L25+52
+ 1840 012e 8046     		mov	r8, r0
+ 1841              	.LVL169:
+ 1842 0130 0225     		movs	r5, #2
+ 1843              	.LVL170:
+ 1844              	.L23:
+ 1845              	.LBB25:
+ 266:math/pprz_geodetic_float.c ****   uint8_t k;
+ 267:math/pprz_geodetic_float.c ****   for(k = 1; k < 3; k++) {
+ 268:math/pprz_geodetic_float.c ****     struct complex z = { lambda_,  ll_ };
+ 269:math/pprz_geodetic_float.c ****     CScal(2*k, z);
+ 1846              		.loc 1 269 0 discriminator 2
+ 1847 0132 2846     		mov	r0, r5
+ 1848              	.LVL171:
+ 1849 0134 FFF7FEFF 		bl	__aeabi_i2f
+ 1850 0138 8146     		mov	r9, r0
+ 1851              	.LVL172:
+ 1852 013a 4946     		mov	r1, r9
+ 1853 013c 0298     		ldr	r0, [sp, #8]	@ float
+ 1854              	.LVL173:
+ 1855 013e FFF7FEFF 		bl	__aeabi_fmul
+ 1856              	.LVL174:
+ 1857              	.LBB26:
+ 1858              	.LBB27:
+ 270:math/pprz_geodetic_float.c ****     CSin(z);
+ 1859              		.loc 1 270 0 discriminator 2
+ 1860 0142 00F10040 		add	r0, r0, #-2147483648
+ 1861              	.LBE27:
+ 1862 0146 FFF7FEFF 		bl	__aeabi_f2d
+ 1863 014a FFF7FEFF 		bl	exp
+ 1864 014e FFF7FEFF 		bl	__aeabi_d2f
+ 1865              	.LBE26:
+ 269:math/pprz_geodetic_float.c ****     CScal(2*k, z);
+ 1866              		.loc 1 269 0 discriminator 2
+ 1867 0152 4946     		mov	r1, r9
+ 1868              	.LBB29:
+ 1869              		.loc 1 270 0 discriminator 2
+ 1870 0154 0646     		mov	r6, r0
+ 1871              	.LVL175:
+ 1872              	.LBE29:
+ 269:math/pprz_geodetic_float.c ****     CScal(2*k, z);
+ 1873              		.loc 1 269 0 discriminator 2
+ 1874 0156 0598     		ldr	r0, [sp, #20]	@ float
+ 1875              	.LVL176:
+ 1876 0158 FFF7FEFF 		bl	__aeabi_fmul
+ 1877              	.LBB30:
+ 1878              		.loc 1 270 0 discriminator 2
+ 1879 015c FFF7FEFF 		bl	__aeabi_f2d
+ 1880 0160 8246     		mov	sl, r0
+ 1881 0162 8B46     		mov	fp, r1
+ 1882 0164 FFF7FEFF 		bl	cos
+ 1883 0168 FFF7FEFF 		bl	__aeabi_d2f
+ 1884 016c 5946     		mov	r1, fp
+ 1885 016e 8146     		mov	r9, r0
+ 1886              	.LVL177:
+ 1887 0170 5046     		mov	r0, sl
+ 1888              	.LVL178:
+ 1889 0172 FFF7FEFF 		bl	sin
+ 1890 0176 FFF7FEFF 		bl	__aeabi_d2f
+ 1891 017a 8346     		mov	fp, r0
+ 1892              	.LVL179:
+ 1893 017c 5946     		mov	r1, fp
+ 1894 017e 3046     		mov	r0, r6
+ 1895              	.LVL180:
+ 1896 0180 FFF7FEFF 		bl	__aeabi_fmul
+ 1897              	.LVL181:
+ 1898 0184 3146     		mov	r1, r6
+ 1899 0186 0346     		mov	r3, r0
+ 1900 0188 0BF10040 		add	r0, fp, #-2147483648
+ 1901              	.LBE30:
+ 271:math/pprz_geodetic_float.c ****     CScal(serie_coeff_proj_mercator[k], z);
+ 1902              		.loc 1 271 0 discriminator 2
+ 1903 018c 57F804AF 		ldr	sl, [r7, #4]!	@ float
+ 1904              	.LVL182:
+ 1905              	.LBB31:
+ 270:math/pprz_geodetic_float.c ****     CSin(z);
+ 1906              		.loc 1 270 0 discriminator 2
+ 1907 0190 0093     		str	r3, [sp, #0]
+ 1908 0192 FFF7FEFF 		bl	__aeabi_fdiv
+ 1909              	.LVL183:
+ 1910 0196 009B     		ldr	r3, [sp, #0]
+ 1911 0198 0146     		mov	r1, r0
+ 1912 019a 1846     		mov	r0, r3
+ 1913 019c FFF7FEFF 		bl	__aeabi_fsub
+ 1914 01a0 4FF03F41 		mov	r1, #-1090519040
+ 1915 01a4 FFF7FEFF 		bl	__aeabi_fmul
+ 1916              	.LBE31:
+ 1917              		.loc 1 271 0 discriminator 2
+ 1918 01a8 5146     		mov	r1, sl
+ 1919              	.LBB32:
+ 1920              	.LBB28:
+ 270:math/pprz_geodetic_float.c ****     CSin(z);
+ 1921              		.loc 1 270 0 discriminator 2
+ 1922 01aa 00F10040 		add	r0, r0, #-2147483648
+ 1923              	.LBE28:
+ 1924              	.LBE32:
+ 1925              		.loc 1 271 0 discriminator 2
+ 1926 01ae FFF7FEFF 		bl	__aeabi_fmul
+ 1927 01b2 0146     		mov	r1, r0
+ 272:math/pprz_geodetic_float.c ****     CAdd(z, z_);
+ 1928              		.loc 1 272 0 discriminator 2
+ 1929 01b4 2046     		mov	r0, r4
+ 1930 01b6 FFF7FEFF 		bl	__aeabi_fadd
+ 1931              	.LBB33:
+ 270:math/pprz_geodetic_float.c ****     CSin(z);
+ 1932              		.loc 1 270 0 discriminator 2
+ 1933 01ba 4946     		mov	r1, r9
+ 1934              	.LBE33:
+ 1935              		.loc 1 272 0 discriminator 2
+ 1936 01bc 0446     		mov	r4, r0
+ 1937              	.LVL184:
+ 1938              	.LBB34:
+ 270:math/pprz_geodetic_float.c ****     CSin(z);
+ 1939              		.loc 1 270 0 discriminator 2
+ 1940 01be 3046     		mov	r0, r6
+ 1941              	.LVL185:
+ 1942 01c0 FFF7FEFF 		bl	__aeabi_fmul
+ 1943 01c4 3146     		mov	r1, r6
+ 1944 01c6 8346     		mov	fp, r0
+ 1945              	.LVL186:
+ 1946 01c8 4846     		mov	r0, r9
+ 1947 01ca FFF7FEFF 		bl	__aeabi_fdiv
+ 1948 01ce 0146     		mov	r1, r0
+ 1949 01d0 5846     		mov	r0, fp
+ 1950 01d2 FFF7FEFF 		bl	__aeabi_fsub
+ 1951 01d6 4FF03F41 		mov	r1, #-1090519040
+ 1952 01da FFF7FEFF 		bl	__aeabi_fmul
+ 1953              	.LBE34:
+ 271:math/pprz_geodetic_float.c ****     CScal(serie_coeff_proj_mercator[k], z);
+ 1954              		.loc 1 271 0 discriminator 2
+ 1955 01de 5146     		mov	r1, sl
+ 1956 01e0 FFF7FEFF 		bl	__aeabi_fmul
+ 1957 01e4 0146     		mov	r1, r0
+ 1958              		.loc 1 272 0 discriminator 2
+ 1959 01e6 4046     		mov	r0, r8
+ 1960 01e8 FFF7FEFF 		bl	__aeabi_fadd
+ 1961 01ec 0235     		adds	r5, r5, #2
+ 1962              	.LBE25:
+ 267:math/pprz_geodetic_float.c ****   for(k = 1; k < 3; k++) {
+ 1963              		.loc 1 267 0 discriminator 2
+ 1964 01ee 062D     		cmp	r5, #6
+ 1965              	.LBB35:
+ 1966              		.loc 1 272 0 discriminator 2
+ 1967 01f0 8046     		mov	r8, r0
+ 1968              	.LVL187:
+ 1969              	.LBE35:
+ 267:math/pprz_geodetic_float.c ****   for(k = 1; k < 3; k++) {
+ 1970              		.loc 1 267 0 discriminator 2
+ 1971 01f2 9ED1     		bne	.L23
+ 1972              	.LVL188:
+ 273:math/pprz_geodetic_float.c ****   }
+ 274:math/pprz_geodetic_float.c ****   CScal(N, z_);
+ 1973              		.loc 1 274 0
+ 1974 01f4 FFF7FEFF 		bl	__aeabi_f2d
+ 1975 01f8 19A3     		adr	r3, .L25+32
+ 1976 01fa D3E90023 		ldrd	r2, [r3]
+ 1977 01fe FFF7FEFF 		bl	__aeabi_dmul
+ 1978 0202 FFF7FEFF 		bl	__aeabi_d2f
+ 275:math/pprz_geodetic_float.c ****   utm->east = DELTA_EAST + z_.im;
+ 1979              		.loc 1 275 0
+ 1980 0206 1C49     		ldr	r1, .L25+56
+ 1981 0208 FFF7FEFF 		bl	__aeabi_fadd
+ 1982 020c 019A     		ldr	r2, [sp, #4]
+ 1983 020e 5060     		str	r0, [r2, #4]	@ float
+ 274:math/pprz_geodetic_float.c ****   CScal(N, z_);
+ 1984              		.loc 1 274 0
+ 1985 0210 2046     		mov	r0, r4
+ 1986 0212 FFF7FEFF 		bl	__aeabi_f2d
+ 1987 0216 12A3     		adr	r3, .L25+32
+ 1988 0218 D3E90023 		ldrd	r2, [r3]
+ 1989 021c FFF7FEFF 		bl	__aeabi_dmul
+ 1990 0220 FFF7FEFF 		bl	__aeabi_d2f
+ 276:math/pprz_geodetic_float.c ****   utm->north = DELTA_NORTH + z_.re;
+ 1991              		.loc 1 276 0
+ 1992 0224 0021     		movs	r1, #0
+ 1993 0226 FFF7FEFF 		bl	__aeabi_fadd
+ 1994 022a 019B     		ldr	r3, [sp, #4]
+ 277:math/pprz_geodetic_float.c **** 
+ 278:math/pprz_geodetic_float.c ****   // copy alt above reference ellipsoid
+ 279:math/pprz_geodetic_float.c ****   utm->alt = lla->alt;
+ 1995              		.loc 1 279 0
+ 1996 022c 049A     		ldr	r2, [sp, #16]
+ 276:math/pprz_geodetic_float.c ****   utm->north = DELTA_NORTH + z_.re;
+ 1997              		.loc 1 276 0
+ 1998 022e 1860     		str	r0, [r3, #0]	@ float
+ 1999              		.loc 1 279 0
+ 2000 0230 9368     		ldr	r3, [r2, #8]	@ float
+ 2001 0232 019A     		ldr	r2, [sp, #4]
+ 2002 0234 9360     		str	r3, [r2, #8]	@ float
+ 280:math/pprz_geodetic_float.c **** }
+ 2003              		.loc 1 280 0
+ 2004 0236 07B0     		add	sp, sp, #28
+ 2005 0238 BDE8F08F 		pop	{r4, r5, r6, r7, r8, r9, sl, fp, pc}
+ 2006              	.L26:
+ 2007 023c AFF30080 		.align	3
+ 2008              	.L25:
+ 2009 0240 399D52A2 		.word	-1571644103
+ 2010 0244 46DF913F 		.word	1066524486
+ 2011 0248 182D4454 		.word	1413754136
+ 2012 024c FB21E93F 		.word	1072243195
+ 2013 0250 00000040 		.word	1073741824
+ 2014 0254 1AF2B43F 		.word	1068823066
+ 2015 0258 00000040 		.word	1073741824
+ 2016 025c 1AF2A43F 		.word	1067774490
+ 2017 0260 585BB16F 		.word	1873894232
+ 2018 0264 28525841 		.word	1096307240
+ 2019 0268 0000E03F 		.word	1071644672
+ 2020 026c 0000F03F 		.word	1072693248
+ 2021 0270 2E927F3F 		.word	1065325102
+ 2022 0274 00000000 		.word	.LANCHOR0
+ 2023 0278 0024F448 		.word	1223959552
+ 2024              		.cfi_endproc
+ 2025              	.LFE19:
+ 2027              		.global	__aeabi_fcmpgt
+ 2028 027c AFF30080 		.section	.text.lla_of_utm_f,"ax",%progbits
+ 2029              		.align	1
+ 2030              		.global	lla_of_utm_f
+ 2031              		.thumb
+ 2032              		.thumb_func
+ 2034              	lla_of_utm_f:
+ 2035              	.LFB20:
+ 281:math/pprz_geodetic_float.c **** 
+ 282:math/pprz_geodetic_float.c **** void lla_of_utm_f(struct LlaCoor_f* lla, struct UtmCoor_f* utm) {
+ 2036              		.loc 1 282 0
+ 2037              		.cfi_startproc
+ 2038              		@ args = 0, pretend = 0, frame = 24
+ 2039              		@ frame_needed = 0, uses_anonymous_args = 0
+ 2040              	.LVL189:
+ 2041 0000 2DE9F04F 		push	{r4, r5, r6, r7, r8, r9, sl, fp, lr}
+ 2042              	.LCFI22:
+ 2043              		.cfi_def_cfa_offset 36
+ 2044              		.cfi_offset 14, -4
+ 2045              		.cfi_offset 11, -8
+ 2046              		.cfi_offset 10, -12
+ 2047              		.cfi_offset 9, -16
+ 2048              		.cfi_offset 8, -20
+ 2049              		.cfi_offset 7, -24
+ 2050              		.cfi_offset 6, -28
+ 2051              		.cfi_offset 5, -32
+ 2052              		.cfi_offset 4, -36
+ 2053 0004 8A46     		mov	sl, r1
+ 2054 0006 87B0     		sub	sp, sp, #28
+ 2055              	.LCFI23:
+ 2056              		.cfi_def_cfa_offset 64
+ 2057              		.loc 1 282 0
+ 2058 0008 8346     		mov	fp, r0
+ 283:math/pprz_geodetic_float.c ****   float scale = 1 / N / serie_coeff_proj_mercator[0];
+ 284:math/pprz_geodetic_float.c ****   float real = (utm->north - DELTA_NORTH) * scale;
+ 2059              		.loc 1 284 0
+ 2060 000a 0868     		ldr	r0, [r1, #0]	@ float
+ 2061              	.LVL190:
+ 2062 000c 9A49     		ldr	r1, .L31+48
+ 2063              	.LVL191:
+ 2064 000e FFF7FEFF 		bl	__aeabi_fmul
+ 2065 0012 0546     		mov	r5, r0
+ 2066              	.LVL192:
+ 285:math/pprz_geodetic_float.c ****   float img = (utm->east - DELTA_EAST) * scale;
+ 2067              		.loc 1 285 0
+ 2068 0014 DAF80400 		ldr	r0, [sl, #4]	@ float
+ 2069              	.LVL193:
+ 2070 0018 FFF7FEFF 		bl	__aeabi_f2d
+ 2071 001c 8AA3     		adr	r3, .L31
+ 2072 001e D3E90023 		ldrd	r2, [r3]
+ 2073 0022 FFF7FEFF 		bl	__aeabi_dsub
+ 2074 0026 8AA3     		adr	r3, .L31+8
+ 2075 0028 D3E90023 		ldrd	r2, [r3]
+ 2076 002c FFF7FEFF 		bl	__aeabi_dmul
+ 2077 0030 FFF7FEFF 		bl	__aeabi_d2f
+ 2078              	.LBB36:
+ 286:math/pprz_geodetic_float.c ****   struct complex z = { real, img };
+ 287:math/pprz_geodetic_float.c **** 
+ 288:math/pprz_geodetic_float.c ****   uint8_t k;
+ 289:math/pprz_geodetic_float.c ****   for(k = 1; k < 2; k++) {
+ 290:math/pprz_geodetic_float.c ****     struct complex z_ = { real, img };
+ 291:math/pprz_geodetic_float.c ****     CScal(2*k, z_);
+ 2079              		.loc 1 291 0
+ 2080 0034 0146     		mov	r1, r0
+ 2081              	.LBE36:
+ 285:math/pprz_geodetic_float.c ****   float img = (utm->east - DELTA_EAST) * scale;
+ 2082              		.loc 1 285 0
+ 2083 0036 0746     		mov	r7, r0
+ 2084              	.LVL194:
+ 2085              	.LBB45:
+ 2086              		.loc 1 291 0
+ 2087 0038 FFF7FEFF 		bl	__aeabi_fadd
+ 2088              	.LVL195:
+ 2089              	.LBB37:
+ 2090              	.LBB38:
+ 292:math/pprz_geodetic_float.c ****     CSin(z_);
+ 2091              		.loc 1 292 0
+ 2092 003c 00F10040 		add	r0, r0, #-2147483648
+ 2093              	.LBE38:
+ 2094 0040 FFF7FEFF 		bl	__aeabi_f2d
+ 2095 0044 FFF7FEFF 		bl	exp
+ 2096 0048 FFF7FEFF 		bl	__aeabi_d2f
+ 2097              	.LBE37:
+ 291:math/pprz_geodetic_float.c ****     CScal(2*k, z_);
+ 2098              		.loc 1 291 0
+ 2099 004c 2946     		mov	r1, r5
+ 2100              	.LBB40:
+ 2101              		.loc 1 292 0
+ 2102 004e 0446     		mov	r4, r0
+ 2103              	.LVL196:
+ 2104              	.LBE40:
+ 291:math/pprz_geodetic_float.c ****     CScal(2*k, z_);
+ 2105              		.loc 1 291 0
+ 2106 0050 2846     		mov	r0, r5
+ 2107              	.LVL197:
+ 2108 0052 FFF7FEFF 		bl	__aeabi_fadd
+ 2109              	.LBB41:
+ 2110              		.loc 1 292 0
+ 2111 0056 FFF7FEFF 		bl	__aeabi_f2d
+ 2112 005a 8046     		mov	r8, r0
+ 2113 005c 8946     		mov	r9, r1
+ 2114 005e FFF7FEFF 		bl	cos
+ 2115 0062 FFF7FEFF 		bl	__aeabi_d2f
+ 2116 0066 4946     		mov	r1, r9
+ 2117 0068 0646     		mov	r6, r0
+ 2118              	.LVL198:
+ 2119 006a 4046     		mov	r0, r8
+ 2120              	.LVL199:
+ 2121 006c FFF7FEFF 		bl	sin
+ 2122 0070 FFF7FEFF 		bl	__aeabi_d2f
+ 2123 0074 8046     		mov	r8, r0
+ 2124              	.LVL200:
+ 2125              	.LBE41:
+ 2126              	.LBE45:
+ 293:math/pprz_geodetic_float.c ****     CScal(serie_coeff_proj_mercator_inverse[k], z_);
+ 294:math/pprz_geodetic_float.c ****     CSub(z_, z);
+ 295:math/pprz_geodetic_float.c ****   }
+ 296:math/pprz_geodetic_float.c **** 
+ 297:math/pprz_geodetic_float.c ****   float lambda_c = LambdaOfUtmZone(utm->zone);
+ 2127              		.loc 1 297 0
+ 2128 0076 9AF80C00 		ldrb	r0, [sl, #12]	@ zero_extendqisi2
+ 2129              	.LVL201:
+ 2130 007a 0623     		movs	r3, #6
+ 2131 007c 0138     		subs	r0, r0, #1
+ 2132 007e 5843     		muls	r0, r3, r0
+ 2133 0080 B138     		subs	r0, r0, #177
+ 2134 0082 FFF7FEFF 		bl	__aeabi_i2d
+ 2135 0086 74A3     		adr	r3, .L31+16
+ 2136 0088 D3E90023 		ldrd	r2, [r3]
+ 2137 008c FFF7FEFF 		bl	__aeabi_dmul
+ 2138 0090 FFF7FEFF 		bl	__aeabi_d2f
+ 298:math/pprz_geodetic_float.c ****   lla->lon = lambda_c + atan (sinh(z.im) / cos(z.re));
+ 2139              		.loc 1 298 0
+ 2140 0094 FFF7FEFF 		bl	__aeabi_f2d
+ 2141 0098 CDE90001 		strd	r0, [sp]
+ 2142              	.LBB46:
+ 2143              	.LBB42:
+ 292:math/pprz_geodetic_float.c ****     CSin(z_);
+ 2144              		.loc 1 292 0
+ 2145 009c 3146     		mov	r1, r6
+ 2146 009e 2046     		mov	r0, r4
+ 2147 00a0 FFF7FEFF 		bl	__aeabi_fmul
+ 2148 00a4 2146     		mov	r1, r4
+ 2149 00a6 8146     		mov	r9, r0
+ 2150 00a8 3046     		mov	r0, r6
+ 2151 00aa FFF7FEFF 		bl	__aeabi_fdiv
+ 2152 00ae 0146     		mov	r1, r0
+ 2153 00b0 4846     		mov	r0, r9
+ 2154 00b2 FFF7FEFF 		bl	__aeabi_fsub
+ 2155 00b6 4FF03F41 		mov	r1, #-1090519040
+ 2156 00ba FFF7FEFF 		bl	__aeabi_fmul
+ 2157              	.LBE42:
+ 293:math/pprz_geodetic_float.c ****     CScal(serie_coeff_proj_mercator_inverse[k], z_);
+ 2158              		.loc 1 293 0
+ 2159 00be 6F49     		ldr	r1, .L31+52
+ 2160 00c0 FFF7FEFF 		bl	__aeabi_fmul
+ 2161 00c4 0146     		mov	r1, r0
+ 294:math/pprz_geodetic_float.c ****     CSub(z_, z);
+ 2162              		.loc 1 294 0
+ 2163 00c6 3846     		mov	r0, r7
+ 2164 00c8 FFF7FEFF 		bl	__aeabi_fsub
+ 2165              	.LBE46:
+ 2166              		.loc 1 298 0
+ 2167 00cc FFF7FEFF 		bl	__aeabi_f2d
+ 2168 00d0 CDE90201 		strd	r0, [sp, #8]
+ 2169 00d4 FFF7FEFF 		bl	sinh
+ 2170 00d8 CDE90401 		strd	r0, [sp, #16]
+ 2171              	.LBB47:
+ 2172              	.LBB43:
+ 292:math/pprz_geodetic_float.c ****     CSin(z_);
+ 2173              		.loc 1 292 0
+ 2174 00dc 2046     		mov	r0, r4
+ 2175 00de 4146     		mov	r1, r8
+ 2176 00e0 FFF7FEFF 		bl	__aeabi_fmul
+ 2177 00e4 2146     		mov	r1, r4
+ 2178 00e6 0646     		mov	r6, r0
+ 2179              	.LVL202:
+ 2180 00e8 08F10040 		add	r0, r8, #-2147483648
+ 2181 00ec FFF7FEFF 		bl	__aeabi_fdiv
+ 2182 00f0 0146     		mov	r1, r0
+ 2183 00f2 3046     		mov	r0, r6
+ 2184 00f4 FFF7FEFF 		bl	__aeabi_fsub
+ 2185 00f8 4FF03F41 		mov	r1, #-1090519040
+ 2186 00fc FFF7FEFF 		bl	__aeabi_fmul
+ 2187              	.LBE43:
+ 293:math/pprz_geodetic_float.c ****     CScal(serie_coeff_proj_mercator_inverse[k], z_);
+ 2188              		.loc 1 293 0
+ 2189 0100 5E49     		ldr	r1, .L31+52
+ 2190              	.LBB44:
+ 2191              	.LBB39:
+ 292:math/pprz_geodetic_float.c ****     CSin(z_);
+ 2192              		.loc 1 292 0
+ 2193 0102 00F10040 		add	r0, r0, #-2147483648
+ 2194              	.LBE39:
+ 2195              	.LBE44:
+ 293:math/pprz_geodetic_float.c ****     CScal(serie_coeff_proj_mercator_inverse[k], z_);
+ 2196              		.loc 1 293 0
+ 2197 0106 FFF7FEFF 		bl	__aeabi_fmul
+ 2198 010a 0146     		mov	r1, r0
+ 294:math/pprz_geodetic_float.c ****     CSub(z_, z);
+ 2199              		.loc 1 294 0
+ 2200 010c 2846     		mov	r0, r5
+ 2201 010e FFF7FEFF 		bl	__aeabi_fsub
+ 2202              	.LBE47:
+ 2203              		.loc 1 298 0
+ 2204 0112 FFF7FEFF 		bl	__aeabi_f2d
+ 2205 0116 0446     		mov	r4, r0
+ 2206              	.LVL203:
+ 2207 0118 0D46     		mov	r5, r1
+ 2208              	.LVL204:
+ 2209 011a FFF7FEFF 		bl	cos
+ 2210 011e 0246     		mov	r2, r0
+ 2211 0120 0B46     		mov	r3, r1
+ 2212 0122 DDE90401 		ldrd	r0, [sp, #16]
+ 2213 0126 FFF7FEFF 		bl	__aeabi_ddiv
+ 2214 012a FFF7FEFF 		bl	atan
+ 2215 012e 0246     		mov	r2, r0
+ 2216 0130 0B46     		mov	r3, r1
+ 2217 0132 DDE90001 		ldrd	r0, [sp]
+ 2218 0136 FFF7FEFF 		bl	__aeabi_dadd
+ 2219 013a FFF7FEFF 		bl	__aeabi_d2f
+ 299:math/pprz_geodetic_float.c ****   float phi_ = asin (sin(z.re) / cosh(z.im));
+ 2220              		.loc 1 299 0
+ 2221 013e 2946     		mov	r1, r5
+ 298:math/pprz_geodetic_float.c ****   lla->lon = lambda_c + atan (sinh(z.im) / cos(z.re));
+ 2222              		.loc 1 298 0
+ 2223 0140 CBF80000 		str	r0, [fp, #0]	@ float
+ 2224              		.loc 1 299 0
+ 2225 0144 2046     		mov	r0, r4
+ 2226 0146 FFF7FEFF 		bl	sin
+ 2227 014a 0446     		mov	r4, r0
+ 2228 014c 0D46     		mov	r5, r1
+ 2229 014e DDE90201 		ldrd	r0, [sp, #8]
+ 2230 0152 FFF7FEFF 		bl	cosh
+ 2231 0156 0246     		mov	r2, r0
+ 2232 0158 0B46     		mov	r3, r1
+ 2233 015a 2046     		mov	r0, r4
+ 2234 015c 2946     		mov	r1, r5
+ 2235 015e FFF7FEFF 		bl	__aeabi_ddiv
+ 2236 0162 FFF7FEFF 		bl	asin
+ 2237 0166 FFF7FEFF 		bl	__aeabi_d2f
+ 300:math/pprz_geodetic_float.c ****   float il = isometric_latitude_fast_f(phi_);
+ 2238              		.loc 1 300 0
+ 2239 016a FFF7FEFF 		bl	isometric_latitude_fast_f
+ 2240              	.LVL205:
+ 2241              	.LBB48:
+ 2242              	.LBB49:
+ 243:math/pprz_geodetic_float.c ****   float exp_l = exp(lat);
+ 2243              		.loc 1 243 0
+ 2244 016e FFF7FEFF 		bl	__aeabi_f2d
+ 2245 0172 FFF7FEFF 		bl	exp
+ 2246 0176 FFF7FEFF 		bl	__aeabi_d2f
+ 244:math/pprz_geodetic_float.c ****   float phi0 = 2 * atan(exp_l) - M_PI_2;
+ 2247              		.loc 1 244 0
+ 2248 017a FFF7FEFF 		bl	__aeabi_f2d
+ 2249 017e CDE90001 		strd	r0, [sp]
+ 2250 0182 FFF7FEFF 		bl	atan
+ 2251 0186 0246     		mov	r2, r0
+ 2252 0188 0B46     		mov	r3, r1
+ 2253 018a FFF7FEFF 		bl	__aeabi_dadd
+ 2254 018e 34A3     		adr	r3, .L31+24
+ 2255 0190 D3E90023 		ldrd	r2, [r3]
+ 2256 0194 FFF7FEFF 		bl	__aeabi_dsub
+ 2257 0198 FFF7FEFF 		bl	__aeabi_d2f
+ 2258 019c 0325     		movs	r5, #3
+ 2259 019e 0446     		mov	r4, r0
+ 2260              	.LVL206:
+ 2261 01a0 00E0     		b	.L29
+ 2262              	.LVL207:
+ 2263              	.L30:
+ 251:math/pprz_geodetic_float.c ****     phi0 = 2 * atan (pow((1 + sin_phi) / (1. - sin_phi), e/2.) * exp_l) - M_PI_2;
+ 2264              		.loc 1 251 0
+ 2265 01a2 3446     		mov	r4, r6
+ 2266              	.LVL208:
+ 2267              	.L29:
+ 2268              	.LBB50:
+ 250:math/pprz_geodetic_float.c ****     float sin_phi = e * sin(phi_);
+ 2269              		.loc 1 250 0
+ 2270 01a4 2046     		mov	r0, r4
+ 2271 01a6 FFF7FEFF 		bl	__aeabi_f2d
+ 2272 01aa FFF7FEFF 		bl	sin
+ 2273 01ae 2EA3     		adr	r3, .L31+32
+ 2274 01b0 D3E90023 		ldrd	r2, [r3]
+ 2275 01b4 FFF7FEFF 		bl	__aeabi_dmul
+ 2276 01b8 FFF7FEFF 		bl	__aeabi_d2f
+ 251:math/pprz_geodetic_float.c ****     phi0 = 2 * atan (pow((1 + sin_phi) / (1. - sin_phi), e/2.) * exp_l) - M_PI_2;
+ 2277              		.loc 1 251 0
+ 2278 01bc 4FF07E51 		mov	r1, #1065353216
+ 250:math/pprz_geodetic_float.c ****     float sin_phi = e * sin(phi_);
+ 2279              		.loc 1 250 0
+ 2280 01c0 0646     		mov	r6, r0
+ 2281              	.LVL209:
+ 251:math/pprz_geodetic_float.c ****     phi0 = 2 * atan (pow((1 + sin_phi) / (1. - sin_phi), e/2.) * exp_l) - M_PI_2;
+ 2282              		.loc 1 251 0
+ 2283 01c2 FFF7FEFF 		bl	__aeabi_fadd
+ 2284              	.LVL210:
+ 2285 01c6 FFF7FEFF 		bl	__aeabi_f2d
+ 2286 01ca 8046     		mov	r8, r0
+ 2287 01cc 3046     		mov	r0, r6
+ 2288 01ce 8946     		mov	r9, r1
+ 2289 01d0 FFF7FEFF 		bl	__aeabi_f2d
+ 2290 01d4 0246     		mov	r2, r0
+ 2291 01d6 0B46     		mov	r3, r1
+ 2292 01d8 0020     		movs	r0, #0
+ 2293 01da 2949     		ldr	r1, .L31+56
+ 2294 01dc FFF7FEFF 		bl	__aeabi_dsub
+ 2295 01e0 0246     		mov	r2, r0
+ 2296 01e2 0B46     		mov	r3, r1
+ 2297 01e4 4046     		mov	r0, r8
+ 2298 01e6 4946     		mov	r1, r9
+ 2299 01e8 FFF7FEFF 		bl	__aeabi_ddiv
+ 2300 01ec 20A3     		adr	r3, .L31+40
+ 2301 01ee D3E90023 		ldrd	r2, [r3]
+ 2302 01f2 FFF7FEFF 		bl	pow
+ 2303 01f6 DDE90023 		ldrd	r2, [sp]
+ 2304 01fa FFF7FEFF 		bl	__aeabi_dmul
+ 2305 01fe FFF7FEFF 		bl	atan
+ 2306 0202 0246     		mov	r2, r0
+ 2307 0204 0B46     		mov	r3, r1
+ 2308 0206 FFF7FEFF 		bl	__aeabi_dadd
+ 2309 020a 15A3     		adr	r3, .L31+24
+ 2310 020c D3E90023 		ldrd	r2, [r3]
+ 2311 0210 FFF7FEFF 		bl	__aeabi_dsub
+ 2312 0214 FFF7FEFF 		bl	__aeabi_d2f
+ 2313 0218 013D     		subs	r5, r5, #1
+ 2314 021a EDB2     		uxtb	r5, r5
+ 2315 021c 0646     		mov	r6, r0
+ 2316              	.LVL211:
+ 2317              	.LBE50:
+ 253:math/pprz_geodetic_float.c ****   } while (max_iter && fabs(phi_ - phi0) > epsilon);
+ 2318              		.loc 1 253 0
+ 2319 021e 55B1     		cbz	r5, .L28
+ 2320 0220 3146     		mov	r1, r6
+ 2321 0222 2046     		mov	r0, r4
+ 2322              	.LVL212:
+ 2323 0224 FFF7FEFF 		bl	__aeabi_fsub
+ 2324              	.LVL213:
+ 2325 0228 1649     		ldr	r1, .L31+60
+ 2326 022a 20F00040 		bic	r0, r0, #-2147483648
+ 2327 022e FFF7FEFF 		bl	__aeabi_fcmpgt
+ 2328 0232 0028     		cmp	r0, #0
+ 2329 0234 B5D1     		bne	.L30
+ 2330              	.L28:
+ 2331              	.LBE49:
+ 2332              	.LBE48:
+ 301:math/pprz_geodetic_float.c ****   lla->lat = inverse_isometric_latitude_f(il, E, 1e-8);
+ 302:math/pprz_geodetic_float.c **** 
+ 303:math/pprz_geodetic_float.c ****   // copy alt above reference ellipsoid
+ 304:math/pprz_geodetic_float.c ****   lla->alt = utm->alt;
+ 2333              		.loc 1 304 0
+ 2334 0236 DAF80830 		ldr	r3, [sl, #8]	@ float
+ 301:math/pprz_geodetic_float.c ****   lla->lat = inverse_isometric_latitude_f(il, E, 1e-8);
+ 2335              		.loc 1 301 0
+ 2336 023a CBF80460 		str	r6, [fp, #4]	@ float
+ 2337              		.loc 1 304 0
+ 2338 023e CBF80830 		str	r3, [fp, #8]	@ float
+ 305:math/pprz_geodetic_float.c **** }
+ 2339              		.loc 1 305 0
+ 2340 0242 07B0     		add	sp, sp, #28
+ 2341 0244 BDE8F08F 		pop	{r4, r5, r6, r7, r8, r9, sl, fp, pc}
+ 2342              	.L32:
+ 2343              		.align	3
+ 2344              	.L31:
+ 2345 0248 00000000 		.word	0
+ 2346 024c 80841E41 		.word	1092519040
+ 2347 0250 00000060 		.word	1610612736
+ 2348 0254 5016853E 		.word	1048909392
+ 2349 0258 399D52A2 		.word	-1571644103
+ 2350 025c 46DF913F 		.word	1066524486
+ 2351 0260 182D4454 		.word	1413754136
+ 2352 0264 FB21F93F 		.word	1073291771
+ 2353 0268 00000040 		.word	1073741824
+ 2354 026c 1AF2B43F 		.word	1068823066
+ 2355 0270 00000040 		.word	1073741824
+ 2356 0274 1AF2A43F 		.word	1067774490
+ 2357 0278 83B22834 		.word	875082371
+ 2358 027c 419B5B3A 		.word	979082049
+ 2359 0280 0000F03F 		.word	1072693248
+ 2360 0284 77CC2B32 		.word	841731191
+ 2361              		.cfi_endproc
+ 2362              	.LFE20:
+ 2364              		.section	.rodata.serie_coeff_proj_mercator,"a",%progbits
+ 2365              		.align	2
+ 2366              		.set	.LANCHOR0,. + 0
+ 2369              	serie_coeff_proj_mercator:
+ 2370 0000 2E927F3F 		.word	1065325102
+ 2371 0004 063D5B3A 		.word	979057926
+ 2372 0008 CBE54B35 		.word	894166475
+ 2373 000c 8A53A430 		.word	816075658
+ 2374 0010 19A5292C 		.word	740926745
+ 2375              		.text
+ 2376              	.Letext0:
+ 2377              		.file 2 "math/pprz_algebra_float.h"
+ 2378              		.file 3 "math/pprz_geodetic_float.h"
+ 2379              		.file 4 "math/pprz_algebra_double.h"
+ 2380              		.file 5 "math/pprz_geodetic_double.h"
+ 2381              		.file 6 "./math/pprz_geodetic_utm.h"
+ 2382              		.file 7 "/opt/paparazzi/arm-multilib/lib/gcc/arm-none-eabi/4.6.2/../../../../arm-none-eabi/include
+DEFINED SYMBOLS
+                            *ABS*:00000000 pprz_geodetic_float.c
+     /tmp/ccEOioxA.s:22     .text.isometric_latitude_fast_f:00000000 $t
+     /tmp/ccEOioxA.s:26     .text.isometric_latitude_fast_f:00000000 isometric_latitude_fast_f
+     /tmp/ccEOioxA.s:56     .text.isometric_latitude_fast_f:00000028 $d
+     /tmp/ccEOioxA.s:66     .text.enu_of_ecef_point_f:00000000 $t
+     /tmp/ccEOioxA.s:71     .text.enu_of_ecef_point_f:00000000 enu_of_ecef_point_f
+     /tmp/ccEOioxA.s:182    .text.ned_of_ecef_point_f:00000000 $t
+     /tmp/ccEOioxA.s:187    .text.ned_of_ecef_point_f:00000000 ned_of_ecef_point_f
+     /tmp/ccEOioxA.s:224    .text.enu_of_ecef_vect_f:00000000 $t
+     /tmp/ccEOioxA.s:229    .text.enu_of_ecef_vect_f:00000000 enu_of_ecef_vect_f
+     /tmp/ccEOioxA.s:318    .text.ned_of_ecef_vect_f:00000000 $t
+     /tmp/ccEOioxA.s:323    .text.ned_of_ecef_vect_f:00000000 ned_of_ecef_vect_f
+     /tmp/ccEOioxA.s:360    .text.ecef_of_enu_point_f:00000000 $t
+     /tmp/ccEOioxA.s:365    .text.ecef_of_enu_point_f:00000000 ecef_of_enu_point_f
+     /tmp/ccEOioxA.s:562    .text.ecef_of_ned_point_f:00000000 $t
+     /tmp/ccEOioxA.s:567    .text.ecef_of_ned_point_f:00000000 ecef_of_ned_point_f
+     /tmp/ccEOioxA.s:605    .text.ecef_of_enu_vect_f:00000000 $t
+     /tmp/ccEOioxA.s:610    .text.ecef_of_enu_vect_f:00000000 ecef_of_enu_vect_f
+     /tmp/ccEOioxA.s:801    .text.ecef_of_ned_vect_f:00000000 $t
+     /tmp/ccEOioxA.s:806    .text.ecef_of_ned_vect_f:00000000 ecef_of_ned_vect_f
+     /tmp/ccEOioxA.s:845    .text.lla_of_ecef_f:00000000 $t
+     /tmp/ccEOioxA.s:850    .text.lla_of_ecef_f:00000000 lla_of_ecef_f
+     /tmp/ccEOioxA.s:1161   .text.lla_of_ecef_f:00000258 $d
+     /tmp/ccEOioxA.s:1178   .text.ltp_def_from_ecef_f:00000000 $t
+     /tmp/ccEOioxA.s:1183   .text.ltp_def_from_ecef_f:00000000 ltp_def_from_ecef_f
+     /tmp/ccEOioxA.s:1298   .text.ecef_of_lla_f:00000000 $t
+     /tmp/ccEOioxA.s:1303   .text.ecef_of_lla_f:00000000 ecef_of_lla_f
+     /tmp/ccEOioxA.s:1432   .text.ecef_of_lla_f:000000c0 $d
+     /tmp/ccEOioxA.s:1440   .text.ned_of_lla_point_f:00000000 $t
+     /tmp/ccEOioxA.s:1445   .text.ned_of_lla_point_f:00000000 ned_of_lla_point_f
+     /tmp/ccEOioxA.s:1483   .text.enu_of_lla_point_f:00000000 $t
+     /tmp/ccEOioxA.s:1488   .text.enu_of_lla_point_f:00000000 enu_of_lla_point_f
+     /tmp/ccEOioxA.s:1526   .text.ltp_def_from_lla_f:00000000 $t
+     /tmp/ccEOioxA.s:1531   .text.ltp_def_from_lla_f:00000000 ltp_def_from_lla_f
+     /tmp/ccEOioxA.s:1648   .text.utm_of_lla_f:00000000 $t
+     /tmp/ccEOioxA.s:1653   .text.utm_of_lla_f:00000000 utm_of_lla_f
+     /tmp/ccEOioxA.s:2009   .text.utm_of_lla_f:00000240 $d
+     /tmp/ccEOioxA.s:2029   .text.lla_of_utm_f:00000000 $t
+     /tmp/ccEOioxA.s:2034   .text.lla_of_utm_f:00000000 lla_of_utm_f
+     /tmp/ccEOioxA.s:2345   .text.lla_of_utm_f:00000248 $d
+     /tmp/ccEOioxA.s:2365   .rodata.serie_coeff_proj_mercator:00000000 $d
+     /tmp/ccEOioxA.s:2369   .rodata.serie_coeff_proj_mercator:00000000 serie_coeff_proj_mercator
+                     .debug_frame:00000010 $d
+     /tmp/ccEOioxA.s:65     .text.isometric_latitude_fast_f:00000034 $t
+     /tmp/ccEOioxA.s:1177   .text.lla_of_ecef_f:0000028c $t
+     /tmp/ccEOioxA.s:2028   .text.utm_of_lla_f:0000027c $t
+
+UNDEFINED SYMBOLS
+__aeabi_f2d
+__aeabi_dmul
+__aeabi_dadd
+__aeabi_d2f
+tan
+log
+__aeabi_fsub
+__aeabi_fmul
+__aeabi_fadd
+__aeabi_fdiv
+sqrtf
+powf
+atanf
+atan2f
+sinf
+cosf
+__aeabi_i2d
+__aeabi_dsub
+__aeabi_ddiv
+__aeabi_i2f
+sin
+cosh
+asin
+sinh
+cos
+atan
+exp
+__aeabi_fcmpgt
+pow

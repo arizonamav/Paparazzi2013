@@ -1,0 +1,10 @@
+<!-- This file has been generated from /home/mav/paparazzi/conf/airframes/UniversityOfArizona/radian_L2.xml -->
+<!-- Please DO NOT EDIT -->
+
+<settings>
+ <dl_settings>
+   <dl_settings name="Modules">
+      <dl_setting min="2" max="3" step="1" var="gps_ubx_gps_ubx_ucenter_periodic_status" shortname="gps_ubx_ucenter_periodic" values="START|STOP"/>
+   </dl_settings>
+ </dl_settings>
+</settings>
